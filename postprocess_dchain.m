@@ -21,7 +21,6 @@ function [tsol_new, rsol_new, rdotsol_new, R] = postprocess_dchain(R_eqd,A,w,We,
     for i = 1:tsegments
         
         tspansegment = [tstart, tend];
-    
         
         [t_add, R_add] = ode23tb(@(t,r) keller_miksis(t,eta,r,k,xi,rho,R_eqd,...
             S,A,w,po,pv,pGo,c,rmodel,emodel,vmodel,vmaterial),tspansegment,r_initial,options);
