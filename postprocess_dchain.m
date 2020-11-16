@@ -1,8 +1,8 @@
-function [tsol_new, rsol_new, rdotsol_new] = postprocess_dchain(R_eqd,A,w,We,Ca,rho,po,pv,c,tfinal,rmodel,emodel,vmodel,vmaterial)
+function [tsol_new, rsol_new, rdotsol_new, R] = postprocess_dchain(R_eqd,A,w,We,Ca,rho,po,pv,c,tfinal,rmodel,emodel,vmodel,vmaterial)
 
     
     tspan = [0 tfinal];
-    tsegments = 3000;
+    tsegments = 100;
     tstart = tspan(1);
     tend = tspan(2)/tsegments;
     t = [];
@@ -26,7 +26,7 @@ function [tsol_new, rsol_new, rdotsol_new] = postprocess_dchain(R_eqd,A,w,We,Ca,
         [t_add, R_add] = ode23tb(@(t,r) keller_miksis(t,eta,r,k,xi,rho,R_eqd,...
             S,A,w,po,pv,pGo,c,rmodel,emodel,vmodel,vmaterial),tspansegment,r_initial,options);
         
-        if(R_add(2,1)*R_add(2,end) < 0)
+        if(R_add(1,2)*R_add(end,2) < 0)
             
            options = odeset('MaxStep', 1E-9);
            [t_add, R_add] = ode23tb(@(t,r) keller_miksis(t,eta,r,k,xi,rho,R_eqd,...
@@ -37,7 +37,7 @@ function [tsol_new, rsol_new, rdotsol_new] = postprocess_dchain(R_eqd,A,w,We,Ca,
         
         t = [t t_add'];
         R = [R R_add'];
-        r_initial = [R_add(1,end), R_add(2,end)];
+        r_initial = [R_add(end,1), R_add(end,2)];
         
 
     end
@@ -45,6 +45,7 @@ function [tsol_new, rsol_new, rdotsol_new] = postprocess_dchain(R_eqd,A,w,We,Ca,
     tsol_new = t;
     rsol_new = R(1,:);
     rdotsol_new = R(2,:);
+    Rnew = R;
 
 end
 
