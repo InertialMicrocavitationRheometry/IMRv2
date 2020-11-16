@@ -97,31 +97,29 @@ print('f13New2', '-dpng');
 
 
 %%
-close;
+close; clc;
 figure(14) %FIGURE 4 with LEAST SQUARES FIT VALUES 
 hold on 
 mu_blood = 0.112;
 mu_water = 8.9*10E-4; 
 mu_o = 0.112; 
 %Carreau model for blood
-tfinal = 120*tRC;
+tfinal = 40*tRC;
 % [ODE]=bubblewall_solver(Ro_w,A,w,We_w,Ca,rho,po,pv,c,tfinal,'KM','NeoH','Carreau','lsq_blood');
 
 
 [tsol_new, rsol_new, rdotsol_new, RR] = postprocess_dchain(Ro_w,A,w,We_w,Ca,rho,po,pv,c,tfinal,'KM','NeoH','Carreau','lsq_blood');
 
-
-plot(tsol_new/tRC, rsol_new/Ro_w);
-print('rvstime', '-dpng'); 
-
+plot(tsol_new/tRC, rdotsol_new/Ro_w);
+% print('rvstime', '-dpng'); 
 
 figure (100)
 plot((tsol_new/tRC), carreau('lsq_blood',rdotsol_new./rsol_new)/mu_blood, '.r','LineWidth',2); 
-line(mu_water/mu_o, 'b','LineWidth',2);
-line(mu_o/mu_o, 'k-.','LineWidth',2)
-line(mu_inf/mu_o, 'g-.','LineWidth',2)
+% line(mu_water/mu_o, 'b','LineWidth',2);
+% line(mu_o/mu_o, 'k-.','LineWidth',2)
+% line(mu_inf/mu_o, 'g-.','LineWidth',2)
 %xticks([0:20:120]);
-yticks([0:.2:1.2]); 
+% yticks([0:.2:1.2]); 
 %axis([0 125 0 1.2]); 
 xlabel('\it{t/t$_{RC}$}', 'Interpreter', 'Latex', 'FontSize', 20); 
 ylabel('$\mu$/$\mu_{0}$', 'Interpreter', 'Latex', 'FontSize', 20); 
@@ -132,14 +130,14 @@ box on;
 set(gcf,'color','w'); %Changes background to white 
 set(gca, 'FontName', 'Times', 'FontSize', 20); 
 ax = gca;
-outerpos = ax.OuterPosition;
-ti = ax.TightInset; 
-left = outerpos(1) + ti(1);
-bottom = outerpos(2) + ti(2);
-ax_width = outerpos(3) - ti(1) - ti(3);
-ax_height = outerpos(4) - ti(2) - ti(4);
-ax.Position = [left bottom ax_width ax_height];
-ax.TickLength = [.03 .03];
+% outerpos = ax.OuterPosition;
+% ti = ax.TightInset; 
+% left = outerpos(1) + ti(1);
+% bottom = outerpos(2) + ti(2);
+% ax_width = outerpos(3) - ti(1) - ti(3);
+% ax_height = outerpos(4) - ti(2) - ti(4);
+% ax.Position = [left bottom ax_width ax_height];
+% ax.TickLength = [.03 .03];
 ax.LineWidth = 1.5;
 print('f14new2', '-dpng'); 
 
