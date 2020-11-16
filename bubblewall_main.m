@@ -104,22 +104,23 @@ mu_blood = 0.112;
 mu_water = 8.9*10E-4; 
 mu_o = 0.112; 
 %Carreau model for blood
-tfinal = 60*tRC;
+tfinal = 120*tRC;
 [ODE]=bubblewall_solver(Ro_w,A,w,We_w,Ca,rho,po,pv,c,tfinal,'KM','NeoH','Carreau','lsq_blood');
 
 
-[tsol_new, rsol_new, rdotsol_new] = postprocess(ODE.x,ODE.y(1,:),ODE.y(2,:),ODE);
+[tsol_new, rsol_new, rdotsol_new, RR] = postprocess_dchain(Ro_w,A,w,We_w,Ca,rho,po,pv,c,tfinal,'KM','NeoH','Carreau','lsq_blood');
 
-%plot(tsol_new, rdotsol_new./rsol_new);
+
 plot(tsol_new/tRC, rsol_new/Ro_w);
+print('rvstime', '-dpng'); 
+
+
 figure (100)
-
-
-plot((tsol_new/tRC), carreau('lsq_blood',rdotsol_new./rsol_new)/mu_blood, 'r','LineWidth',2); 
+plot((tsol_new/tRC), carreau('lsq_blood',rdotsol_new./rsol_new)/mu_blood, '.r','LineWidth',2); 
 yline(mu_water/mu_o, 'b','LineWidth',2);
 yline(mu_o/mu_o, 'k-.','LineWidth',2)
 yline(mu_inf/mu_o, 'g-.','LineWidth',2)
-xticks([0:20:120]);
+%xticks([0:20:120]);
 yticks([0:.2:1.2]); 
 %axis([0 125 0 1.2]); 
 xlabel('\it{t/t$_{RC}$}', 'Interpreter', 'Latex', 'FontSize', 20); 
