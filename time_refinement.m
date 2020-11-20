@@ -1,4 +1,4 @@
-function [tsol_new, rsol_new, rdotsol_new, R] = postprocess_dchain(R_eqd,A,w,We,Ca,rho,po,pv,c,tfinal,rmodel,emodel,vmodel,vmaterial)  
+function [tsol_new, rsol_new, rdotsol_new] = time_refinement(R_eqd,A,w,We,Ca,rho,po,pv,c,tfinal,rmodel,emodel,vmodel,vmaterial)  
     tsegments = 1;
     tstart = 0;
     deltat = tfinal/tsegments;
@@ -10,71 +10,68 @@ function [tsol_new, rsol_new, rdotsol_new, R] = postprocess_dchain(R_eqd,A,w,We,
     k=1;                        
     S =(rho*c2*R_eqd)/We;       
     eta=(rho*c^2)/Ca;          
-    pGo=po-pv+(2*S)/R_eqd;      
+    pGo=po-pv+(2*S)/R_eqd;    
+    % TODO SET THIS TO 1/c for Keller-Miksis and   
     xi = 1/c; 
+    xi = 0;
     r_dt=(pv-po)/(rho*c);
     r_initial = [R_eqd r_dt];
-    options = odeset('MaxStep', tfinal/1000);
-	tspansegment = [tstart, tend];    
-    
-    for i = 1:tsegments
-        [t_add, R_add] = ode23tb(@(t,r) keller_miksis(t,eta,r,k,xi,rho,R_eqd,...
+    options = odeset('MaxStep', tfinal/100);
+    tspansegment = [tstart, tfinal];    
+    % Running full simulation first
+    [t_add, R_add] = ode23tb(@(t,r) keller_miksis(t,eta,r,k,xi,rho,R_eqd,...
             S,A,w,po,pv,pGo,c,rmodel,emodel,vmodel,vmaterial),tspansegment,r_initial,options);
-
-        shift = 0;
-        for ii = 1:(length(R_add(:,1))-1)
-            ic = ii + shift;
-        if(R_add(ic,2)*R_add(ic+1,2) < 0)
-           tspansub = [t_add(ic),t_add(ic+1)];
-           r0sub = [R_add(ic,1),R_add(ic,2)];
-           options = odeset('MaxStep', 1E-9);
-           [t_sub, R_sub] = ode23tb(@(t,r) keller_miksis(t,eta,r,k,xi,rho,R_eqd,...
-            S,A,w,po,pv,pGo,c,rmodel,emodel,vmodel,vmaterial),tspansub,r0sub,options);
-           t_add = [t_add(1:ic); t_sub; t_add(ic+1:end)];
-           R_add = [R_add(1:ic,:); R_sub; R_add(ic+1:end,:)];
-           shift = shift + length(t_sub);
-        end
-        end
-        
-        shift = 0;
-        for ii = 1:(length(R_add(:,1))-1)
-            ic = ii + shift;
-        if(R_add(ic,2)*R_add(ic+1,2) < 0)
-           tspansub = [t_add(ic),t_add(ic+1)];
-           r0sub = [R_add(ic,1),R_add(ic,2)];
-           options = odeset('MaxStep', 1E-12);
-           [t_sub, R_sub] = ode23tb(@(t,r) keller_miksis(t,eta,r,k,xi,rho,R_eqd,...
-            S,A,w,po,pv,pGo,c,rmodel,emodel,vmodel,vmaterial),tspansub,r0sub,options);
-           t_add = [t_add(1:ic); t_sub; t_add(ic+1:end)];
-           R_add = [R_add(1:ic,:); R_sub; R_add(ic+1:end,:)];
-           shift = shift + length(t_sub);
-        end
-        end        
-    	
-        shift = 0;
-        for ii = 1:(length(R_add(:,1))-1)
-            ic = ii + shift;
-        if(R_add(ic,2)*R_add(ic+1,2) < 0)
-           tspansub = [t_add(ic),t_add(ic+1)];
-           r0sub = [R_add(ic,1),R_add(ic,2)];
-           options = odeset('MaxStep', 5E-16);
-           [t_sub, R_sub] = ode23tb(@(t,r) keller_miksis(t,eta,r,k,xi,rho,R_eqd,...
-            S,A,w,po,pv,pGo,c,rmodel,emodel,vmodel,vmaterial),tspansub,r0sub,options);
-           t_add = [t_add(1:ic); t_sub; t_add(ic+1:end)];
-           R_add = [R_add(1:ic,:); R_sub; R_add(ic+1:end,:)];
-           shift = shift + length(t_sub);
-        end
-        end
-  
-        tspansegment = tspansegment + deltat;
-        t = [t t_add'];
-        R = [R R_add'];
-        r_initial = [R_add(end,1), R_add(end,2)];
+   
+    % First level of refinement
+    shift = 0;
+    for ii = 1:(length(R_add(:,1))-1)
+        ic = ii + shift;
+    if(R_add(ic,2)*R_add(ic+1,2) < 0)
+        tspansub = [t_add(ic),t_add(ic+1)];
+        r0sub = [R_add(ic,1),R_add(ic,2)];
+        options = odeset('MaxStep', 1E-9);
+        [t_sub, R_sub] = ode23tb(@(t,r) keller_miksis(t,eta,r,k,xi,rho,R_eqd,...
+             S,A,w,po,pv,pGo,c,rmodel,emodel,vmodel,vmaterial),tspansub,r0sub,options);
+        t_add = [t_add(1:ic); t_sub; t_add(ic+1:end)];
+        R_add = [R_add(1:ic,:); R_sub; R_add(ic+1:end,:)];
+        shift = shift + length(t_sub);
     end
-    tsol_new = t;
-    rsol_new = R(1,:);
-    rdotsol_new = R(2,:);
-    Rnew = R;
+    end
+ 
+    % Second level of refinement       
+    shift = 0;
+    for ii = 1:(length(R_add(:,1))-1)
+        ic = ii + shift;
+    if(R_add(ic,2)*R_add(ic+1,2) < 0)
+        tspansub = [t_add(ic),t_add(ic+1)];
+        r0sub = [R_add(ic,1),R_add(ic,2)];
+        options = odeset('MaxStep', 1E-12);
+        [t_sub, R_sub] = ode23tb(@(t,r) keller_miksis(t,eta,r,k,xi,rho,R_eqd,...
+           S,A,w,po,pv,pGo,c,rmodel,emodel,vmodel,vmaterial),tspansub,r0sub,options);
+        t_add = [t_add(1:ic); t_sub; t_add(ic+1:end)];
+        R_add = [R_add(1:ic,:); R_sub; R_add(ic+1:end,:)];
+        shift = shift + length(t_sub);
+    end
+    end        
+
+    % Third level of refinement       
+    shift = 0;
+    for ii = 1:(length(R_add(:,1))-1)
+        ic = ii + shift;
+    if(R_add(ic,2)*R_add(ic+1,2) < 0)
+        tspansub = [t_add(ic),t_add(ic+1)];
+        r0sub = [R_add(ic,1),R_add(ic,2)];
+        options = odeset('MaxStep', 5E-16);
+        [t_sub, R_sub] = ode23tb(@(t,r) keller_miksis(t,eta,r,k,xi,rho,R_eqd,...
+            S,A,w,po,pv,pGo,c,rmodel,emodel,vmodel,vmaterial),tspansub,r0sub,options);
+        t_add = [t_add(1:ic); t_sub; t_add(ic+1:end)];
+        R_add = [R_add(1:ic,:); R_sub; R_add(ic+1:end,:)];
+        shift = shift + length(t_sub);
+    end
+    end   
+    tsol_new = t_add;
+    rsol_new = R_add(1,:);
+    rdotsol_new = R_add(2,:);
 end
 
 function [ dR_dt ] = keller_miksis(t,eta,r,k,xi,rho,Req,S,A,w,...
