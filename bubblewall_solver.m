@@ -15,20 +15,17 @@ function [ODE] = bubblewall_solver(R_eqd,A,w,We,Ca,rho,po,pv,c,tfinal,rmodel,emo
     elseif strcmp('KM',rmodel) == 1
         xi = 1/c;
     end
-    r_dt=(pv-po)/(rho*c);       % ICs: initial velocity
+    r_dt=0;%(pv-po)/(rho*c);       % ICs: initial velocity
     r_initial=[Ro_eq r_dt];     % ICs: initial radius 
     t_span=[0 tf];              % TIME
-    options = odeset('MaxStep', tf/10E3,'AbsTol',1E-9);
-    %CALLING ODE45 TO SOLVE PROBLEM
-    %[t_ODE,R_ODE]=ode23tb(@(t,r) keller_miksis(t,eta,r,k,xi,rho,Ro_eq,...
-    %        S,A,w,po,pv,pGo,c,rmodel,emodel,vmodel,vmaterial),t_span,r_initial,options);  
-    
-    [ODE]=ode23tb(@(t,r) keller_miksis(t,eta,r,k,xi,rho,Ro_eq,...
-            S,A,w,po,pv,pGo,c,rmodel,emodel,vmodel,vmaterial),t_span,r_initial,options);
+    options = odeset('MaxStep', tf/1E4,'AbsTol',1E-9);
+    % Solving the System of ODEs
+    [ODE]=ode23tb(@(t,r) bubblewall(t,eta,r,k,xi,rho,Ro_eq,...
+            S,A,w,po,pv,pGo,emodel,vmodel,vmaterial),t_span,r_initial,options);
 end
  
-function [ dR_dt ] = keller_miksis(t,eta,r,k,xi,rho,Req,S,A,w,...
-    po,pv,pGo,c,rmodel,emodel,vmodel,vmaterial)
+function [ dR_dt ] = bubblewall(t,eta,r,k,xi,rho,Req,S,A,w,...
+    po,pv,pGo,emodel,vmodel,vmaterial)
 % KELLER MIKSIS EQUATION NON-LINEAR ODE SOLVER
 %
     Ro=Req;
