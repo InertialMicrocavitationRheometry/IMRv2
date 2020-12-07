@@ -41,6 +41,7 @@ box on;
 set(gcf,'color','w'); %Changes background to white 
 set(gca, 'FontName', 'Times', 'FontSize',20); 
 set(gca,'TickLabelInterpreter','latex')
+xticks([0:1:4])
 
 figure(3)
 hold on
@@ -54,6 +55,7 @@ ylim([0 1.1])
 set(gcf,'color','w'); %Changes background to white 
 set(gca, 'FontName', 'Times', 'FontSize',20); 
 set(gca,'TickLabelInterpreter','latex')
+xticks([0:1:4])
 
 figure(4)
 hold on
@@ -66,6 +68,7 @@ box on;
 set(gcf,'color','w'); %Changes background to white 
 set(gca, 'FontName', 'Times', 'FontSize',20); 
 set(gca,'TickLabelInterpreter','latex')
+xticks([0:1:4])
 
 figure(5)
 hold on
@@ -78,7 +81,7 @@ box on;
 set(gcf,'color','w'); %Changes background to white 
 set(gca, 'FontName', 'Times', 'FontSize',20); 
 set(gca,'TickLabelInterpreter','latex')
-
+xticks([0:1:4])
 
 %RUNNING AND PLOTTING
 %Water
@@ -153,12 +156,12 @@ xlim([0 max(gamma)])
 
 %Save figures
 figure(1)
-print('fRofT', '-dpng'); 
+saveas(gcf,'fRofT','png')
 figure(2)
-print('fgammaofT', '-dpng'); 
+saveas(gcf,'fgammaofT','png')
 figure(3)
-print('fmuofT', '-dpng'); 
+saveas(gcf,'fmuofT','png') 
 figure(4)
-print('ftauofT', '-dpng'); 
+saveas(gcf,'ftauofT','png')
 figure(5)
-print('ftauofgamma', '-dpng'); 
+saveas(gcf,'ftauofgamma','png')
