@@ -8,7 +8,7 @@ rho=1060;                               % density of liquid = 1000
 mud=1E-3;                               % dynamic viscosity
 c=1500;                                 % speed of sound 
 kappa = 1.4;                            % ratio of specific heats
-deltap=10;                              % amplitude of wave
+deltap= 1;                              % amplitude of wave
 w=345E3;                                % frequency of wave = 345E32
 shearmodulus = 0;                       % shear modulus of the surounding material
 mu_water = 8.9*10E-4;                   % viscosity of water
@@ -109,8 +109,12 @@ figure(4)
 tautrace = mutrace.*gamma;
 plot(tspan,tautrace,'g','LineWidth',2); 
 figure(5)
-tautrace = abs(mutrace.*gamma);
-plot(abs(gamman),tautrace,'g','LineWidth',2); 
+tautrace = mutrace.*gamma;
+taug = abs([gamman;tautrace]);
+taug = sortrows(taug');
+gt = taug(:,1);
+taut = taug(:,2);
+plot(gt,taut,'g','LineWidth',2); 
 
 %Blood
 vmaterial = 'lsq_blood';
@@ -130,8 +134,12 @@ figure(4)
 tautrace = mutrace.*gamma;
 plot(tspan,tautrace, 'r--','LineWidth',2);
 figure(5)
-tautrace = abs(mutrace.*gamma);
-plot(abs(gamman),tautrace, 'r--','LineWidth',2);
+tautrace = mutrace.*gamma;
+taug = abs([gamman;tautrace]);
+taug = sortrows(taug');
+gt = taug(:,1);
+taut = taug(:,2);
+plot(gt,taut, 'r--','LineWidth',2);
 
 %blood 0
 vmaterial = 'lsq_mu_knot';
@@ -151,8 +159,12 @@ figure(4)
 tautrace = mutrace.*gamma;
 plot(tspan,tautrace,'k-.','LineWidth',2); 
 figure(5)
-tautrace = abs(mutrace.*gamma);
-plot(abs(gamman),tautrace,'k-.','LineWidth',2); 
+tautrace = mutrace.*gamma;
+taug = abs([gamman;tautrace]);
+taug = sortrows(taug');
+gt = taug(:,1);
+taut = taug(:,2);
+plot(gt,taut,'k-.','LineWidth',2); 
 % xlim([0 max(gamma)])
 
 %Save figures
