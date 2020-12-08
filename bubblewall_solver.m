@@ -1,11 +1,11 @@
-function [ODE] = bubblewall_solver(R_eqd,A,w,We,Ca,rho,po,pv,c,tfinal,rmodel,emodel,vmodel,vmaterial)
+function [ODE] = bubblewall_solver(R_eqd,A,kappa,w,We,Ca,rho,po,pv,c,tfinal,rmodel,emodel,vmodel,vmaterial)
 % FUNCTION THAT SOLVED KELLER MIKSIS FOR MULTIPLE CASES
 % LETTY: YOUR CODE IS A BIT BETTER AT MANAGING VARIABLES, USE YOUR CODE AND
 % USE THIS CODE AS  REFERENCE ON HOW TO SIMPLIFY AND DEBUG YOUR CODE
     Ro_eq=R_eqd;                %Bubble Initial Radius
     tf=tfinal;                  %Final time
     c2=c^2;                     % speed of sound squared
-    k=1;                        % gas parameter, using air value
+    k=kappa;                        % gas parameter, using air value
     S =(rho*c2*R_eqd)/We;       % Weber #
     eta=(rho*c^2)/Ca;           % eta, SEE JFM PAPER
     pGo=po-pv+(2*S)/R_eqd;      % pressure inside the bubble
@@ -34,16 +34,16 @@ function [ dR_dt ] = bubblewall(t,eta,r,k,xi,rho,Req,S,A,w,...
     r2s=r2^2;
     pinfy=pinf(t,w,A)+po;
     if strcmp('Carreau',vmodel) == 1
-         mu = carreau(vmaterial,r2/r1);
+         nu = carreau(vmaterial,r2/r1)/rho;
     elseif strcmp('powerlaw',vmodel) == 1
-         mu = powerlaw(vmaterial,r2/r1);
+         nu = powerlaw(vmaterial,r2/r1)/rho;
     end
-    DEN = (1-r2*xi+4*mu*xi/(rho*r1))*r1;
-    INE = (-3/2)*(1-r2*((1/3)*xi))*r2s;
+    DEN = (1-r2*xi+4*nu*xi/r1)*r1;
+    INE = (-3/2)*(1-r2*xi/3)*r2s;
     PINF = (1+r2*xi)*((pv-pinfy)/rho);
     PGO = (1+(-3*k+1)*r2*xi)*(pGo/rho)*((Ro/r1)^(3*k));
-    VIS = -4*mu*r2/(r1*rho);%(-4*nu*r2)/r1;
-    SUR =-(2*S)/(rho*r1);
+    VIS = -4*nu*r2/r1;%(-4*nu*r2)/r1;
+    SUR = -2*S/(rho*r1);
     DPA=-((r1/rho)*xi)*pa(t,w,A);
     % GO THROUGH THE MATH AND SHOW ME THAT YOU CAME UP WITH THESE RESULTS  
     ELS = 0;
