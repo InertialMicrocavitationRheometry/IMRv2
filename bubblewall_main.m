@@ -15,7 +15,7 @@ mu_water = 8.9*10E-4;                   % viscosity of water
 Ca = (rho*c*c)/shearmodulus;            % shear modulus of soft material 
 We_w = (rho*c*c*Ro_w)/Sd;
 mu_o = 0.112;
-omegan = (1/(pi*Ro_w))*sqrt((3*kappa*(po-pv)+(3*kappa-1)*(2*Sd)/Ro_w)/rho);
+omegan = (1/(2*pi*Ro_w))*sqrt((3*kappa*(po-pv)+(3*kappa-1)*(2*Sd)/Ro_w)/rho);
 tRC = 1/omegan;
 tfinal=4*tRC;                           % final time of simulation
 
