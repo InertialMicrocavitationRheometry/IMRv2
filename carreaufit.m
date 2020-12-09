@@ -55,6 +55,9 @@ box on;
 set(gcf,'color','w'); %Changes background to white 
 set(gca, 'FontName', 'Times', 'FontSize', 20); 
 set(gca,'TickLabelInterpreter','latex')
+xa = gca;
+xa.TickLength = [.03 .03];
+xa.LineWidth = 1.5;
 print('./fitfigs/carreauFit1', '-dpng'); 
 
 
@@ -74,6 +77,9 @@ box on;
 set(gcf,'color','w'); %Changes background to white 
 set(gca, 'FontName', 'Times', 'FontSize', 20); 
 set(gca,'TickLabelInterpreter','latex')
+xa = gca;
+xa.TickLength = [.03 .03];
+xa.LineWidth = 1.5;
 print('./fitfigs/carreauFit2', '-dpng'); 
 
 
@@ -115,4 +121,7 @@ box on;
 set(gcf,'color','w'); %Changes background to white 
 set(gca, 'FontName', 'Times', 'FontSize', 20); 
 set(gca,'TickLabelInterpreter','latex')
+xa = gca;
+xa.TickLength = [.03 .03];
+xa.LineWidth = 1.5;
 print('./fitfigs/carreauFit3', '-dpng'); 

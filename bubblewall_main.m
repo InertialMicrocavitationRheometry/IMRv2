@@ -31,6 +31,9 @@ box on;
 set(gcf,'color','w'); %Changes background to white 
 set(gca, 'FontName', 'Times', 'FontSize',20); 
 set(gca,'TickLabelInterpreter','latex')
+xa = gca;
+xa.TickLength = [.03 .03];
+xa.LineWidth = 1.5;
 
 figure(2)
 hold on
@@ -43,6 +46,9 @@ box on;
 set(gcf,'color','w'); %Changes background to white 
 set(gca, 'FontName', 'Times', 'FontSize',20); 
 set(gca,'TickLabelInterpreter','latex')
+xa = gca;
+xa.TickLength = [.03 .03];
+xa.LineWidth = 1.5;
 xticks([0:1:4])
 
 figure(3)
@@ -57,7 +63,10 @@ ylim([0 1.1])
 set(gcf,'color','w'); %Changes background to white 
 set(gca, 'FontName', 'Times', 'FontSize',20); 
 set(gca,'TickLabelInterpreter','latex')
+xa = gca;
 xticks([0:1:4])
+xa.TickLength = [.03 .03];
+xa.LineWidth = 1.5;
 
 figure(4)
 hold on
@@ -71,6 +80,9 @@ set(gcf,'color','w'); %Changes background to white
 set(gca, 'FontName', 'Times', 'FontSize',20); 
 set(gca,'TickLabelInterpreter','latex')
 xticks([0:1:4])
+xa = gca;
+xa.TickLength = [.03 .03];
+xa.LineWidth = 1.5;
 
 figure(5)
 hold on
@@ -83,7 +95,9 @@ box on;
 set(gcf,'color','w'); %Changes background to white 
 set(gca, 'FontName', 'Times', 'FontSize',20); 
 set(gca,'TickLabelInterpreter','latex')
-% xticks([0:1:4])
+xa = gca;
+xa.TickLength = [.03 .03];
+xa.LineWidth = 1.5;
 
 %RUNNING AND PLOTTING
 %Water
