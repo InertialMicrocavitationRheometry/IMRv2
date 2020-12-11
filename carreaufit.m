@@ -23,8 +23,8 @@ gamma = gamma(1:end);
 car = @(x,gamma) x(4) + (x(3)-x(4)).*(1+x(1)^2.*gamma.^2).^((x(2)-1)/2);
 % setting initial condition in the guess
 % setting lower and upper bounds for the fitting
-lb = [0.2    ,  0.3, 0.2*mu0 , 0.2*mu8 ];
-ub = [500   ,   0.6, 5*mu0   , 5*mu8   ];
+lb = [0.2    ,  0.1, mu0 , mu8 ];
+ub = [500   ,   0.6, mu0 , mu8 ];
 x0 = (lb+ub)*0.5;
 options = optimoptions('lsqcurvefit','Algorithm','trust-region-reflective',...
     'OptimalityTolerance',1e-8,'FunctionTolerance',1E-8);
@@ -40,7 +40,6 @@ figure(1)
 loglog(xl,car(xsol,xl), 'k','LineWidth',2);
 hold on
 loglog(skax,skay,'or','markerfacecolor','r','LineWidth',2);
-
 loglog(birox,biroy,'sb','markerfacecolor','b','LineWidth',2)
 loglog(merix,meriy,'g^','markerfacecolor','g','LineWidth',2)
 

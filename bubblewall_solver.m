@@ -1,4 +1,4 @@
-function [ODE] = bubblewall_solver(R_eqd,A,kappa,w,We,Ca,rho,po,pv,c,tfinal,rmodel,emodel,vmodel,vmaterial)
+function [ODE] = bubblewall_solver(R_eqd,deltap,kappa,f,We,Ca,rho,po,pv,c,tfinal,force,rmodel,emodel,vmodel,vmaterial)
 % FUNCTION THAT SOLVED KELLER MIKSIS FOR MULTIPLE CASES
 % LETTY: YOUR CODE IS A BIT BETTER AT MANAGING VARIABLES, USE YOUR CODE AND
 % USE THIS CODE AS  REFERENCE ON HOW TO SIMPLIFY AND DEBUG YOUR CODE
@@ -21,18 +21,19 @@ function [ODE] = bubblewall_solver(R_eqd,A,kappa,w,We,Ca,rho,po,pv,c,tfinal,rmod
     options = odeset('MaxStep', tf/1E4,'AbsTol',1E-9);
     % Solving the System of ODEs
     [ODE]=ode23tb(@(t,r) bubblewall(t,eta,r,k,xi,rho,Ro_eq,...
-            S,A,w,po,pv,pGo,emodel,vmodel,vmaterial),t_span,r_initial,options);
+            S,deltap,f,po,pv,pGo,force,emodel,vmodel,vmaterial),...
+            t_span,r_initial,options);
 end
  
-function [ dR_dt ] = bubblewall(t,eta,r,k,xi,rho,Req,S,A,w,...
-    po,pv,pGo,emodel,vmodel,vmaterial)
+function [ dR_dt ] = bubblewall(t,eta,r,k,xi,rho,Req,S,deltap,f,...
+    po,pv,pGo,force,emodel,vmodel,vmaterial)
 % KELLER MIKSIS EQUATION NON-LINEAR ODE SOLVER
 %
     Ro=Req;
     r2=r(2);
     r1=r(1);
     r2s=r2^2;
-    pinfy=pinf(t,w,A)+po;
+    pinfy=pinf(t,f,deltap,force)+po;
     if strcmp('Carreau',vmodel) == 1
          nu = carreau(vmaterial,r2/r1)/rho;
     elseif strcmp('powerlaw',vmodel) == 1
@@ -44,7 +45,7 @@ function [ dR_dt ] = bubblewall(t,eta,r,k,xi,rho,Req,S,A,w,...
     PGO = (1+(-3*k+1)*r2*xi)*(pGo/rho)*((Ro/r1)^(3*k));
     VIS = -4*nu*r2/r1;%(-4*nu*r2)/r1;
     SUR = -2*S/(rho*r1);
-    DPA=-((r1/rho)*xi)*pa(t,w,A);
+    DPA=-((r1/rho)*xi)*pa(t,f,deltap,force);
     % GO THROUGH THE MATH AND SHOW ME THAT YOU CAME UP WITH THESE RESULTS  
     ELS = 0;
     DELS = 0;
@@ -65,39 +66,20 @@ function [ dR_dt ] = bubblewall(t,eta,r,k,xi,rho,Req,S,A,w,...
     dR_dt=[ r2; dRdT2 ];
 end
  
-function dpa = pa(t,f,A)
+function dpa = pa(t,f,deltap,force)
 % PRESSURE DIFFERENCE CALCULATION
-% LETTY YOU CHANGE THIS TO WHAT YOU NEED TO REPLICATE RESULTS IN PAPERS
-%   dt = 1E-6;
-%   om = f*2*pi;
-%     mn = 3.7;
-%     if t < dt - pi/om
-%         dpa = 0;
-%     elseif t > dt + pi/om
-%         dpa = 0;
-%     else
-%         dpa = -(A*mn*om*sin(om*(dt - t))*...
-%             (cos(om*(dt - t))/2 + 1/2)^(mn - 1))/2;
-%     end
- 
-dpa = 0;
- 
+ if strcmp('sine',force)==1
+     dpa = deltap*2*pi*f*cos(2*pi*f*t);
+ elseif strcmp('mono',force)==1
+     dpa = 0;
+ end 
 end
  
-function p = pinf(t,f,A)
+function p = pinf(t,f,deltap,force)
 % FORCING PRESSURE CALCULATION
-% LETTY YOU CHANGE THIS TO WHAT YOU NEED TO REPLICATE RESULTS IN PAPERS
-%   dt = 1E-6;
-%   om = f*2*pi;
-%   mn = 3.7;
-%     if t < dt - pi/om
-%         p = 0;
-%     elseif t > dt + pi/om
-%         p = 0;
-%     else
-%         p = -A*(0.5 + 0.5*cos(om*(t - dt))).^mn;
-%     end
-     
-    p = A;
-     
+ if strcmp('sine',force)==1
+     p = deltap*sin(2*pi*f*t);
+ elseif strcmp('mono',force)==1
+     p = deltap;
+ end     
 end
