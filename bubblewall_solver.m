@@ -1,4 +1,5 @@
-function [ODE] = bubblewall_solver(R_eqd,deltap,kappa,f,We,Ca,rho,po,pv,c,tfinal,force,rmodel,emodel,vmodel,vmaterial)
+function [Tout,Rout,Rddot] = bubblewall_solver(R_eqd,deltap,kappa,f,...
+    We,Ca,rho,po,pv,c,tfinal,force,rmodel,emodel,vmodel,vmaterial)
 % FUNCTION THAT SOLVED KELLER MIKSIS FOR MULTIPLE CASES
 % LETTY: YOUR CODE IS A BIT BETTER AT MANAGING VARIABLES, USE YOUR CODE AND
 % USE THIS CODE AS  REFERENCE ON HOW TO SIMPLIFY AND DEBUG YOUR CODE
@@ -18,54 +19,67 @@ function [ODE] = bubblewall_solver(R_eqd,deltap,kappa,f,We,Ca,rho,po,pv,c,tfinal
     r_dt=0;%(pv-po)/(rho*c);       % ICs: initial velocity
     r_initial=[Ro_eq r_dt];     % ICs: initial radius 
     t_span=[0 tf];              % TIME
-    options = odeset('MaxStep', tf/1E4,'AbsTol',1E-9);
+    options = odeset('MaxStep', 1E-10,'AbsTol',1E-9);
     % Solving the System of ODEs
-    [ODE]=ode23tb(@(t,r) bubblewall(t,eta,r,k,xi,rho,Ro_eq,...
+    [Tout,Rout]=ode23tb(@(t,r) bubblewall(t,r,eta,k,xi,rho,Ro_eq,...
             S,deltap,f,po,pv,pGo,force,emodel,vmodel,vmaterial),...
             t_span,r_initial,options);
+    [Rddot] = bubblewall_Rddot(Tout,Rout,eta,k,xi,rho,Ro_eq,...
+        S,deltap,f,po,pv,pGo,force,emodel,vmodel,vmaterial);
 end
  
-function [ dR_dt ] = bubblewall(t,eta,r,k,xi,rho,Req,S,deltap,f,...
+function [ dR_dt ] = bubblewall(t,r,eta,k,xi,rho,Req,S,deltap,f,...
+    po,pv,pGo,force,emodel,vmodel,vmaterial)
+% KELLER MIKSIS EQUATION NON-LINEAR ODE SOLVER
+%
+    dRdT2 = bubblewall_Rddot(t,r,eta,k,xi,rho,Req,S,deltap,f,...
+    po,pv,pGo,force,emodel,vmodel,vmaterial);
+    dR_dt=[ r(2); dRdT2 ];
+end
+ 
+function [ dRdT2 ] = bubblewall_Rddot(t,r,eta,k,xi,rho,Req,S,deltap,f,...
     po,pv,pGo,force,emodel,vmodel,vmaterial)
 % KELLER MIKSIS EQUATION NON-LINEAR ODE SOLVER
 %
     Ro=Req;
-    r2=r(2);
-    r1=r(1);
-    r2s=r2^2;
+    if size(r,2) > 1
+        r2 = r(:,2);
+        r1 = r(:,1);
+    else
+        r2=r(2);
+        r1=r(1);
+    end
+    r2s=r2.^2;
     pinfy=pinf(t,f,deltap,force)+po;
     if strcmp('Carreau',vmodel) == 1
-         nu = carreau(vmaterial,r2/r1)/rho;
+         nu = carreau(vmaterial,-2*r2./r1)/rho;
     elseif strcmp('powerlaw',vmodel) == 1
-         nu = powerlaw(vmaterial,r2/r1)/rho;
+         nu = powerlaw(vmaterial,-2*r2./r1)/rho;
     end
-    DEN = (1-r2*xi+4*nu*xi/r1)*r1;
-    INE = (-3/2)*(1-r2*xi/3)*r2s;
-    PINF = (1+r2*xi)*((pv-pinfy)/rho);
-    PGO = (1+(-3*k+1)*r2*xi)*(pGo/rho)*((Ro/r1)^(3*k));
-    VIS = -4*nu*r2/r1;%(-4*nu*r2)/r1;
-    SUR = -2*S/(rho*r1);
-    DPA=-((r1/rho)*xi)*pa(t,f,deltap,force);
+    DEN = (1-r2*xi+4*nu*xi./r1).*r1;
+    INE = (-3/2)*(1-r2.*xi/3).*r2s;
+    PINF = (1+r2*xi).*((pv-pinfy)/rho);
+    PGO = (1+(-3*k+1)*r2*xi).*(pGo/rho).*((Ro./r1).^(3*k));
+    VIS = -4*nu.*r2./r1;%(-4*nu*r2)/r1;
+    SUR = -2*S./(rho.*r1);
+    DPA=-((r1/rho)*xi).*pa(t,f,deltap,force);
     % GO THROUGH THE MATH AND SHOW ME THAT YOU CAME UP WITH THESE RESULTS  
-    ELS = 0;
-    DELS = 0;
     if strcmp('NeoH',emodel)==1
-        ELS=-(1/rho)*(1+r2*xi)*(eta/2)*(5-4*(Ro/r1)-(Ro/r1)^4);
-        DELS=-((r1/rho)*xi)*(eta/2)*(4*(Ro/r1^2)*r2+4*((Ro^4)/(r1^5))*r2);
+        ELS=-(1./rho).*(1+r2.*xi).*(eta/2).*(5-4*(Ro./r1)-(Ro./r1).^4);
+        DELS=-((r1./rho).*xi).*(eta/2).*(4*(Ro./r1.^2).*r2+4*((Ro.^4)./(r1.^5)).*r2);
     elseif strcmp('YangChurch',emodel)==1
-        ELS=-(1/rho)*(1+r2*xi)*((4*eta)/3)*(1-(Ro/r1)^3);
-        DELS=-((r1/rho)*xi)*(4*eta/3)*r2*(3*(Ro^3)/(r1^4));
+        ELS=-(1/rho)*(1+r2*xi).*((4*eta)/3).*(1-(Ro./r1).^3);
+        DELS=-((r1./rho).*xi).*(4*eta/3).*r2.*(3*(Ro.^3)./(r1.^4));
     elseif strcmp('LinElas',emodel)==1
-        ELS=-(1/rho)*2*eta*(1-(Ro/r1)^2);
-        DELS=-((r1/rho)*xi)*4*eta*((Ro^2)/(r1^3))*r2;
+        ELS=-(1/rho)*2*eta*(1-(Ro./r1).^2);
+        DELS=-((r1/rho)*xi)*4*eta*((Ro.^2)./(r1.^3)).*r2;
     else
         ELS=0; 
         DELS=0;
     end
-    dRdT2 = (INE+PINF+PGO+VIS+SUR+ELS+DELS+DPA)/DEN;
-    dR_dt=[ r2; dRdT2 ];
+    dRdT2 = (INE+PINF+PGO+VIS+SUR+ELS+DELS+DPA)./DEN;
 end
- 
+
 function dpa = pa(t,f,deltap,force)
 % PRESSURE DIFFERENCE CALCULATION
  if strcmp('sine',force)==1

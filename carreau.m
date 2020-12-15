@@ -1,4 +1,4 @@
-function mu = carreau(vmaterial,gammadot)
+function [mu] = carreau(vmaterial,gammadot)
 	mu_inf = 0.00345; 
 	mu_o = 0.056; 
     if strcmp('water',vmaterial)==1
@@ -13,7 +13,7 @@ function mu = carreau(vmaterial,gammadot)
     elseif strcmp('blood',vmaterial)==1
         lambda = 3.313; 
         nc = 0.3568; 
-        mu = mu_inf + (mu_o - mu_inf).*(1+(lambda).^2*(gammadot).^2).^((nc-1)./2); 
+        mu = mu_inf + (mu_o - mu_inf).*(1+(lambda).^2.*(gammadot).^2).^((nc-1)./2); 
        
     elseif strcmp('lsq_blood',vmaterial)==1
         lambda = 5.607570991983291;
