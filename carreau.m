@@ -4,7 +4,7 @@ function [mu] = carreau(vmaterial,gammadot)
     if strcmp('water',vmaterial)==1
         mu = 8.9*10E-4;
         
-    elseif strcmp('mu_knot', vmaterial) == 1
+    elseif strcmp('mu_0', vmaterial) == 1
         mu = mu_o; 
         
     elseif strcmp('mu_inf', vmaterial) == 1

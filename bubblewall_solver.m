@@ -19,7 +19,7 @@ function [Tout,Rout,Rddot] = bubblewall_solver(R_eqd,deltap,kappa,f,...
     r_dt=0;%(pv-po)/(rho*c);       % ICs: initial velocity
     r_initial=[Ro_eq r_dt];     % ICs: initial radius 
     t_span=[0 tf];              % TIME
-    options = odeset('MaxStep', tfinal/1E4,'AbsTol',1E-9);
+    options = odeset('MaxStep', tfinal/1E3,'AbsTol',1E-9);
     % Solving the System of ODEs
     [Tout,Rout]=ode23tb(@(t,r) bubblewall(t,r,eta,k,xi,rho,Ro_eq,...
             S,deltap,f,po,pv,pGo,force,emodel,vmodel,vmaterial),...
@@ -60,7 +60,13 @@ function [ dRdT2 ] = bubblewall_Rddot(t,r,eta,k,xi,rho,Req,S,deltap,f,...
     INE = (-3/2)*(1-r2.*xi/3).*r2s;
     PINF = (1+r2*xi).*((pv-pinfy)/rho);
     PGO = (1+(-3*k+1)*r2*xi).*(pGo/rho).*((Ro./r1).^(3*k));
-    VIS = -4*nu.*r2./r1;%(-4*nu*r2)/r1;
+    if (strcmp('mu_inf',vmaterial) == 1)
+        VIS = -4*nu.*r2./r1;
+    elseif (strcmp('mu_0',vmaterial) == 1)
+        VIS = -4*nu.*r2./r1;
+    else
+        VIS = -vis(r2,r1)/rho;%-4*nu.*r2./r1;%(-4*nu*r2)/r1;
+    end
     SUR = -2*S./(rho.*r1);
     DPA=-((r1/rho)*xi).*pa(t,f,deltap,force);
     % GO THROUGH THE MATH AND SHOW ME THAT YOU CAME UP WITH THESE RESULTS  
@@ -96,4 +102,22 @@ function p = pinf(t,f,deltap,force)
  elseif strcmp('mono',force)==1
      p = deltap;
  end     
+end
+
+function S = vis(Rdot,R)
+	mu_inf = 0.00345; 
+	mu_o = 0.056; 
+    lambda = 5.607570991983291;
+    nc = 0.383559338674208;
+    S = [];
+    for i = 1:length(R)
+        S(i) = 4*mu_inf*Rdot(i)./R(i)+...
+            integral(@(r) carreautau(r,Rdot(i),R(i),lambda,...
+            nc,mu_o,mu_inf),R(i),Inf);
+    end
+end
+
+function tau = carreautau(r,Rdot,R,lambda,nc,mu_o,mu_inf)
+    tau = (12*(Rdot.*R.^2)./r.^4).*(mu_o-mu_inf).*(1+...
+        lambda.^2.*(4.*Rdot.^2.*R.^4./r.^6)).^((nc-1)/2);
 end

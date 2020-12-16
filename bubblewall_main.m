@@ -1,18 +1,18 @@
 clear; close all; clc;
 %INPUT PARAMETERS
-Ro_w=1E-6;                              % initial bubble radius = 1E-6  
+Ro_w=8E-6;                              % initial bubble radius = 1E-6  
 Sd=0.072;                               % surface tension                
 po=101325;                              % atmospheric pressure = 101325
 pv=2300;                                % pressure of vapor          
 rho=1000;                               % density of liquid = 1000      
 c=1500;                                 % speed of sound 
-kappa = 1.0;                          % ratio of specific heats
+kappa = 1.4;                          % ratio of specific heats
 omegan = (1/(2*pi*Ro_w))*sqrt((3*kappa*(po-pv)+(3*kappa-1)*(2*Sd)/Ro_w)/rho);
 tRC = 1/omegan;                         % natural period
 tmag = 10;
 tfinal=tmag*tRC;                          % final time of simulation
-deltap = 0.1E6;                         % amplitude of wave
-f = 1E6;%1/tRC;                              % driving frequecy
+deltap = 5E4;                         % amplitude of wave
+f = 5E5;%1/tRC;                              % driving frequecy
 shearmodulus = 0;                       % shear modulus of the surounding material
 mu_water = 8.9*10E-4;                   % viscosity of water
 Ca = (rho*c*c)/shearmodulus;            % shear modulus of soft material 
@@ -34,7 +34,7 @@ vmaterial = 'mu_inf';
     c,tfinal,force,rmodel,emodel,vmodel,vmaterial);
 lm = 'g-';
 figplot;
-% f3plot
+
 %Blood
 vmaterial = 'lsq_blood';
 [Tout,Rout,Rddot]=bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
@@ -42,8 +42,9 @@ vmaterial = 'lsq_blood';
 lm = 'r--';
 figplot;
 ffield;
+
 %blood 0
-vmaterial = 'mu_knot';
+vmaterial = 'mu_0';
 [Tout,Rout,Rddot]=bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
     c,tfinal,force,rmodel,emodel,vmodel,vmaterial);
 lm = 'k-.';
