@@ -7,6 +7,9 @@ sofr = zeros(N,M);
             else
                 sofr(i,j) = NaN;
             end
+            if abs(sofr(i,j)) > 10
+                sofr(i,j) = NaN;
+            end
         end
     end
 end

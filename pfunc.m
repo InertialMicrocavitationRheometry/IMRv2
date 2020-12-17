@@ -1,5 +1,6 @@
 function pofr = pfunc(r,R,U,Udot,pA,rho8,N,M)
 pofr = zeros(N,M);
+% equation 4.11 in Eric Johnsen thesis
     for i = 1:N
         for j = 1:M
             if r(i,j) >  R(i,1)

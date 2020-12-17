@@ -3,10 +3,9 @@ function [Tout,Rout,Rddot] = bubblewall_solver(R_eqd,deltap,kappa,f,...
 % FUNCTION THAT SOLVED KELLER MIKSIS FOR MULTIPLE CASES
 % LETTY: YOUR CODE IS A BIT BETTER AT MANAGING VARIABLES, USE YOUR CODE AND
 % USE THIS CODE AS  REFERENCE ON HOW TO SIMPLIFY AND DEBUG YOUR CODE
-    Ro_eq=R_eqd;                %Bubble Initial Radius
-    tf=tfinal;                  %Final time
+    Ro_eq=R_eqd;                % Bubble Initial Radius
+    tf=tfinal;                  % Final time
     c2=c^2;                     % speed of sound squared
-    k=kappa;                        % gas parameter, using air value
     S =(rho*c2*R_eqd)/We;       % Weber #
     eta=(rho*c^2)/Ca;           % eta, SEE JFM PAPER
     pGo=po-pv+(2*S)/R_eqd;      % pressure inside the bubble
@@ -16,15 +15,15 @@ function [Tout,Rout,Rddot] = bubblewall_solver(R_eqd,deltap,kappa,f,...
     elseif strcmp('KM',rmodel) == 1
         xi = 1/c;
     end
-    r_dt=0;%(pv-po)/(rho*c);       % ICs: initial velocity
-    r_initial=[Ro_eq r_dt];     % ICs: initial radius 
-    t_span=[0 tf];              % TIME
-    options = odeset('MaxStep', tfinal/1E3,'AbsTol',1E-9);
+    r_dt      = 0;%(pv-po)/(rho*c);       % ICs: initial velocity
+    r_initial = [Ro_eq r_dt];        % ICs: initial radius 
+    t_span    = [0 tf];                 % time
+    options   = odeset('MaxStep', tfinal/1E3,'AbsTol',1E-9);
     % Solving the System of ODEs
-    [Tout,Rout]=ode23tb(@(t,r) bubblewall(t,r,eta,k,xi,rho,Ro_eq,...
+    [Tout,Rout] = ode23tb(@(t,r) bubblewall(t,r,eta,kappa,xi,rho,Ro_eq,...
             S,deltap,f,po,pv,pGo,force,emodel,vmodel,vmaterial),...
             t_span,r_initial,options);
-    [Rddot] = bubblewall_Rddot(Tout,Rout,eta,k,xi,rho,Ro_eq,...
+    [Rddot]     = bubblewall_Rddot(Tout,Rout,eta,kappa,xi,rho,Ro_eq,...
         S,deltap,f,po,pv,pGo,force,emodel,vmodel,vmaterial);
 end
  
@@ -37,11 +36,10 @@ function [ dR_dt ] = bubblewall(t,r,eta,k,xi,rho,Req,S,deltap,f,...
     dR_dt=[ r(2); dRdT2 ];
 end
  
-function [ dRdT2 ] = bubblewall_Rddot(t,r,eta,k,xi,rho,Req,S,deltap,f,...
+function [ dRdT2 ] = bubblewall_Rddot(t,r,eta,k,xi,rho,Ro,S,deltap,f,...
     po,pv,pGo,force,emodel,vmodel,vmaterial)
 % KELLER MIKSIS EQUATION NON-LINEAR ODE SOLVER
 %
-    Ro=Req;
     if size(r,2) > 1
         r2 = r(:,2);
         r1 = r(:,1);
@@ -106,18 +104,17 @@ end
 
 function S = vis(Rdot,R)
 	mu_inf = 0.00345; 
-	mu_o = 0.056; 
-    lambda = 5.607570991983291;
-    nc = 0.383559338674208;
     S = [];
     for i = 1:length(R)
         S(i) = 4*mu_inf*Rdot(i)./R(i)+...
-            integral(@(r) carreautau(r,Rdot(i),R(i),lambda,...
-            nc,mu_o,mu_inf),R(i),Inf);
+            integral(@(r) carreautau(r,Rdot(i),R(i),mu_inf),R(i),Inf);
     end
 end
 
-function tau = carreautau(r,Rdot,R,lambda,nc,mu_o,mu_inf)
+function tau = carreautau(r,Rdot,R,mu_inf)
+	mu_o = 0.056; 
+    lambda = 5.607570991983291;
+    nc = 0.383559338674208;
     tau = (12*(Rdot.*R.^2)./r.^4).*(mu_o-mu_inf).*(1+...
         lambda.^2.*(4.*Rdot.^2.*R.^4./r.^6)).^((nc-1)/2);
 end
