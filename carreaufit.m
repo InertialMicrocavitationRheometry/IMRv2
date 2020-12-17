@@ -48,7 +48,7 @@ xlim([10E-2 10E1]);
 ylim([10E-4 10E-2]);
 xticks([10E-2 10E-1 10 10E1]);
 yticks([10E-4 10E-3 10E-2]);
-xlabel('$\dot{\gamma} = \dot{R}/R$ [1/s]','Interpreter','Latex','FontSize',20); 
+xlabel('$\dot{\varsigma}$ [1/s]','Interpreter','Latex','FontSize',20); 
 ylabel('$\mu$ [Pa$\cdot$s]', 'Interpreter', 'Latex', 'FontSize', 20); 
 box on;
 set(gcf,'color','w'); %Changes background to white 
@@ -70,7 +70,7 @@ plot(birox,biroy,'sb','markerfacecolor','b','LineWidth',2)
 plot(merix,meriy,'g^','markerfacecolor','g','LineWidth',2)
 
 ylim([0 0.07])
-xlabel('$\dot{\gamma} = \dot{R}/R$ [1/s]','Interpreter','Latex','FontSize',20); 
+xlabel('$\dot{\varsigma}$ [1/s]','Interpreter','Latex','FontSize',20); 
 ylabel('$\mu$ [Pa$\cdot$s]', 'Interpreter', 'Latex', 'FontSize', 20);    
 box on;
 set(gcf,'color','w'); %Changes background to white 
@@ -114,7 +114,7 @@ xlim([10E-2 10E1]);
 ylim([10E-4 10E-2]);
 xticks([10E-2 10E-1 10 10E1]);
 yticks([10E-4 10E-3 10E-2]);
-xlabel('$\dot{\gamma} = \dot{R}/R$ [1/s]','Interpreter','Latex','FontSize',20); 
+xlabel('$\dot{\varsigma}$ [1/s]','Interpreter','Latex','FontSize',20); 
 ylabel('$\mu$ [Pa$\cdot$s]', 'Interpreter', 'Latex', 'FontSize', 20); 
 box on;
 set(gcf,'color','w'); %Changes background to white 

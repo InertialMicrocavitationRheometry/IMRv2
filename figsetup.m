@@ -19,7 +19,7 @@ box on;
 figure(2)
 hold on
 xlabel('\it{t}$^*$', 'Interpreter', 'Latex', 'FontSize', 20); 
-ylabel('$\dot{\gamma}^*|_R$', 'Interpreter', 'Latex', 'FontSize', 20); 
+ylabel('$\dot{\varsigma}^*|_R$', 'Interpreter', 'Latex', 'FontSize', 20); 
 %leg = legend('$\mu_{water}$','$\mu_{blood,\infty}$', '$\mu_{blood}$', '$\mu_{blood,0}$' ); 
 %set(leg,'Interpreter','latex','Location','northeast');
 %set(leg,'FontSize',18);
@@ -68,7 +68,7 @@ box on;
 
 figure(5)
 hold on
-xlabel('$\dot{\gamma}^*$', 'Interpreter', 'Latex', 'FontSize', 20); 
+xlabel('$\dot{\varsigma}^*$', 'Interpreter', 'Latex', 'FontSize', 20); 
 ylabel('$\tau_{rr}^*|_R$', 'Interpreter', 'Latex', 'FontSize', 20); 
 %leg = legend('$\mu_{water}$','$\mu_{blood,\infty}$', '$\mu_{blood}$', '$\mu_{blood,0}$' ); 
 %set(leg,'Interpreter','latex','Location','northeast');

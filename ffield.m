@@ -39,7 +39,7 @@ contourf(xcon',ycon',sr,clevels,'edgecolor','none')
 colormap jet;
 cbar = colorbar;
 set(cbar,'TickLabelInterpreter','latex');
-cbar.Label.String = '$\dot{\gamma}~[1/s]$';
+cbar.Label.String = '$\dot{\varsigma}~[1/s]$';
 pos = get(cbar,'Position');
 cbar.Label.Position = [1.661309480667114 -10.730386636465376]; 
 cbar.Label.Rotation = 0;
