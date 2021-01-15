@@ -1,4 +1,4 @@
-function uofr = ufunc(r,R,U,N,M)
+function uofr = f_ufunc(r,R,U,N,M)
 uofr = zeros(N,M);
     for i = 1:N
         for j = 1:M

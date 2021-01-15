@@ -16,15 +16,16 @@ mu8 = 0.00345;
 gamma = [skax;birox;merix];
 mu = [skay;biroy;meriy];
 mu = mu(1:end);
-gamma = gamma(1:end);
+% gamma = gamma(1:end);
 
 % defining the carreau equation, x(4) is mu_infinity, x(3) is mu_0, x(2) 
 % is n_c, x(1) is \lambda
-car = @(x,gamma) x(4) + (x(3)-x(4)).*(1+x(1)^2.*gamma.^2).^((x(2)-1)/2);
+% car = @(x,gamma) x(4) + (x(3)-x(4)).*(1+x(1)^2.*gamma.^2).^((x(2)-1)/2);
+car = @(x,gamma) x(4) + (x(3)-x(4)).*(1./(1+(x(1).*gamma).^x(2)));
 % setting initial condition in the guess
 % setting lower and upper bounds for the fitting
 lb = [0.2    ,  0.1, mu0 , mu8 ];
-ub = [500   ,   0.6, mu0 , mu8 ];
+ub = [10     ,  2, mu0 , mu8 ];
 x0 = (lb+ub)*0.5;
 options = optimoptions('lsqcurvefit','Algorithm','trust-region-reflective',...
     'OptimalityTolerance',1e-8,'FunctionTolerance',1E-8);

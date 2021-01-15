@@ -1,14 +1,13 @@
-function [mu] = carreau(vmaterial,gammadot)
+function [mu] = f_carreau(vmaterial,gammadot)
 	mu_inf = 0.00345; 
 	mu_o = 0.056; 
     if strcmp('water',vmaterial)==1
-        mu = 8.9*10E-4;
+        mu = 8.9*10E-4*ones(size(gammadot));
         
     elseif strcmp('mu_0', vmaterial) == 1
-        mu = mu_o; 
-        
+        mu = mu_o*isfinite(gammadot);
     elseif strcmp('mu_inf', vmaterial) == 1
-        mu = mu_inf;
+        mu = mu_inf*isfinite(gammadot);
         
     elseif strcmp('blood',vmaterial)==1
         lambda = 3.313; 

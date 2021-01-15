@@ -19,10 +19,11 @@ mu_water = 8.9*10E-4;           % viscosity of water
 Ca = (rho*c*c)/shearmodulus;    % shear modulus of soft material 
 We_w = (rho*c*c*Ro_w)/Sd;       % Weber number, surface tension
 mu_o = 0.056;                   % blood no shear viscosity
+mu_inf = 0.00345;
 stress = po;
 
 %SETTING UP FIGURES
-figsetup;
+m_figsetup;
 
 % SIMULATION SETTINGS
 rmodel = 'RP';
@@ -31,42 +32,69 @@ vmodel = 'Carreau';
 force = 'sine';
 
 %RUNNING AND PLOTTING
+
+%blood inf
+rstarlim = 5;
+rstarres = 80;
+rstarlimtick = rstarlim/5;
 vmaterial = 'mu_inf';
-[Tout,Rout,Rddot]=bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
+mufilter = 0;
+contourshift = 0;
+[Tout,Rout,Rddot]=f_bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
     c,tfinal,force,rmodel,emodel,vmodel,vmaterial);
 lm = 'g-';
-figplot;
+m_figplot;
+m_ffield;
 
-%Blood
+% blood carreau
+rstarlim = 700;
+rstarres = 5;
+rstarlimtick = 100;
+mufilter = 1;
 vmaterial = 'lsq_blood';
-[Tout,Rout,Rddot]=bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
+contourshift = 3;
+[Tout,Rout,Rddot]=f_bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
     c,tfinal,force,rmodel,emodel,vmodel,vmaterial);
 lm = 'r--';
-figplot;
-rstarlim = 500;
-ffield;
+m_figplot;
+m_ffield;
 
-%blood 0
+% blood o
+rstarlim = 5;
+rstarres = 80;
+rstarlimtick = rstarlim/5;
 vmaterial = 'mu_0';
-[Tout,Rout,Rddot]=bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
+mufilter = 0;
+contourshift = 6;
+[Tout,Rout,Rddot]=f_bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
     c,tfinal,force,rmodel,emodel,vmodel,vmaterial);
 lm = 'k-.';
-figplot;
+m_figplot;
+m_ffield;
 
 %Save figures
 figure(1)
-saveas(gcf,'fRofT','png')
+saveas(gcf,'./bubblewallfigs/fRofT','png')
 figure(2)
-saveas(gcf,'fgammaofT','png')
+saveas(gcf,'./bubblewallfigs/fgammaofT','png')
 figure(3)
-saveas(gcf,'fmuofT','png') 
+saveas(gcf,'./bubblewallfigs/fmuofT','png') 
 figure(4)
-saveas(gcf,'ftauofT','png')
+saveas(gcf,'./bubblewallfigs/ftauofT','png')
 figure(5)
-saveas(gcf,'ftauofgamma','png')
-figure(6)
-saveas(gcf,'fmuofr','png')
+saveas(gcf,'./bubblewallfigs/ftauofgamma','png')
+
 figure(7)
-saveas(gcf,'fshearofr','png')
+saveas(gcf,'./contourfigs/fcshearofr_mui','png')
 figure(8)
-saveas(gcf,'ftauofr','png')
+saveas(gcf,'./contourfigs/fctauofr_mui','png')
+figure(9)
+saveas(gcf,'./contourfigs/fcmuofr_muc','png')
+figure(10)
+saveas(gcf,'./contourfigs/fcshearofr_muc','png')
+figure(11)
+saveas(gcf,'./contourfigs/fctauofr_muc','png')
+figure(13)
+saveas(gcf,'./contourfigs/fcshearofr_muo','png')
+figure(14)
+saveas(gcf,'./contourfigs/fctauofr_muo','png')

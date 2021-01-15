@@ -9,7 +9,7 @@ gamman = gamma/fnatural;
 plot(tspan,gamman,lm,'LineWidth',2); 
 
 figure(3)
-mutrace = carreau(vmaterial,gamma).*ones(size(gamma));
+mutrace = f_carreau(vmaterial,gamma).*ones(size(gamma));
 plot(tspan,mutrace/mu_o,lm,'LineWidth',2); 
 
 figure(4)

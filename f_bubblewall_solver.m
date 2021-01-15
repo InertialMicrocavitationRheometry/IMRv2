@@ -1,4 +1,4 @@
-function [Tout,Rout,Rddot] = bubblewall_solver(R_eqd,deltap,kappa,f,...
+function [Tout,Rout,Rddot] = f_bubblewall_solver(R_eqd,deltap,kappa,f,...
     We,Ca,rho,po,pv,c,tfinal,force,rmodel,emodel,vmodel,vmaterial)
 % FUNCTION THAT SOLVED KELLER MIKSIS FOR MULTIPLE CASES
 % LETTY: YOUR CODE IS A BIT BETTER AT MANAGING VARIABLES, USE YOUR CODE AND
@@ -50,7 +50,7 @@ function [ dRdT2 ] = bubblewall_Rddot(t,r,eta,k,xi,rho,Ro,S,deltap,f,...
     r2s=r2.^2;
     pinfy=pinf(t,f,deltap,force)+po;
     if strcmp('Carreau',vmodel) == 1
-         nu = carreau(vmaterial,-2*r2./r1)/rho;
+         nu = f_carreau(vmaterial,-2*r2./r1)/rho;
     elseif strcmp('powerlaw',vmodel) == 1
          nu = powerlaw(vmaterial,-2*r2./r1)/rho;
     end
@@ -116,5 +116,5 @@ function tau = carreautau(r,Rdot,R,mu_inf)
     lambda = 5.607570991983291;
     nc = 0.383559338674208;
     tau = (12*(Rdot.*R.^2)./r.^4).*(mu_o-mu_inf).*(1+...
-        lambda.^2.*(4.*Rdot.^2.*R.^4./r.^6)).^((nc-1)/2);
+        lambda.^2.*(4.*Rdot.^2.*R.^4./r.^6)).^((nc-1)/2);    
 end

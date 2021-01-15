@@ -1,4 +1,4 @@
-function pofr = pfunc(r,R,U,Udot,pA,rho8,N,M)
+function pofr = f_pfunc(r,R,U,Udot,pA,rho8,N,M)
 pofr = zeros(N,M);
 % equation 4.11 in Eric Johnsen thesis
     for i = 1:N
