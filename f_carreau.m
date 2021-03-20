@@ -1,19 +1,24 @@
-function [mu] = f_carreau(vmaterial,gammadot)
+function [mu,mu_inf,mu_o,nc,lambda] = f_carreau(vmaterial,gammadot)
 	mu_inf = 0.00345; 
 	mu_o = 0.056; 
+    lambda = 0;
+    nc = 0;
+    
     if strcmp('water',vmaterial)==1
         mu = 8.9*10E-4*ones(size(gammadot));
         
     elseif strcmp('mu_0', vmaterial) == 1
         mu = mu_o*isfinite(gammadot);
+        
     elseif strcmp('mu_inf', vmaterial) == 1
-        mu = mu_inf*isfinite(gammadot);
+        
+        mu = mu_inf*ones(size(gammadot));
         
     elseif strcmp('blood',vmaterial)==1
         lambda = 3.313; 
         nc = 0.3568; 
-        mu = mu_inf + (mu_o - mu_inf).*(1+(lambda).^2.*(gammadot).^2).^((nc-1)./2); 
-       
+        mu = mu_inf + (mu_o - mu_inf).*(1+(lambda).^2.*(gammadot).^2).^((nc-1)./2);        
+        
     elseif strcmp('lsq_blood',vmaterial)==1
         lambda = 5.607570991983291;
         nc = 0.383559338674208;

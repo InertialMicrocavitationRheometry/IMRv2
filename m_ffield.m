@@ -5,7 +5,7 @@ Rdot = Rout(:,2);
 Rdist = Ro_w*ones(lR,lr).*linspace(0,rstarlim,lr);
 % calculating the shear
 sr = f_sfunc(Rdist,R,Rdot,lR,lr);
-mugrid = f_carreau(vmaterial,sr);
+[mugrid,mu_inf,mu_o,~,~] = f_carreau(vmaterial,sr);
 munon = (mugrid-mu_inf)/(mu_o-mu_inf);
 if mufilter == 1
     [munon,mugrid,sr] = f_mufilter(munon,mugrid,sr,lR,lr);

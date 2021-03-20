@@ -1,4 +1,4 @@
-tickrange= [0:1:tmag];
+tickrange= [0:0.2:tmag];
 % SETTING UP THE FIGURES
 figure(1)  
 hold on

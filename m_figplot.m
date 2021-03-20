@@ -9,11 +9,12 @@ gamman = gamma/fnatural;
 plot(tspan,gamman,lm,'LineWidth',2); 
 
 figure(3)
-mutrace = f_carreau(vmaterial,gamma).*ones(size(gamma));
+[mutrace,~,mu_o,~,~] = f_carreau(vmaterial,gamma);
 plot(tspan,mutrace/mu_o,lm,'LineWidth',2); 
 
 figure(4)
 tautrace = mutrace.*gamma;
+stress = po;
 plot(tspan,tautrace/stress,lm,'LineWidth',2); 
 
 figure(5)
