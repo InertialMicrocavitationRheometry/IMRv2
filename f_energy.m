@@ -17,10 +17,17 @@ LKE = 2*pi*rho*R.^3.*Rdot.^2;
 LPE = Pinf.*V;
 BIE = PG.*V/(kappa-1)+Sd*(4*pi*R.^2);
 ve = Rdot.^2.*R;
-[mu,~,~,~,~] = f_carreau(vmaterial,1);
 dt = [0;diff(Tout)];
-VE = (48*pi/3)*mu.*cumtrapz(ve.*dt);
 
+[mu,mu_inf,mu_o,nc,lambda] = f_carreau(vmaterial,1);
 
+if (strcmp('mu_inf',vmaterial) == 1 || strcmp('mu_0',vmaterial) == 1)
+    S = zeros(size(dt));
+else
+    S = R.^3.*ve.*f_visG(nc,lambda,Rdot,R).*dt;
+    mu = mu_inf;
+end
+
+VE = 16*pi*mu.*cumtrapz(ve.*dt) + 48*pi*(mu_o-mu_inf)*cumtrapz(S);
 TE  = LKE+LPE+BIE+VE;
 end

@@ -11,19 +11,19 @@ pGo=po-pv+(2*Sd)/Ro_w;
 fnatural = (1/(2*pi*Ro_w))*sqrt((3*kappa*(po-pv)+...
     (3*kappa-1)*(2*Sd)/Ro_w)/rho);
 tRC = 1/fnatural;                 % natural period
-tRC = 0.915*Ro_w*sqrt(rho/(0.5E7-po));
+tRC = 0.915*Ro_w*sqrt(rho/(1E7-po));
 fnatural = 1/tRC;
-tmag = 2;
+tmag = 2.001;
 tfinal=tmag*tRC;                % final time of simulation
-deltap = 0.5E7;                   % amplitude of wave
-f = 6.4E6; %1/tRC;                 % driving frequecy
+deltap = 1E7;                   % amplitude of wave
+f = 1E4; %1/tRC;                 % driving frequecy
 shearmodulus = 0;               % shear modulus of the surounding material
 mu_water = 8.9*10E-4;           % viscosity of water
 Ca = (rho*c*c)/shearmodulus;    % shear modulus of soft material 
 We_w = (rho*c*c*Ro_w)/Sd;       % Weber number, surface tension
 
 %SETTING UP FIGURES
-m_figsetup;
+p_figsetup;
 
 % SIMULATION SETTINGS
 rmodel = 'RP';
@@ -36,15 +36,15 @@ force = 'mono';
 rstarlim = 5;
 rstarres = 80;
 rstarlimtick = rstarlim/5;
-vmaterial = 'mu_inf';
+vmaterial = 'lsq_blood';
 mufilter = 0;
 contourshift = 1;
 [Tout,Rout,Rddot,Pinf]=f_bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
     c,tfinal,force,rmodel,emodel,vmaterial);
 lm = 'g-';
-m_figplot;
-% m_ffield;
-m_figenergy;
+p_figplot;
+% p_ffield;
+p_figenergy;
 
 %%
 % blood carreau
@@ -57,8 +57,9 @@ contourshift = 4;
 [Tout,Rout,Rddot,Pinf]=f_bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
     c,tfinal,force,rmodel,emodel,vmaterial);
 lm = 'r--';
-m_figplot;
-m_ffield;
+p_figplot;
+% p_ffield;
+p_figenergy;
 
 % blood o
 rstarlim = 5;
@@ -70,8 +71,8 @@ contourshift = 7;
 [Tout,Rout,Rddot,Pinf]=f_bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
     c,tfinal,force,rmodel,emodel,vmaterial);
 lm = 'k-.';
-m_figplot;
-m_ffield;
+p_figplot;
+p_ffield;
 
 %Save figures
 figure(1)

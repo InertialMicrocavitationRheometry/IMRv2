@@ -18,7 +18,7 @@ function [Tout,Rout,Rddot,Pinf] = f_bubblewall_solver(R_eqd,deltap,kappa,f,...
     r_dt      = 0;%(pv-po)/(rho*c);       % ICs: initial velocity
     r_initial = [Ro_eq r_dt];             % ICs: initial radius 
     t_span    = [0 tf];                   % time
-    options   = odeset('MaxStep', tfinal/1E4,'AbsTol',1E-9);
+    options   = odeset('MaxStep', tfinal/1E3,'AbsTol',1E-9);
     % Solving the System of ODEs
     [Tout,Rout] = ode45(@(t,r) bubblewall(t,r,eta,kappa,xi,rho,Ro_eq,...
             S,deltap,f,po,pv,pGo,force,emodel,vmaterial),...
@@ -57,7 +57,7 @@ function [ dRdT2 ] = bubblewall_Rddot(t,r,eta,k,xi,rho,Ro,S,deltap,f,...
     if (strcmp('mu_inf',vmaterial) == 1 || strcmp('mu_0',vmaterial) == 1)
         VIS = -4*nu.*r2./r1;
     else
-        VIS = -vis(mu_inf,mu_o,nc,lambda,r2,r1)/rho;
+        VIS = -f_vis(mu_inf,mu_o,nc,lambda,r2,r1)/rho;
     end
 %     VIS = 0*VIS;
     SUR = -2*S./(rho.*r1);
@@ -98,15 +98,3 @@ function p = pinf(t,f,deltap,force,po)
  p = p + po;
 end
 
-function S = vis(mu_inf,mu_o,nc,lambda,Rdot,R)
-    S = zeros(size(R));
-    for i = 1:length(R)
-        S(i) = 4*mu_inf*Rdot(i)./R(i)+...
-            integral(@(r) carreautau(r,Rdot(i),R(i),mu_inf,mu_o,nc,lambda),R(i),Inf);
-    end
-end
-
-function tau = carreautau(r,Rdot,R,mu_inf,mu_o,nc,lambda)
-    tau = (12*(Rdot.*R.^2)./r.^4).*(mu_o-mu_inf).*(1+...
-        lambda.^2.*(4.*Rdot.^2.*R.^4./r.^6)).^((nc-1)/2);    
-end
