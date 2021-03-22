@@ -5,7 +5,7 @@ function S = f_vis(mu_inf,mu_o,nc,lambda,Rdot,R)
     for i = 1:length(R)
         S(i) = 4*mu_inf*Rdot(i)./R(i)+...
             integral(@(r) carreautau(r,Rdot(i),R(i),mu_inf,mu_o,nc,lambda),...
-            R(i),Inf,'RelTol',1E-10,'AbsTol',1E-13);
+            R(i),Inf,'RelTol',1E-8,'AbsTol',1E-10);
     end
 end
 

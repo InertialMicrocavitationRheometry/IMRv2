@@ -19,7 +19,7 @@ xa = gca;
 xa.TickLength = [.015 .015];
 xa.LineWidth = 1.5;
 xticks(tickrange)
-ylim([0 1.1])
+% ylim([0 1.1])
 box on;
 fn = strcat('./analysisfigs/f_energybwall',filesuffix);
 saveas(gcf,fn,'png')

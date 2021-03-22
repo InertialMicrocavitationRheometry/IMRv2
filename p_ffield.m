@@ -65,7 +65,7 @@ set(gca,'TickLabelInterpreter','latex')
 xa = gca;
 xa.TickLength = [.015 .015];
 xa.LineWidth = 1.5;
-xticks([0:0.5:tmag])
+xticks([0:5:tmag])
 yticks([0:rstarlimtick:rstarlim])
 box on;
 
@@ -93,6 +93,6 @@ set(gca,'TickLabelInterpreter','latex')
 xa = gca;
 xa.TickLength = [.015 .015];
 xa.LineWidth = 1.5;
-xticks([0:0.5:tmag])
+xticks([0:5:tmag])
 yticks([0:rstarlimtick:rstarlim])
 box on;

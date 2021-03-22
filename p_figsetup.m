@@ -1,9 +1,9 @@
-tickrange= [0:0.5:tmag];
+tickrange= [0:5:tmag];
 % SETTING UP THE FIGURES
 figure(1)  
 hold on
 xlabel('\it{t} / $t_n$', 'Interpreter', 'Latex', 'FontSize', 20); 
-ylabel('$\it{R}/R_o$', 'Interpreter', 'Latex', 'FontSize', 20); 
+ylabel('$\it{R} / R_o$', 'Interpreter', 'Latex', 'FontSize', 20); 
 %leg = legend('$\mu_{water}$','$\mu_{blood,\infty}$', '$\mu_{blood}$', '$\mu_{blood,0}$' ); 
 %set(leg,'Interpreter','latex','Location','northeast');
 %set(leg,'FontSize',18);

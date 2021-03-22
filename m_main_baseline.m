@@ -11,9 +11,9 @@ pGo=po-pv+(2*Sd)/Ro_w;
 fnatural = (1/(2*pi*Ro_w))*sqrt((3*kappa*(po-pv)+...
     (3*kappa-1)*(2*Sd)/Ro_w)/rho);
 tRC = 1/fnatural;                 % natural period
-tmag = 2.01;
+tmag = 20.01;
 tfinal=tmag*tRC;                % final time of simulation
-deltap = 1E6;                   % amplitude of wave
+deltap = 5E5;                   % amplitude of wave
 f = 2E6; %1/tRC;                 % driving frequecy
 shearmodulus = 0;               % shear modulus of the surounding material
 mu_water = 8.9*10E-4;           % viscosity of water
@@ -26,7 +26,7 @@ p_figsetup;
 % SIMULATION SETTINGS
 rmodel = 'RP';
 emodel = 'NeoH';
-force = 'mono';
+force = 'sine';
 filesuffix = '_baseline';
 %RUNNING AND PLOTTING
 
@@ -45,9 +45,9 @@ filesuffix = '_baseline';
 % p_figenergy;
 
 % blood carreau
-rstarlim = 800;
+rstarlim = 2400;
 rstarres = 1;
-rstarlimtick = 200;
+rstarlimtick = 400;
 mufilter = 1;
 vmaterial = 'lsq_blood';
 contourshift = 1;
@@ -55,8 +55,8 @@ contourshift = 1;
     c,tfinal,force,rmodel,emodel,vmaterial);
 lm = 'k-';
 p_figplot;
-% p_ffield;
-p_figenergy;
+p_ffield;
+% p_figenergy;
 
 % % blood o
 % rstarlim = 5;
@@ -93,12 +93,12 @@ fn = strcat('./bubblewallfigs/ftauofgamma',filesuffix);
 figure(5)
 saveas(gcf,fn,'png')
 
-% fn = strcat('./contourfigs/fcmuofr_muc',filesuffix);
-% figure(6+contourshift)
-% saveas(gcf,fn,'png')
-% fn = strcat('./contourfigs/fcshearofr_muc',filesuffix);
-% figure(7+contourshift)
-% saveas(gcf,fn,'png')
-% fn = strcat('./contourfigs/fctauofr_muc',filesuffix);
-% figure(8+contourshift)
-% saveas(gcf,fn,'png')
+fn = strcat('./contourfigs/fcmuofr_muc',filesuffix);
+figure(6+contourshift)
+saveas(gcf,fn,'png')
+fn = strcat('./contourfigs/fcshearofr_muc',filesuffix);
+figure(7+contourshift)
+saveas(gcf,fn,'png')
+fn = strcat('./contourfigs/fctauofr_muc',filesuffix);
+figure(8+contourshift)
+saveas(gcf,fn,'png')
