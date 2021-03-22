@@ -28,21 +28,21 @@ pos = get(cbar,'Position');
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
 caxis([0 1]);
-xlabel('\it{t}$^*$', 'Interpreter', 'Latex', 'FontSize', 20); 
-ylabel('\it{r}$^*$','Interpreter','Latex','FontSize',24);
+xlabel('\it{t}/$t_n$', 'Interpreter', 'Latex', 'FontSize', 20); 
+ylabel('\it{r}/$R_o$','Interpreter','Latex','FontSize',24);
 set(gcf,'color','w');
 set(gca,'FontName','Times','FontSize',20);
 set(gca,'TickLabelInterpreter','latex')
 xa = gca;
-xa.TickLength = [.03 .03];
+xa.TickLength = [.015 .015];
 xa.LineWidth = 1.5;
-xticks([1:1:tmag])
+xticks([0:0.25:tmag])
 yticks([0:rstarlimtick:rstarlim])
 box on;
 
 % shear rate as a function of r (radial coordinate) plot
 figure(7+contourshift)
-% plot(tspan,Roft, lm,'LineWidth',2); 
+% plot(tspan, Roft, lm,'LineWidth',2); 
 srplot = sr/fnatural;
 contourf(xcon',ycon',srplot,clevels,'edgecolor','none')
 srmax = max(max(srplot));
@@ -50,22 +50,22 @@ srmin = min(min(srplot));
 colormap jet;
 cbar = colorbar;
 set(cbar,'TickLabelInterpreter','latex');
-cbar.Label.String = '$\dot\varsigma^*$';
+cbar.Label.String = '$\dot{\varsigma}/f_n$';
 set(cbar,'TickLabelInterpreter','latex');
 pos = get(cbar,'Position');
-% cbar.Label.Position = [pos(1)*2 pos(2)]; 
+cbar.Label.Position = [pos(1) -0.0000008]; 
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
 caxis([srmin srmax]);
-xlabel('\it{t}$^*$', 'Interpreter', 'Latex', 'FontSize', 20); 
-ylabel('\it{r}$^*$','Interpreter','Latex','FontSize',24);
+xlabel('\it{t}/$t_n$', 'Interpreter', 'Latex', 'FontSize', 20); 
+ylabel('\it{r}/$R_o$','Interpreter','Latex','FontSize',24);
 set(gcf,'color','w');
 set(gca,'FontName','Times','FontSize',20);
 set(gca,'TickLabelInterpreter','latex')
 xa = gca;
-xa.TickLength = [.03 .03];
+xa.TickLength = [.015 .015];
 xa.LineWidth = 1.5;
-xticks([1:1:tmag])
+xticks([0:0.5:tmag])
 yticks([0:rstarlimtick:rstarlim])
 box on;
 
@@ -78,21 +78,21 @@ taumax = max(max(tauplot));
 taumin = min(min(tauplot));
 colormap jet;
 cbar = colorbar;
-cbar.Label.String = '$\tau_{rr}^*$';
+cbar.Label.String = '$\tau_{rr}/B$';
 set(cbar,'TickLabelInterpreter','latex');
 pos = get(cbar,'Position');
-% cbar.Label.Position = [pos(1)*2 pos(2)]; 
+cbar.Label.Position = [pos(1) -0.0000016]; 
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
 caxis([taumin taumax]);
-xlabel('\it{t}$^*$', 'Interpreter', 'Latex', 'FontSize', 20); 
-ylabel('\it{r}$^*$','Interpreter','Latex','FontSize',24);
+xlabel('\it{t}/$t_n$', 'Interpreter', 'Latex', 'FontSize', 20); 
+ylabel('\it{r}/$R_o$','Interpreter','Latex','FontSize',24);
 set(gcf,'color','w');
 set(gca,'FontName','Times','FontSize',20);
 set(gca,'TickLabelInterpreter','latex')
 xa = gca;
-xa.TickLength = [.03 .03];
+xa.TickLength = [.015 .015];
 xa.LineWidth = 1.5;
-xticks([1:1:tmag])
+xticks([0:0.5:tmag])
 yticks([0:rstarlimtick:rstarlim])
 box on;

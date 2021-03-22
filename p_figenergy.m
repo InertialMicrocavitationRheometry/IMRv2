@@ -7,7 +7,7 @@ plot(tstar,LPE/E0,'-.b','LineWidth',2)
 plot(tstar,BIE/E0,':g','LineWidth',2)
 plot(tstar,VE/E0,'-om','LineWidth',2,'MarkerIndices',1:ceil(length(tstar)/20):length(tstar));
 plot(tstar,TE/E0,'k','LineWidth',2)
-xlabel('$\it{t}/t_{c}$', 'Interpreter', 'Latex', 'FontSize', 20); 
+xlabel('$\it{t}/t_{n}$', 'Interpreter', 'Latex', 'FontSize', 20); 
 ylabel('$\it{E}/E_o$', 'Interpreter', 'Latex', 'FontSize', 20); 
 %leg = legend('$\mu_{water}$','$\mu_{blood,\infty}$', '$\mu_{blood}$', '$\mu_{blood,0}$' ); 
 %set(leg,'Interpreter','latex','Location','northeast');
@@ -21,4 +21,5 @@ xa.LineWidth = 1.5;
 xticks(tickrange)
 ylim([0 1.1])
 box on;
-saveas(gcf,'./analysisfigs/f_energybwall','png')
+fn = strcat('./analysisfigs/f_energybwall',filesuffix);
+saveas(gcf,fn,'png')

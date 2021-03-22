@@ -1,9 +1,9 @@
-tickrange= [0:0.2:tmag];
+tickrange= [0:0.5:tmag];
 % SETTING UP THE FIGURES
 figure(1)  
 hold on
-xlabel('\it{t}$^*$', 'Interpreter', 'Latex', 'FontSize', 20); 
-ylabel('$\it{R}^*$', 'Interpreter', 'Latex', 'FontSize', 20); 
+xlabel('\it{t} / $t_n$', 'Interpreter', 'Latex', 'FontSize', 20); 
+ylabel('$\it{R}/R_o$', 'Interpreter', 'Latex', 'FontSize', 20); 
 %leg = legend('$\mu_{water}$','$\mu_{blood,\infty}$', '$\mu_{blood}$', '$\mu_{blood,0}$' ); 
 %set(leg,'Interpreter','latex','Location','northeast');
 %set(leg,'FontSize',18);
@@ -18,7 +18,7 @@ box on;
 
 figure(2)
 hold on
-xlabel('\it{t}$^*$', 'Interpreter', 'Latex', 'FontSize', 20); 
+xlabel('\it{t}/$t_n$', 'Interpreter', 'Latex', 'FontSize', 20); 
 ylabel('$\dot{\varsigma}^*|_R$', 'Interpreter', 'Latex', 'FontSize', 20); 
 %leg = legend('$\mu_{water}$','$\mu_{blood,\infty}$', '$\mu_{blood}$', '$\mu_{blood,0}$' ); 
 %set(leg,'Interpreter','latex','Location','northeast');
@@ -35,7 +35,7 @@ box on;
 
 figure(3)
 hold on
-xlabel('\it{t}$^*$', 'Interpreter', 'Latex', 'FontSize', 20); 
+xlabel('\it{t}/$t_n$', 'Interpreter', 'Latex', 'FontSize', 20); 
 ylabel('$\mu^*|_R$', 'Interpreter', 'Latex', 'FontSize', 20); 
 %leg = legend('$\mu_{water}$','$\mu_{blood,\infty}$', '$\mu_{blood}$', '$\mu_{blood,0}$' ); 
 %set(leg,'Interpreter','latex','Location','northeast');
@@ -52,7 +52,7 @@ box on;
 
 figure(4)
 hold on
-xlabel('\it{t}$^*$', 'Interpreter', 'Latex', 'FontSize', 20); 
+xlabel('\it{t}/$t_n$', 'Interpreter', 'Latex', 'FontSize', 20); 
 ylabel('$\tau_{rr}^*|_R$', 'Interpreter', 'Latex', 'FontSize', 20); 
 %leg = legend('$\mu_{water}$','$\mu_{blood,\infty}$', '$\mu_{blood}$', '$\mu_{blood,0}$' ); 
 %set(leg,'Interpreter','latex','Location','northeast');
