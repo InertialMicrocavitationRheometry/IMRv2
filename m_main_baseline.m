@@ -55,7 +55,7 @@ contourshift = 1;
     c,tfinal,force,rmodel,emodel,vmaterial);
 lm = 'k-';
 p_figplot;
-p_ffield;
+% p_ffield;
 % p_figenergy;
 
 % % blood o
@@ -93,12 +93,12 @@ fn = strcat('./bubblewallfigs/ftauofgamma',filesuffix);
 figure(5)
 saveas(gcf,fn,'png')
 
-fn = strcat('./contourfigs/fcmuofr_muc',filesuffix);
-figure(6+contourshift)
-saveas(gcf,fn,'png')
-fn = strcat('./contourfigs/fcshearofr_muc',filesuffix);
-figure(7+contourshift)
-saveas(gcf,fn,'png')
-fn = strcat('./contourfigs/fctauofr_muc',filesuffix);
-figure(8+contourshift)
-saveas(gcf,fn,'png')
+% fn = strcat('./contourfigs/fcmuofr_muc',filesuffix);
+% figure(6+contourshift)
+% saveas(gcf,fn,'png')
+% fn = strcat('./contourfigs/fcshearofr_muc',filesuffix);
+% figure(7+contourshift)
+% saveas(gcf,fn,'png')
+% fn = strcat('./contourfigs/fctauofr_muc',filesuffix);
+% figure(8+contourshift)
+% saveas(gcf,fn,'png')
