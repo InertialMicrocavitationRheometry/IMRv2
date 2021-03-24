@@ -1,5 +1,6 @@
-[E0,LKE,LPE,BIE,VE,TE] = f_energy(Tout,Rout,Pinf,Sd,rho,pGo,kappa,po,vmaterial);
-dem = max(TE);
+[E0,LKE,LPE,BIE,VE,TE] = f_energy(Tout,Rout,Pinf,Sd,rho,pGo,kappa,po,vmaterial,force,f,deltap);
+% dem = max(TE);
+dem = E0;
 figure(6)
 hold on;
 tstar = Tout*fnatural;
