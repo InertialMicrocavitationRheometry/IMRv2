@@ -1,4 +1,4 @@
-function [Tout,Rout,Rddot,Pinf] = f_bubblewall_solver(R_eqd,deltap,kappa,f,...
+function [Tout,Rout,Rddot,Pinf,DPinf] = f_bubblewall_solver(R_eqd,deltap,kappa,f,...
     We,Ca,rho,po,pv,c,tfinal,force,rmodel,emodel,vmaterial)
 % FUNCTION THAT SOLVED KELLER MIKSIS FOR MULTIPLE CASES
 % LETTY: YOUR CODE IS A BIT BETTER AT MANAGING VARIABLES, USE YOUR CODE AND
@@ -15,10 +15,11 @@ function [Tout,Rout,Rddot,Pinf] = f_bubblewall_solver(R_eqd,deltap,kappa,f,...
     elseif strcmp('KM',rmodel) == 1
         xi = 1/c;
     end
-    r_dt      = 0;%(pv-po)/(rho*c);       % ICs: initial velocity
+%     r_dt      = (pv-po)/(rho*c);       % ICs: initial velocity
+    r_dt      = 0;       % ICs: initial velocity
     r_initial = [Ro_eq r_dt];             % ICs: initial radius 
     t_span    = [0 tf];                   % time
-    options   = odeset('MaxStep', tfinal/1E3,'AbsTol',1E-9);
+    options   = odeset('MaxStep', tfinal/1E3,'AbsTol',1E-8);
     % Solving the System of ODEs
     [Tout,Rout] = ode15s(@(t,r) bubblewall(t,r,eta,kappa,xi,rho,Ro_eq,...
             S,deltap,f,po,pv,pGo,force,emodel,vmaterial),...
@@ -26,6 +27,7 @@ function [Tout,Rout,Rddot,Pinf] = f_bubblewall_solver(R_eqd,deltap,kappa,f,...
     [Rddot]     = bubblewall_Rddot(Tout,Rout,eta,kappa,xi,rho,Ro_eq,...
         S,deltap,f,po,pv,pGo,force,emodel,vmaterial);
     [Pinf] = pinf(Tout,f,deltap,force,po);
+    [DPinf] = dpa(Tout,f,deltap,force);
 end
  
 function [ dR_dt ] = bubblewall(t,r,eta,k,xi,rho,Req,S,deltap,f,...
@@ -61,7 +63,7 @@ function [ dRdT2 ] = bubblewall_Rddot(t,r,eta,k,xi,rho,Ro,S,deltap,f,...
     end
 %     VIS = 0*VIS;
     SUR = -2*S./(rho.*r1);
-    DPA=-((r1/rho)*xi).*pa(t,f,deltap,force);
+    DPA=-((r1/rho)*xi).*dpa(t,f,deltap,force);
     % GO THROUGH THE MATH AND SHOW ME THAT YOU CAME UP WITH THESE RESULTS  
     if strcmp('NeoH',emodel)==1
         ELS=-(1./rho).*(1+r2.*xi).*(eta/2).*(5-4*(Ro./r1)-(Ro./r1).^4);
@@ -79,10 +81,10 @@ function [ dRdT2 ] = bubblewall_Rddot(t,r,eta,k,xi,rho,Ro,S,deltap,f,...
     dRdT2 = (INE+PINF+PGO+VIS+SUR+ELS+DELS+DPA)./DEN;
 end
 
-function dpa = pa(t,f,deltap,force)
+function dpa = dpa(t,f,deltap,force)
 % PRESSURE DIFFERENCE CALCULATION
  if strcmp('sine',force)==1
-     dpa = deltap*2*pi*f*cos(2*pi*f*t);
+         dpa = deltap*2*pi*f*cos(2*pi*f*(t));
  elseif strcmp('mono',force)==1
      dpa = 0;
  end 
@@ -91,10 +93,9 @@ end
 function p = pinf(t,f,deltap,force,po)
 % FORCING PRESSURE CALCULATION
  if strcmp('sine',force)==1
-     p = deltap*sin(2*pi*f*t);
+         p = deltap*(sin(2*pi*f*(t)));
  elseif strcmp('mono',force)==1
      p = deltap;
  end     
  p = p + po;
 end
-

@@ -27,16 +27,17 @@ p_figsetup;
 rmodel = 'RP';
 emodel = 'NeoH';
 force = 'sine';
-filesuffix = '_baseline';
+filesuffix = '_baseline_muinf';
 %RUNNING AND PLOTTING
+
 % blood carreau
 rstarlim = 1000;
 rstarres = 1;
 rstarlimtick = 10;
 mufilter = 1;
-vmaterial = 'lsq_blood';
+vmaterial = 'mu_inf';
 contourshift = 1;
-[Tout,Rout,Rddot,Pinf]=f_bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
+[Tout,Rout,Rddot,Pinf,DPinf]=f_bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
     c,tfinal,force,rmodel,emodel,vmaterial);
 lm = 'k-';
 p_figplot;

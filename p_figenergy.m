@@ -1,13 +1,13 @@
-[E0,LKE,LPE,BIE,VE,TE] = f_energy(Tout,Rout,Pinf,Sd,rho,pGo,kappa,po,vmaterial,force,f,deltap);
-% dem = max(TE);
+[E0,EPD,LKE,LPE,BIE,VE,TE] = f_energy(Tout,Rout,Pinf,DPinf,Sd,rho,pGo,kappa,po,...
+    vmaterial,force);
 dem = E0;
 figure(6)
 hold on;
 tstar = Tout*fnatural;
-plot(tstar,LKE./dem,'--r','LineWidth',2)
+plot(tstar,LKE./dem,':r','LineWidth',2)
 plot(tstar,LPE./dem,'-.b','LineWidth',2)
-plot(tstar,BIE./dem,':g','LineWidth',2)
-plot(tstar,VE./dem,'-om','LineWidth',2,'MarkerIndices',1:ceil(length(tstar)/20):length(tstar));
+plot(tstar,BIE./dem,'--g','LineWidth',2)
+plot(tstar,(VE-EPD)./dem,'-om','LineWidth',2,'MarkerIndices',1:ceil(length(tstar)/20):length(tstar));
 plot(tstar,TE./dem,'k','LineWidth',2)
 xlabel('$\it{t}/t_{n}$', 'Interpreter', 'Latex', 'FontSize', 20); 
 ylabel('$\it{E}/E_o$', 'Interpreter', 'Latex', 'FontSize', 20); 
@@ -21,7 +21,7 @@ xa = gca;
 xa.TickLength = [.015 .015];
 xa.LineWidth = 1.5;
 xticks(tickrange)
-% ylim([0 1.1])
+xlim([0 tmag])
 box on;
 fn = strcat('./analysisfigs/f_energybwall',filesuffix);
 saveas(gcf,fn,'png')

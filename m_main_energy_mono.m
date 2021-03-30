@@ -40,7 +40,7 @@ vmaterial = 'lsq_blood';
 mufilter = 0;
 filesuffix = '_energymono';
 contourshift = 1;
-[Tout,Rout,Rddot,Pinf]=f_bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
+[Tout,Rout,Rddot,Pinf,DPinf]=f_bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
     c,tfinal,force,rmodel,emodel,vmaterial);
 lm = 'g-';
 p_figplot;

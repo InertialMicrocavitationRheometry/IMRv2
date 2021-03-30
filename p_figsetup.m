@@ -14,6 +14,7 @@ xa = gca;
 xa.TickLength = [.03 .03];
 xa.LineWidth = 1.5;
 xticks(tickrange)
+xlim([0 tmag])
 box on;
 
 figure(2)
@@ -30,6 +31,7 @@ xa = gca;
 xa.TickLength = [.03 .03];
 xa.LineWidth = 1.5;
 xticks(tickrange)
+xlim([0 tmag])
 % ylim([-1.5 1.5]*1E-5)
 box on;
 
@@ -48,6 +50,7 @@ xa = gca;
 xa.TickLength = [.03 .03];
 xa.LineWidth = 1.5;
 xticks(tickrange)
+xlim([0 tmag])
 box on;
 
 figure(4)
@@ -64,6 +67,7 @@ xa = gca;
 xa.TickLength = [.03 .03];
 xa.LineWidth = 1.5;
 xticks(tickrange)
+xlim([0 tmag])
 box on;
 
 figure(5)

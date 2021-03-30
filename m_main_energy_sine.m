@@ -1,7 +1,7 @@
 clear; close all; clc;
 %INPUT PARAMETERS
 Ro_w = 0.5E-6;                      % initial bubble radius = 1E-6  
-Sd  = 0.072;                        % surface tension                
+Sd  = 0.075;                        % surface tension                
 po  = 1E5;                          % atmospheric pressure = 101325
 pv  = 2300;                         % pressure of vapor          
 rho = 1000;                         % density of liquid = 1000      
@@ -11,9 +11,9 @@ pGo=po-pv+(2*Sd)/Ro_w;
 fnatural = (1/(2*pi*Ro_w))*sqrt((3*kappa*(po-pv)+...
     (3*kappa-1)*(2*Sd)/Ro_w)/rho);
 tRC = 1/fnatural;                 % natural period
-tmag = 20.001;
+tmag = 20;
 tfinal=tmag*tRC;                % final time of simulation
-deltap = 5E5;                   % amplitude of wave
+deltap = 0.25E6;                   % amplitude of wave
 f = 2E6; %1/tRC;                 % driving frequecy
 shearmodulus = 0;               % shear modulus of the surounding material
 mu_water = 8.9*10E-4;           % viscosity of water
@@ -29,7 +29,6 @@ emodel = 'NeoH';
 force = 'sine';
 
 %RUNNING AND PLOTTING
-
 %blood inf
 rstarlim = 5;
 rstarres = 80;
@@ -38,10 +37,10 @@ vmaterial = 'lsq_blood';
 mufilter = 0;
 filesuffix = '_energysine';
 contourshift = 1;
-[Tout,Rout,Rddot,Pinf]=f_bubblewall_solver(Ro_w,deltap,kappa,f,We_w,Ca,rho,po,pv,...
-    c,tfinal,force,rmodel,emodel,vmaterial);
-lm = 'g-';
+[Tout,Rout,Rddot,Pinf,DPinf]=f_bubblewall_solver(Ro_w,deltap,kappa,f,...
+    We_w,Ca,rho,po,pv,c,tfinal,force,rmodel,emodel,vmaterial);
+lm = 'k-';
 p_figplot;
 % p_ffield;
-tickrange=[0:5:20];
+tickrange=[0:5:tmag];
 p_figenergy;
