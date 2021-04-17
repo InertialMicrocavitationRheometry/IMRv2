@@ -8,6 +8,7 @@ plot(tstar,LKE./dem,':r','LineWidth',2)
 plot(tstar,LPE./dem,'-.b','LineWidth',2)
 plot(tstar,BIE./dem,'--g','LineWidth',2)
 plot(tstar,(VE-EPD)./dem,'-om','LineWidth',2,'MarkerIndices',1:ceil(length(tstar)/20):length(tstar));
+% plot(tstar,EPD./dem,'-oc','LineWidth',2,'MarkerIndices',1:ceil(length(tstar)/20):length(tstar));
 plot(tstar,TE./dem,'k','LineWidth',2)
 xlabel('$\it{t}/t_{n}$', 'Interpreter', 'Latex', 'FontSize', 20); 
 ylabel('$\it{E}/E_o$', 'Interpreter', 'Latex', 'FontSize', 20); 

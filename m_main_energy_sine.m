@@ -33,9 +33,11 @@ force = 'sine';
 rstarlim = 5;
 rstarres = 80;
 rstarlimtick = rstarlim/5;
+% vmaterial = 'mu_0';
 vmaterial = 'lsq_blood';
+% vmaterial = 'mu_inf';
 mufilter = 0;
-filesuffix = '_energysine';
+filesuffix = '_energysine_i';
 contourshift = 1;
 [Tout,Rout,Rddot,Pinf,DPinf]=f_bubblewall_solver(Ro_w,deltap,kappa,f,...
     We_w,Ca,rho,po,pv,c,tfinal,force,rmodel,emodel,vmaterial);

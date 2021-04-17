@@ -23,13 +23,16 @@ BIE = PG.*V/(kappa-1)+Sd*(4*pi*R.^2);
 
 E0 = (Pinf(1)+pGo/(kappa-1))*V0+Sd*(4*pi*R0.^2);
 
-[~,mu_inf,mu_o,nc,lambda] = f_carreau(vmaterial,1);
-if (strcmp('mu_inf',vmaterial) == 1 || strcmp('mu_0',vmaterial) == 1)
-    V = zeros(size(dt));
+[~,mu_inf,mu_0,nc,lambda] = f_carreau(vmaterial,1);
+if (strcmp('mu_inf',vmaterial) == 1 )
+    V = mu_inf.*Rdot.^2.*R;
+elseif (strcmp('mu_0',vmaterial) == 1)
+    V = mu_0.*Rdot.^2.*R;
 else
     a = (nc-1)/2;
-    V = (mu_inf + (mu_o-mu_inf)*(1+4*lambda^2*(Rdot./R).^2).^a).*Rdot.^2.*R;
+    V = (mu_inf + (mu_0-mu_inf)*(1+4*lambda^2*(Rdot./R).^2).^a).*Rdot.^2.*R;
 end
+
 VE = 16*pi*cumtrapz(Tout,V);
 
 TE  = LKE+LPE+BIE+VE-EPD;

@@ -19,7 +19,7 @@ function [Tout,Rout,Rddot,Pinf,DPinf] = f_bubblewall_solver(R_eqd,deltap,kappa,f
     r_dt      = 0;       % ICs: initial velocity
     r_initial = [Ro_eq r_dt];             % ICs: initial radius 
     t_span    = [0 tf];                   % time
-    options   = odeset('MaxStep', tfinal/1E3,'AbsTol',1E-8);
+    options   = odeset('MaxStep', 1E-9,'AbsTol',1E-9,'RelTol',1E-9);
     % Solving the System of ODEs
     [Tout,Rout] = ode15s(@(t,r) bubblewall(t,r,eta,kappa,xi,rho,Ro_eq,...
             S,deltap,f,po,pv,pGo,force,emodel,vmaterial),...
