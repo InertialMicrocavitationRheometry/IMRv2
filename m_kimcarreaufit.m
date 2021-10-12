@@ -1,7 +1,8 @@
 clear; close all; clc;
 % reading the data
+routines = strcat(pwd,'/routines');
+addpath(routines);
 data = csvread('./blooddata/kim_blood_data.csv',2,0);
-
 skax = (data(data(:,1)~=0,1));
 skay = (data(data(:,2)~=0,2))/1000;
 birox = (data(data(:,3)~=0,3));
@@ -48,7 +49,7 @@ xlim([5 2E3]);
 ylim([1E-3 2E-2]);
 xticks([10E-2 10E-1 10 10E1 1E3]);
 yticks([10E-4 10E-3 10E-2]);
-xlabel('$\dot{\gamma} = \dot{R}/R$ [1/s]','Interpreter','Latex','FontSize',20); 
+xlabel('$\dot{\varsigma}$ [1/s]','Interpreter','Latex','FontSize',20); 
 ylabel('$\mu$ [Pa$\cdot$s]', 'Interpreter', 'Latex', 'FontSize', 20); 
 box on;
 set(gcf,'color','w'); %Changes background to white 
@@ -70,7 +71,7 @@ plot(birox,biroy,'sb','markerfacecolor','b','LineWidth',2)
 plot(merix,meriy,'g^','markerfacecolor','g','LineWidth',2)
 
 % ylim([0 0.07])
-xlabel('$\dot{\gamma} = \dot{R}/R$ [1/s]','Interpreter','Latex','FontSize',20); 
+xlabel('$\dot{\varsigma}$ [1/s]','Interpreter','Latex','FontSize',20); 
 ylabel('$\mu$ [Pa$\cdot$s]', 'Interpreter', 'Latex', 'FontSize', 20);    
 box on;
 set(gcf,'color','w'); %Changes background to white 
@@ -114,8 +115,8 @@ xlim([5 2E3]);
 ylim([1E-3 2E-2]);
 xticks([10E-2 10E-1 10 10E1 1E3]);
 yticks([10E-4 10E-3 10E-2]);
-xlabel('$\dot{\gamma} = \dot{R}/R$ [1/s]','Interpreter','Latex','FontSize',20); 
-ylabel('$\mu$ [Pa$\cdot$s]', 'Interpreter', 'Latex', 'FontSize', 20); 
+xlabel('$\dot{\varsigma}$ [1/s]','Interpreter','Latex','FontSize',20); 
+ylabel('$\mu$ [Pa$\cdot$s]', 'Interpreter', 'Latex', 'FontSize', 20);    
 box on;
 set(gcf,'color','w'); %Changes background to white 
 set(gca, 'FontName', 'Times', 'FontSize', 20); 
@@ -124,3 +125,4 @@ xa = gca;
 xa.TickLength = [.03 .03];
 xa.LineWidth = 1.5;
 print('./fitfigs/carreauFit3', '-dpng'); 
+rmpath(routines);

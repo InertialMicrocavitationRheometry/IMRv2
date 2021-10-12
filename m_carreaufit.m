@@ -1,5 +1,7 @@
 clear; close all; clc;
 % reading the data
+routines = strcat(pwd,'/routines');
+addpath(routines);
 data = csvread('./blooddata/blood_data.csv',2,0);
 skax = (data(data(:,1)~=0,1));
 skay = (data(data(:,2)~=0,2));
@@ -125,3 +127,4 @@ xa = gca;
 xa.TickLength = [.03 .03];
 xa.LineWidth = 1.5;
 print('./fitfigs/carreauFit3', '-dpng'); 
+rmpath(routines);

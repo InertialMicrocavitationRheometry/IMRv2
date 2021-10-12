@@ -1,4 +1,6 @@
 clear; close all; clc;
+routines = strcat(pwd,'/routines');
+addpath(routines);
 %INPUT PARAMETERS
 Ro_w = 0.5E-6;                      % initial bubble radius = 1E-6  
 Sd  = 0.075;                        % surface tension                
@@ -73,3 +75,5 @@ saveas(gcf,fn,'png')
 fn = strcat('./contourfigs/fctauofr_muc',filesuffix);
 figure(8+contourshift)
 saveas(gcf,fn,'png')
+
+rmpath(routines);
