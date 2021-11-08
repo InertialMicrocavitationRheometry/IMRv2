@@ -31,4 +31,4 @@ xa.LineWidth = 1.5;
 tickrange= [0:0.2:1];
 xticks(tickrange)
 box on;
-saveas(gcf,'./analysisfigs/f_nonnewt_length','png')
+saveas(gcf,'./figs/nonnewt_length/f_nonnewt_length','png')
