@@ -18,19 +18,20 @@ Pext_type = 'GS';
 % [ Pressure ; Freq ] 
 Pext_Amp_Freq =[101325 1E6]; 
 % 1 : display simulation time, 0 : do not display
-disptime = 0; 
-% Thermal effects inside bubble 
+disptime = 1; 
+% Thermal effects inside bubble, 1: yes, 0: no
 Tgrad = 1; 
-% Thermal effects outside bubble 
+% Thermal effects outside bubble, 1: yes, 0: no
 Tmgrad = 1;
-% Vapor diffusion effects 
+% Vapor diffusion effects, 1: yes, 0: no
 Cgrad = 1;  
-% Output variables in dimensional form 
+% Output variables in dimensional form, 1: yes, 0: no
 Dim = 1; 
-% Activates the effect of compressibility 
+% Activates the effect of compressibility, 1: Keller-Miksis w/ pressure, 0:
+% Rayleigh-Plesset
 comp = 1; 
 % material to calculate viscosity
-vmaterial = 'blood';
+vmaterial = 'water';
 % non-Newtonian model for viscosity
 vmodel = 'newtonian';
 

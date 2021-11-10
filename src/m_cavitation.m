@@ -10,14 +10,15 @@ function [ t , R ,U ,P, T,C, Tm,tdel,Tdel,Cdel] =...
 % the Keller-Miksis with enthalpy and non-Newtonian viscosity. 
 
 % last Update: 11/5/2021
-% Todo: 
+% !!!!!!!!!!!!!!!!!!TODO!!!!!!!!!!!: 
 % 0. Improve commenting throughout the code
-% 1. KM with enthalpy 
-% 2. non-Newtonian viscosity
-% 3. call_parameters to create a .mat file to be read here (good practice)
-% 4. Improve out-of-equilibrium collapse conditions
-% 5. Improve elastic forces calculation
-% 6. Add capability to load a pressure field from data
+% 1. Fix integration term for the non-Newtoninan terms
+% 2. KM with enthalpy 
+% 3. Improve out-of-equilibrium collapse conditions
+% 4. Improve elastic forces calculation
+% 5. Add capability to load a pressure field from data
+% 6. Make finite difference matrices sparse to speed up calculation
+% !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 % Inputs: 
 % tspan - time to run simulation
@@ -261,8 +262,7 @@ function dxdt = bubble(t,x)
          tw = 1;
          Pext = -Pext_Amp_Freq(1)*(exp(-((t-a)/tw)^2))/P_inf;
          P_ext_prime = 2*Pext_Amp_Freq(1)/P_inf.*(exp(-((t-a)./tw).^2)).*(t*t0-a)./tw^2;
-       
-         
+
      elseif (Pext_type == 'RG')
          
          Pext = -Pext_Amp_Freq(1)/P_inf ;              
@@ -279,6 +279,9 @@ function dxdt = bubble(t,x)
          Pext = 0;
          P_ext_prime = 0; 
          
+     elseif (Pext_type == 'hcu')
+         % add code here
+
      end
 
     % *****************************************    
@@ -359,19 +362,19 @@ function dxdt = bubble(t,x)
     E = 1/(2*Ca)*(5-4/R - 1/R^4)+ 4*U/(Re8*R) - 6*intfnu*iDRe; 
     E_prime = 2*U*(1/R^2 + 1/R^5)/Ca - 4/Re8*U^2/R^2 - 6*dintfnu*iDRe; 
      
-%     % Yang and Church (2005); linear elasticity 
-%      E = 4/(3*Ca)*(1 - 1/R^3) + 4/Re*U/R;
-%      E_prime= 4/Ca*U*/R^4 - 4/Re*U^2/R^2;
+    %     % Yang and Church (2005); linear elasticity 
+    %      E = 4/(3*Ca)*(1 - 1/R^3) + 4/Re*U/R;
+    %      E_prime= 4/Ca*U*/R^4 - 4/Re*U^2/R^2;
      
      if  (Pext_type == 'IC') 
      %Account for initial stress state     
        E = 1/(2*Ca)*(5-(4*REq/R) - (REq/R)^4)+ 4*U/(Re8*R); 
        E_prime = 2*U*(REq/R^2 + REq^4/R^5)/Ca - 4/Re8*U^2/R^2;
      
-%     % Yang and Church (2005); linear elasticity 
-%      E = 4/(3*Ca)*(1 - REq^3/R^3) + 4/Re*U/R;
-%      E_prime= 4/Ca*U*REq^3/R^4 - 4/Re*U^2/R^2;
-%      
+    %     % Yang and Church (2005); linear elasticity 
+    %      E = 4/(3*Ca)*(1 - REq^3/R^3) + 4/Re*U/R;
+    %      E_prime= 4/Ca*U*REq^3/R^4 - 4/Re*U^2/R^2;
+    %      
      end
     %****************************************************
 
