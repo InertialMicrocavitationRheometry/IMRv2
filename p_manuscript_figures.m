@@ -1,5 +1,6 @@
 %Main program to generate and save the figures
 
+
 % clearing workspace, closing figures, and clear command window
 clear all; close all; clc;
 
