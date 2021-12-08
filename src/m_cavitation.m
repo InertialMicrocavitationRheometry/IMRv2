@@ -9,17 +9,6 @@ function [ t , R ,U ,P, T,C, Tm,tdel,Tdel,Cdel] =...
 % Estrada et al. (2018) JMPS. Additional physics have been added including
 % the Keller-Miksis with enthalpy and non-Newtonian viscosity. 
 
-% last Update: 11/5/2021
-% !!!!!!!!!!!!!!!!!!TODO!!!!!!!!!!!: 
-% 0. Improve commenting throughout the code
-% 1. Fix integration term for the non-Newtoninan terms
-% 2. KM with enthalpy 
-% 3. Improve out-of-equilibrium collapse conditions
-% 4. Improve elastic forces calculation
-% 5. Add capability to load a pressure field from data
-% 6. Make finite difference matrices sparse to speed up calculation
-% !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 % Inputs: 
 % tspan - time to run simulation
 % R0 - Initial Radii
