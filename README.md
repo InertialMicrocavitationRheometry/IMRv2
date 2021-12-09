@@ -9,10 +9,8 @@
 
 ### To do
 0. Improve commenting throughout the code
-1. Fix integration term for the non-Newtoninan terms
-2. KM with enthalpy 
-3. Improve out-of-equilibrium collapse conditions
-4. Improve elastic forces calculation
-5. Add capability to load a pressure field from data
-6. Make finite difference matrices sparse to speed up calculation
+1. KM with enthalpy 
+2. Improve out-of-equilibrium collapse conditions
+3. Improve elastic forces calculation
+4. Add capability to load a pressure field from data
 
