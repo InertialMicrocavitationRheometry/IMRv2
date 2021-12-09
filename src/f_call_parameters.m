@@ -9,7 +9,7 @@ function [P]  = f_call_parameters(R0,vmaterial)
     S     = 0.056;              % (N/m) Liquid Surface Tension 
     G     = 0*(1000)*1E3;       % (Pa) Medium Shear Modulus 
     T_inf = 300;                % (K) Far field temp. 
-    [mu8,Dmu] = f_nonNewtonian_Re(vmaterial);
+    [mu8,Dmu,v_a,v_nc,v_lambda] = f_nonNewtonian_Re(vmaterial);
     P_inf = 101325;             % (Pa) Atmospheric Pressure 
     rho   = 999;                %1050.761; % (Kg/m^3) Liquid Density
     Km    = 0.615;              % (W/m-K)Thermal Conductivity Medium
@@ -61,5 +61,51 @@ function [P]  = f_call_parameters(R0,vmaterial)
     
     P = [k chi fom foh Ca Re8 We Br A_star...
          B_star Rv_star Ra_star P0_star t0 C0 L L_heat_star Km_star ...
-         P_inf  T_inf C_star mv0  ma0 DRe];
+         P_inf  T_inf C_star mv0  ma0 DRe v_a v_nc v_lambda];
+end
+
+function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)
+%F_NONNEWTONIAN Outputs the Reynolds number that is dynamically changes
+% with the shear rate. Note: Re = P_inf*R0/(m8*Uc). Units are in Pascal
+% seconds.
+    a = 0; nc = 0; lambda = 0;
+    if strcmp('water',vmaterial)==1
+        mu8 = 8.3283e-4;
+        muo = 8.3283e-4;
+    elseif strcmp('blood_combined', vmaterial) == 1
+        mu8 = 0.00345; 
+        muo = 0.056; 
+        nc = 0.384; 
+        lambda = 5.61; 
+    elseif strcmp('blood_biro', vmaterial) == 1
+        mu8 = 0.00345; 
+        muo = 0.056; 
+        nc = 0.3568; 
+        lambda = 2.96;         
+    elseif strcmp('blood_merrill', vmaterial) == 1
+        mu8 = 0.00345; 
+        muo = 0.056; 
+        nc = 0.205; 
+        lambda = 9.67;         
+    elseif strcmp('blood_skalak', vmaterial) == 1
+        mu8 = 0.00345; 
+        muo = 0.056; 
+        nc = 0.218; 
+        lambda = 4.58;                 
+    elseif strcmp('polystyrene', vmaterial) ==1
+        mu8 = 0; 
+        muo = 4*10^6;
+    elseif strcmp('aluminum soap', vmaterial) == 1
+        mu8 = 0.01;
+        muo = 89.6; 
+    elseif strcmp('p-oxide', vmaterial) == 1
+        mu8 = 0; 
+        muo = 15.25; 
+    elseif strcmp('h-cellulose', vmaterial) == 1
+        mu8 = 0; 
+        muo = 0.22;
+    else
+        error('No viscosity model specified in f_call_parameters, exiting');
+    end
+    Dmu = muo-mu8;
 end

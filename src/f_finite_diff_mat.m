@@ -71,5 +71,5 @@ elseif order == 2
             Diff_Matrix = Diff_Matrix / (deltaY^2) ;
  end
     
-    
+Diff_Matrix = sparse(Diff_Matrix);    
 end

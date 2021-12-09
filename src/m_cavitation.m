@@ -75,8 +75,9 @@ Re8 = Pmt(6); We = Pmt(7);  Br = Pmt(8);  A_star = Pmt(9); B_star = Pmt(10);
 Rv_star = Pmt(11);  Ra_star = Pmt(12); P0_star = Pmt(13); t0 = Pmt(14);
 C0 = Pmt(15); L = Pmt(16); L_heat_star = Pmt(17); Km_star = Pmt(18); 
 P_inf = Pmt(19); T_inf = Pmt(20); C_star = Pmt(21);  
-Mv0 = Pmt(22);   Ma0 = Pmt(23); DRe = Pmt(24);
-
+Mv0 = Pmt(22);   Ma0 = Pmt(23); 
+% additional non-Newtonian parameters
+DRe = Pmt(24); v_a = Pmt(25); v_nc = Pmt(26); v_lambda = Pmt(27);
 if DRe==0
     iDRe = 0;
 else
@@ -300,7 +301,8 @@ function dxdt = bubble(t,x)
 
     %***************************************
     % Updating the viscous forces/Reynolds number    
-     [fnu,intfnu,dintfnu,ddintfnu] = f_nonNewtonian_integrals(vmodel,U,R);
+     [fnu,intfnu,dintfnu,ddintfnu] = ...
+         f_nonNewtonian_integrals(vmodel,U,R,v_a,v_nc,v_lambda);
     
     %***************************************    
     % Temperature inside the bubble
