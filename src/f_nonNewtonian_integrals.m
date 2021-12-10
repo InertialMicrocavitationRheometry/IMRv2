@@ -76,10 +76,6 @@ function f = sf_modified_cross(a,nc,lambda,gammadot_R)
     f = 1/((1+(lambda*gammadot_R)^nc).^a);
 end
 
-function f = sf_carreau(nc,lambda,gammadot_R)
-    f = (1+(lambda).^2.*(gammadot_R).^2).^((nc-1)./2);
-end
-
 function intf = sf_carreau_d(r,nc,lambda,gammadot_num)
     gammadot = gammadot_num./r.^3;
     % additional r in the denominator is from the stress integral

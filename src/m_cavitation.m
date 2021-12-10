@@ -114,7 +114,7 @@ yk2 = ((2./(xk+1)-1)*L+1);
 
 %******************************************
 % Initial Conditions
-tspan_star = tspan/t0; 
+tspan_star = tspan/t0;
 R0_star = 1; 
 U0_star = 0;  % Change as needed 
 Tau0 = zeros(1,NT);
@@ -197,7 +197,6 @@ function dxdt = bubble(t,x)
      Tm = x((2*NT+4):end );
      
     if (disptime == 1 )
-        
         %display simulation time in terminal 
         disp(t/tspan_star);
     end
@@ -269,9 +268,15 @@ function dxdt = bubble(t,x)
          Pext = 0;
          P_ext_prime = 0; 
          
-     elseif (Pext_type == 'hcu')
-         % add code here
-
+     elseif (Pext_type == 'highly_nonlinear_hcu')
+         % ERIC :: add code here
+         
+     elseif (Pext_type == 'moderate_nonlinear_hcu')
+         % ERIC :: add code here
+         
+     elseif (Pext_type == 'linear_hcu')
+         % ERIC :: add code here         
+         
      end
 
     % *****************************************    
