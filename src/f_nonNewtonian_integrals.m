@@ -56,26 +56,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%NON NEWTONIAN MODEL EVALUATIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function f = sf_powell_eyring(nc,lambda,gammadot_R)
-    f = sinh(lambda*gammadot_R)/(lambda*gammadot_R)^nc;
-end
-
-function f = sf_modified_powell_eyring(nc,lambda,gammadot_R)
-    f = log(lambda*gammadot_R+1)/(lambda*gammadot_R)^nc;
-end
-
-function f = sf_cross(a,lambda,gammadot_R)
-    f = 1/(1+(lambda*gammadot_R).^a);
-end
-
-function f = sf_simplified_cross(lambda,gammadot_R)
-    f = 1/(1+(lambda*gammadot_R));
-end
-
-function f = sf_modified_cross(a,nc,lambda,gammadot_R)
-    f = 1/((1+(lambda*gammadot_R)^nc).^a);
-end
-
 function intf = sf_carreau_d(r,nc,lambda,gammadot_num)
     gammadot = gammadot_num./r.^3;
     % additional r in the denominator is from the stress integral
@@ -93,8 +73,4 @@ function dintf = sf_carreau_dd(r,nc,lambda,gammadot_num)
     dfdgamma = ((nc-1)./2)*pre_f.^((nc-3)./2)*2*lambda^2.*gammadot;
     % collecting terms for integration
     dintf = (1./r.^4).*(f+gammadot.*dfdgamma);
-end
-
-function f = sf_carreau_yasuda(a,nc,lambda,gammadot_R)
-    f = (1+(lambda).^a.*(gammadot_R).^a).^((nc-1)./a);
 end

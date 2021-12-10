@@ -1,6 +1,5 @@
 function [P]  = f_call_parameters(R0,vmaterial)
-% Code to create parameter .mat file for RP_Cav to use 
-
+  % Code to create parameter .mat file for RP_Cav to use 
   % Parameters: 
     A     = 5.28e-5;            % (W/m-K^2)Thermal Conductivity coeff
     B     = 1.165e-2;           % (W/m-K)Thermal Conductivity coeff
@@ -57,11 +56,13 @@ function [P]  = f_call_parameters(R0,vmaterial)
     L_heat_star = L_heat/(Uc)^2;
     Km_star = Km/K_infy; 
     C_star = C/Uc; 
-    mv0 = mv0/Mnondim; ma0 = ma0/Mnondim; 
+    mv0 = mv0/Mnondim; ma0 = ma0/Mnondim;     
+    v_lambda_star = v_lambda/t0;
     
     P = [k chi fom foh Ca Re8 We Br A_star...
          B_star Rv_star Ra_star P0_star t0 C0 L L_heat_star Km_star ...
-         P_inf  T_inf C_star mv0  ma0 DRe v_a v_nc v_lambda];
+         P_inf  T_inf C_star mv0  ma0 DRe v_a v_nc v_lambda_star ... 
+         mu8 Dmu];
 end
 
 function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)
@@ -72,6 +73,12 @@ function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)
     if strcmp('water',vmaterial)==1
         mu8 = 8.3283e-4;
         muo = 8.3283e-4;
+    elseif strcmp('blood_mu8', vmaterial) == 1
+        mu8 = 0.00345; 
+        muo = 0.00345;         
+    elseif strcmp('blood_mu0', vmaterial) == 1
+        mu8 = 0.056; 
+        muo = 0.056;         
     elseif strcmp('blood_combined', vmaterial) == 1
         mu8 = 0.00345; 
         muo = 0.056; 

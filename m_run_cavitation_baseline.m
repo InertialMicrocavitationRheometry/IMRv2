@@ -20,7 +20,7 @@ NTM = 60;
 % Type of external forcing. Refer to RP_Cav
 Pext_type = 'GS'; 
 % [ Pressure ; Freq ] 
-Pext_Amp_Freq =[2*101325 0]; 
+Pext_Amp_Freq =[1E5 0]; 
 % 1 : display simulation time, 0 : do not display
 disptime = 0; 
 % Thermal effects inside bubble, 1: yes, 0: no
@@ -35,7 +35,7 @@ Dim = 0;
 % Rayleigh-Plesset
 comp = 1; 
 % material to calculate viscosity
-vmaterial = 'blood_combined';
+vmaterial = 'blood_mu8';
 % non-Newtonian model for viscosity
 vmodel = 'carreau';
 
