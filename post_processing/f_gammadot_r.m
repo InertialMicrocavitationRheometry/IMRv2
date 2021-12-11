@@ -1,4 +1,4 @@
-function sofr = f_sfunc(r,R,Rdot,N,M)
+function sofr = f_gammadot_r(r,R,Rdot,N,M)
 % shear as a function of r (radial coordinate) calculation
 sofr = zeros(N,M);
     for i = 1:N

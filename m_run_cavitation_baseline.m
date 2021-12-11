@@ -1,5 +1,5 @@
 % This script can be used as a template to run RP_Cav
-clear all; close all; clc;
+clear; close all; clc;
 homedir = '/gpfs/home/mrodri97/matlab/nmujasa2021/ME390Research';
 cd(homedir);
 % Adding the routines path
@@ -10,7 +10,7 @@ addpath(post);
 
 % All quantities below are in SI units (s,m)
 % time to run simulation 
-tcycles = 5E-3;            
+tend = 5E-3;            
 % Initital Radii 
 R0 = 500e-6;                    
 % Ammount of nodes inside the bubble (~100 is a good to start)
@@ -31,21 +31,24 @@ Tmgrad = 0;
 Cgrad = 0;  
 % Output variables in dimensional form, 1: yes, 0: no
 Dim = 0; 
-% Activates the effect of compressibility, 1: Keller-Miksis w/ pressure, 0:
-% Rayleigh-Plesset
+% Activates the effect of compressibility 
+% 1: Keller-Miksis w/ pressure, 0: Rayleigh-Plesset
 comp = 1; 
 % material to calculate viscosity
-vmaterial = 'blood_mu8';
+vmaterial = 'blood_combined';
 % non-Newtonian model for viscosity
 vmodel = 'carreau';
 
 % RUNNING BASELINE CODE
 [ t , R ,U ,P, T,C, Tm,tdel,Tdel,Cdel] = m_cavitation...
-(tcycles,R0,NT,NTM,Pext_type,Pext_Amp_Freq,disptime,Tgrad,Tmgrad,Cgrad,...
+(tend,R0,NT,NTM,Pext_type,Pext_Amp_Freq,disptime,Tgrad,Tmgrad,Cgrad,...
 Dim,comp,vmaterial,vmodel);
 
 % POST PROCESSING RESULTS
+[Pmt] = f_call_parameters(R0,vmaterial);
+Re8 = Pmt(6); DRe = Pmt(24);
+v_nc = Pmt(26); v_lambda = Pmt(27);
 p_fig_baseline;
 
-rmpath(routines);
-rmpath(post);
+% rmpath(routines);
+% rmpath(post);

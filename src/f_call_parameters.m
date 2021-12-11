@@ -61,8 +61,7 @@ function [P]  = f_call_parameters(R0,vmaterial)
     
     P = [k chi fom foh Ca Re8 We Br A_star...
          B_star Rv_star Ra_star P0_star t0 C0 L L_heat_star Km_star ...
-         P_inf  T_inf C_star mv0  ma0 DRe v_a v_nc v_lambda_star ... 
-         mu8 Dmu];
+         P_inf  T_inf C_star mv0  ma0 DRe v_a v_nc v_lambda_star];
 end
 
 function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)
@@ -73,12 +72,6 @@ function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)
     if strcmp('water',vmaterial)==1
         mu8 = 8.3283e-4;
         muo = 8.3283e-4;
-    elseif strcmp('blood_mu8', vmaterial) == 1
-        mu8 = 0.00345; 
-        muo = 0.00345;         
-    elseif strcmp('blood_mu0', vmaterial) == 1
-        mu8 = 0.056; 
-        muo = 0.056;         
     elseif strcmp('blood_combined', vmaterial) == 1
         mu8 = 0.00345; 
         muo = 0.056; 
