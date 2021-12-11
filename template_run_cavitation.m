@@ -1,8 +1,10 @@
 % This script can be used as a template to run RP_Cav
-clear all; close all; clc;
+clear; close all; clc;
 % Adding the routines path
 routines = strcat(pwd,'/src');
-addpath(routines);
+post = strcat(pwd,'/post_processing');
+addpath(genpath(routines));
+addpath(post);
 
 % All quantities below are in SI units (s,m)
 % time to run simulation 
@@ -45,3 +47,4 @@ plot(t,R,'k')
 figure(2)
 plot(t,P,'k')
 rmpath(routines);
+rmpath(post);

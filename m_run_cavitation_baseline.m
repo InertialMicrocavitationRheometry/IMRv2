@@ -1,7 +1,5 @@
 % This script can be used as a template to run RP_Cav
 clear; close all; clc;
-homedir = '/gpfs/home/mrodri97/matlab/nmujasa2021/ME390Research';
-cd(homedir);
 % Adding the routines path
 routines = strcat(pwd,'/src');
 post = strcat(pwd,'/post_processing');
@@ -10,7 +8,7 @@ addpath(post);
 
 % All quantities below are in SI units (s,m)
 % time to run simulation 
-tend = 5E-3;            
+tend = 2.5E-3;            
 % Initital Radii 
 R0 = 500e-6;                    
 % Ammount of nodes inside the bubble (~100 is a good to start)
@@ -48,7 +46,8 @@ Dim,comp,vmaterial,vmodel);
 [Pmt] = f_call_parameters(R0,vmaterial);
 Re8 = Pmt(6); DRe = Pmt(24);
 v_nc = Pmt(26); v_lambda = Pmt(27);
-p_fig_baseline;
-
-% rmpath(routines);
-% rmpath(post);
+lm = 'k';
+r_fig_baseline;
+r_ffield;
+rmpath(routines);
+rmpath(post);
