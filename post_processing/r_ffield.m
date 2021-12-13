@@ -1,7 +1,9 @@
+tend = 30;
 lR = length(R);
 lr_max = 100;
 lr_N = 200;
-r_coord = ones(lR,lr_N).*logspace(-0.5,2.5,lr_N);
+lr_length = 4;
+r_coord = ones(lR,lr_N).*logspace(-0.5,lr_length,lr_N);
 % calculating the shear
 varsigmadot_r = f_gammadot_r(r_coord,R,U,lR,lr_N);
 f_r = sf_carreau(v_nc,v_lambda,varsigmadot_r);
@@ -28,9 +30,13 @@ cbar.Label.Position = [pos(1) -0.04];
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
 caxis([0 1]);
+xlim([0 tend]);
 set(gcf,'color','w');
 set(gca,'FontName','Times','FontSize',20);
 set(gca,'TickLabelInterpreter','latex')
+xa = gca;
+xa.TickLength = [.015 .015];
+xa.LineWidth = 1.5;
 box on;
 plot(t, log10(R),lm,'LineWidth',3); 
 contourf(xcon',ycon',f_r,clevels,'edgecolor','none')
@@ -50,6 +56,7 @@ cbar.Label.Position = [pos(1) -1.04];
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
 caxis([-1 1])
+xlim([0 tend]);
 set(gcf,'color','w');
 set(gca,'FontName','Times','FontSize',20);
 set(gca,'TickLabelInterpreter','latex')

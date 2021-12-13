@@ -8,9 +8,9 @@ addpath(post);
 
 % All quantities below are in SI units (s,m)
 % time to run simulation 
-tend = 2.5E-3;            
+tend = 1.5E-6;
 % Initital Radii 
-R0 = 500e-6;                    
+R0 = 0.5E-6;
 % Ammount of nodes inside the bubble (~100 is a good to start)
 NT = 50; 
 % Ammount of nodes outside the bubble (~100 is a good to start)
@@ -18,7 +18,7 @@ NTM = 60;
 % Type of external forcing. Refer to RP_Cav
 Pext_type = 'GS'; 
 % [ Pressure ; Freq ] 
-Pext_Amp_Freq =[1E5 0]; 
+Pext_Amp_Freq =[5E5 0]; 
 % 1 : display simulation time, 0 : do not display
 disptime = 0; 
 % Thermal effects inside bubble, 1: yes, 0: no

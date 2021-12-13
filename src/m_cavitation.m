@@ -155,7 +155,7 @@ Cdel = [];
 % March equations in time 
 % options = odeset('RelTol',1e-10); %Tune tolerances of simulation
 % [t,X] = ode45(@fun,time_span,X0,options) <== Syntax 
-    opts = odeset('RelTol',1e-8);
+    opts = odeset('RelTol',1e-8,'AbsTol',1E-8);
     X0 = [R0_star U0_star P0_star Tau0 C0 Tm0 ]; 
     [t , X] = ode23tb(@bubble, [0 tspan_star] , X0, opts);
     R = X(:,1); % Bubble wall Radius 
