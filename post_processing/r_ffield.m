@@ -1,4 +1,5 @@
 tend = 30;
+tickrange= [0:5:tend];
 lR = length(R);
 lr_max = 100;
 lr_N = 200;
@@ -23,7 +24,7 @@ xlabel('$t / t_c$', 'Interpreter', 'Latex', 'FontSize', 20);
 ylabel('log$_{10}(\it{r}/R_o)$','Interpreter','Latex','FontSize',24);
 colormap jet;
 cbar = colorbar;
-cbar.Label.String = '$f(\dot{\varsigma})$';
+cbar.Label.String = '$m(\dot{\varsigma})$';
 set(cbar,'TickLabelInterpreter','latex');
 pos = get(cbar,'Position');
 cbar.Label.Position = [pos(1) -0.04]; 
@@ -31,6 +32,7 @@ cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
 caxis([0 1]);
 xlim([0 tend]);
+xticks(tickrange)
 set(gcf,'color','w');
 set(gca,'FontName','Times','FontSize',20);
 set(gca,'TickLabelInterpreter','latex')
@@ -49,14 +51,15 @@ xlabel('$t / t_c$', 'Interpreter', 'Latex', 'FontSize', 20);
 ylabel('log$_{10}(\it{r}/R_o)$','Interpreter','Latex','FontSize',24);
 colormap jet;
 cbar = colorbar;
-cbar.Label.String = '$\tau_{rr}/p_{\infty}$';
+cbar.Label.String = '$\tau_{rr}/p_{\mathrm{atm}}$';
 set(cbar,'TickLabelInterpreter','latex');
 pos = get(cbar,'Position');
-cbar.Label.Position = [pos(1) -1.04];
+cbar.Label.Position = [1.5*pos(1) -1.08];
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
 caxis([-1 1])
 xlim([0 tend]);
+xticks(tickrange)
 set(gcf,'color','w');
 set(gca,'FontName','Times','FontSize',20);
 set(gca,'TickLabelInterpreter','latex')

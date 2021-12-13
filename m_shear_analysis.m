@@ -9,7 +9,7 @@ lm = 'k';
 
 figure(1)
 hold on
-xlabel('$\dot{\varsigma} R_o \sqrt{\rho_o/p_{\infty}}$', 'Interpreter', 'Latex', 'FontSize', 20); 
+xlabel('$\dot{\varsigma} R_o \sqrt{\rho_{\ell}/p_{\mathrm{atm}}}$', 'Interpreter', 'Latex', 'FontSize', 20); 
 ylabel('$\tau_{rr} / p_{\infty}$', 'Interpreter', 'Latex', 'FontSize', 20); 
 %leg = legend('$\mu_{water}$','$\mu_{blood,\infty}$', '$\mu_{blood}$', '$\mu_{blood,0}$' ); 
 %set(leg,'Interpreter','latex','Location','northeast');
@@ -38,8 +38,8 @@ saveas(gcf,'./figs/shear_analysis/tau_shear','png')
 
 figure(2)
 hold on;
-xlabel('$\dot{\varsigma} R_o \sqrt{\rho_o/p_{\infty}}$', 'Interpreter', 'Latex', 'FontSize', 20); 
-ylabel('$\it{f}(\dot{\varsigma})$', 'Interpreter', 'Latex', 'FontSize', 20); 
+xlabel('$\dot{\varsigma} R_o \sqrt{\rho_{\ell}/p_{\mathrm{atm}}}$', 'Interpreter', 'Latex', 'FontSize', 20); 
+ylabel('$m(\dot{\varsigma})$', 'Interpreter', 'Latex', 'FontSize', 20); 
 %leg = legend('$\mu_{water}$','$\mu_{blood,\infty}$', '$\mu_{blood}$', '$\mu_{blood,0}$' ); 
 %set(leg,'Interpreter','latex','Location','northeast');
 %set(leg,'FontSize',18);

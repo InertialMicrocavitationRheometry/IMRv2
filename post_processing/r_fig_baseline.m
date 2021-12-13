@@ -45,7 +45,7 @@ saveas(gcf,'./figs/baseline/varsigma_T','png')
 figure(3)
 hold on
 xlabel('\it{t} / $t_c$', 'Interpreter', 'Latex', 'FontSize', 20); 
-ylabel('$\it{f}|_R$', 'Interpreter', 'Latex', 'FontSize', 20); 
+ylabel('$m|_R$', 'Interpreter', 'Latex', 'FontSize', 20); 
 %leg = legend('$\mu_{water}$','$\mu_{blood,\infty}$', '$\mu_{blood}$', '$\mu_{blood,0}$' ); 
 %set(leg,'Interpreter','latex','Location','northeast');
 %set(leg,'FontSize',18);
