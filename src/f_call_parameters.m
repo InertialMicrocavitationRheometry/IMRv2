@@ -72,6 +72,12 @@ function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)
     if strcmp('water',vmaterial)==1
         mu8 = 8.3283e-4;
         muo = 8.3283e-4;
+    elseif strcmp('blood_infinity', vmaterial) == 1
+        mu8 = 0.00345; 
+        muo = mu8; 
+    elseif strcmp('blood_zero', vmaterial) == 1
+        mu8 = 0.056; 
+        muo = mu8; 
     elseif strcmp('blood_combined', vmaterial) == 1
         mu8 = 0.00345; 
         muo = 0.056; 

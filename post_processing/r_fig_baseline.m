@@ -1,5 +1,5 @@
-tend = 30;
-tickrange= [0:5:tend];
+fig_tend = 30;
+tickrange= [0:5:fig_tend];
 lma = 'r';
 % SETTING UP THE FIGURES
 figure(1)  
@@ -16,7 +16,7 @@ xa = gca;
 xa.TickLength = [.03 .03];
 xa.LineWidth = 1.5;
 xticks(tickrange)
-xlim([0 tend])
+xlim([0 fig_tend])
 box on;
 plot(t,R, lm,'LineWidth',2); 
 saveas(gcf,'./figs/baseline/R_T','png')
@@ -35,7 +35,7 @@ xa = gca;
 xa.TickLength = [.03 .03];
 xa.LineWidth = 1.5;
 xticks(tickrange)
-xlim([0 tend])
+xlim([0 fig_tend])
 % ylim([-1.5 1.5]*1E-5)
 box on;
 gammadot_R = -2*U./R;
@@ -57,7 +57,7 @@ xa = gca;
 xa.TickLength = [.03 .03];
 xa.LineWidth = 1.5;
 xticks(tickrange)
-xlim([0 tend])
+xlim([0 fig_tend])
 ylim([-.1 1.1])
 box on;
 f = sf_carreau(v_nc,v_lambda,gammadot_R);
@@ -79,7 +79,7 @@ xa = gca;
 xa.TickLength = [.03 .03];
 xa.LineWidth = 1.5;
 xticks(tickrange)
-xlim([0 tend])
+xlim([0 fig_tend])
 box on;
 tau = 2*(f./DRe+1./Re8).*gammadot_R;
 plot(t,tau,lm,'LineWidth',2);
