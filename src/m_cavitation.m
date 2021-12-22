@@ -83,6 +83,8 @@ if DRe==0
 else
     iDRe = 1/DRe;
 end
+ 
+
 %****************************************
 % Needed to account for fast diffusion
 
@@ -269,13 +271,13 @@ function dxdt = bubble(t,x)
          P_ext_prime = 0; 
          
      elseif (Pext_type == 'highly_nonlinear_hcu')
-         % ERIC :: add code here
+         [Pext,P_ext_prime] = m_pressure_forcing(t_HN, p_HN, t); 
          
      elseif (Pext_type == 'moderate_nonlinear_hcu')
-         % ERIC :: add code here
+         [Pext,P_ext_prime] = m_pressure_forcing(t_HN, p_HN, t); 
          
      elseif (Pext_type == 'linear_hcu')
-         % ERIC :: add code here         
+         [Pext,P_ext_prime] = m_pressure_forcing(t_HN, p_HN, t);        
          
      end
 
