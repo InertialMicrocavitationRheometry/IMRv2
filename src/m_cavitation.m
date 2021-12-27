@@ -157,7 +157,7 @@ Cdel = [];
 % March equations in time 
 % options = odeset('RelTol',1e-10); %Tune tolerances of simulation
 % [t,X] = ode45(@fun,time_span,X0,options) <== Syntax 
-    opts = odeset('RelTol',1e-8,'AbsTol',1E-8);
+    opts = odeset('RelTol',1e-6,'AbsTol',1E-6);
     X0 = [R0_star U0_star P0_star Tau0 C0 Tm0 ]; 
     [t , X] = ode23tb(@bubble, [0 tspan_star] , X0, opts);
     R = X(:,1); % Bubble wall Radius 
@@ -238,10 +238,9 @@ function dxdt = bubble(t,x)
      
      %Set external pressure
      if (Pext_type == 'sn')
-         
-         Pext =  -Pext_Amp_Freq(1)/P_inf*sin(Pext_Amp_Freq(2)*t*t0) ; 
-         P_ext_prime = -Pext_Amp_Freq(2)*t0*Pext_Amp_Freq(1)/P_inf...
-             *cos( Pext_Amp_Freq(2)*t*t0) ;
+         Pext =  -Pext_Amp_Freq(1)/P_inf*sin(2*pi*Pext_Amp_Freq(2)*t*t0) ; 
+         P_ext_prime = -2*pi*Pext_Amp_Freq(2)*t0*Pext_Amp_Freq(1)/P_inf...
+             *cos(2*pi*Pext_Amp_Freq(2)*t*t0) ;
       
      elseif (Pext_type == 'RC')
          
