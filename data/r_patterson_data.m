@@ -56,9 +56,4 @@ dpnew = ppval(dp_HN,trange);
 plot(trange,pnew);
 plot(trange,dpnew);
 
-save pp_ML
-save dp_ML
-save pp_MN
-save dp_MN
-save pp_HN
-save dp_HN
+save workspace;

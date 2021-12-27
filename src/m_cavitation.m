@@ -83,7 +83,6 @@ if DRe==0
 else
     iDRe = 1/DRe;
 end
- 
 
 %****************************************
 % Needed to account for fast diffusion
@@ -153,11 +152,24 @@ tdel=[];
 Tdel = []; 
 Cdel = []; 
 
+in = load('./data/workspace.mat','pp_HN');
+pp_HN = in.pp_HN;
+in = load('./data/workspace.mat','dp_HN');
+dp_HN = in.dp_HN;
+in = load('./data/workspace.mat','pp_MN');
+pp_MN = in.pp_MN;
+in = load('./data/workspace.mat','dp_MN');
+dp_MN = in.dp_MN;
+in = load('./data/workspace.mat','pp_ML');
+pp_ML = in.pp_ML;
+in = load('./data/workspace.mat','dp_ML');
+dp_ML = in.dp_ML;
+
 %************************************************
 % March equations in time 
 % options = odeset('RelTol',1e-10); %Tune tolerances of simulation
 % [t,X] = ode45(@fun,time_span,X0,options) <== Syntax 
-    opts = odeset('RelTol',1e-6,'AbsTol',1E-6);
+    opts = odeset('RelTol',1e-8,'AbsTol',1E-8);
     X0 = [R0_star U0_star P0_star Tau0 C0 Tm0 ]; 
     [t , X] = ode23tb(@bubble, [0 tspan_star] , X0, opts);
     R = X(:,1); % Bubble wall Radius 
@@ -269,14 +281,17 @@ function dxdt = bubble(t,x)
          Pext = 0;
          P_ext_prime = 0; 
          
-     elseif (Pext_type == 'highly_nonlinear_hcu')
-         [Pext,P_ext_prime] = m_pressure_forcing(t_HN, p_HN, t); 
+     elseif (Pext_type == 'HN')
+         Pext = ppval(pp_HN,t);
+         P_ext_prime = ppval(dp_HN,t);
          
-     elseif (Pext_type == 'moderate_nonlinear_hcu')
-         [Pext,P_ext_prime] = m_pressure_forcing(t_HN, p_HN, t); 
+     elseif (Pext_type == 'MN')
+         Pext = ppval(pp_MN,t);
+         P_ext_prime = ppval(dp_MN,t);
          
-     elseif (Pext_type == 'linear_hcu')
-         [Pext,P_ext_prime] = m_pressure_forcing(t_HN, p_HN, t);        
+     elseif (Pext_type == 'ML')
+         Pext = ppval(pp_ML,t);
+         P_ext_prime = ppval(dp_ML,t);
          
      end
 
