@@ -23,4 +23,26 @@ run m_shear_analysis.m
 % figures are saved in folder: bubblewallfigs and contourfigs
 run m_run_cavitation_baseline.m
 
-close all;
+% running the module to create figure 4
+% figure 4 is the baseline simulation
+% figures are saved in folder: bubblewallfigs and contourfigs
+run m_run_cavitation_ML.m
+
+% running the module to create figure 4
+% figure 4 is the baseline simulation
+% figures are saved in folder: bubblewallfigs and contourfigs
+run m_run_cavitation_MN.m
+
+% running the module to create figure 4
+% figure 4 is the baseline simulation
+% figures are saved in folder: bubblewallfigs and contourfigs
+run m_run_cavitation_HN.m
+
+% running the module to create figure 4
+% figure 4 is the baseline simulation
+% figures are saved in folder: bubblewallfigs and contourfigs
+run m_run_cavitation_frequency.m
+run m_run_cavitation_radius.m
+run m_run_cavitation_pressure.m
+
+close all; clc;
