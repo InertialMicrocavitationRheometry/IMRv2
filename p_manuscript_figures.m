@@ -41,6 +41,8 @@ run m_run_cavitation_HN.m
 % running the module to create figure 4
 % figure 4 is the baseline simulation
 % figures are saved in folder: bubblewallfigs and contourfigs
+
+close all; clc; clear;
 run m_run_cavitation_frequency.m
 run m_run_cavitation_radius.m
 run m_run_cavitation_pressure.m

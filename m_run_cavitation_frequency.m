@@ -37,7 +37,7 @@ f = 2E6;
 R0= 0.5E-6;
 
 % RUNNING FREQUENCY VARIATION
-f_range = f*2.^(-2:0.5:3);
+f_range = f*2.^(-2.5:0.5:2.5);
 f_l_mu_max = zeros(length(f_range),1);
 f_l_mu_avg = zeros(length(f_range),1);
 R_max = zeros(length(f_range),1);
@@ -47,6 +47,7 @@ tfactor = f_range./f_range(1);
 [Pmt] = f_call_parameters(R0,vmaterial);
 t0 = Pmt(14); v_lambda = Pmt(27);
 Pinf = Pmt(19);
+xrange = f_range*t0*(Pinf/A);
 % figure(2)
 % hold on;
 for i=1:length(f_range)
@@ -68,8 +69,8 @@ addpath(genpath(routines));
 addpath(post);
 figure(1)
 hold on;
-plot(f_range*t0*(Pinf/A),f_l_mu_max,'sr','MarkerFaceColor','r','MarkerSize',8);
-plot(f_range*t0*(Pinf/A),R_max,'sb','MarkerFaceColor','b','MarkerSize',8);
+plot(xrange,f_l_mu_max,'sr','MarkerFaceColor','r','MarkerSize',8);
+plot(xrange,R_max,'sb','MarkerFaceColor','b','MarkerSize',8);
 % plot(f_range*t0,f_l_mu_avg,'^r','MarkerFaceColor','r','MarkerSize',8);
 % plot(f_range*t0,R_ave,'^b','MarkerFaceColor','b','MarkerSize',8);
 xlabel('$f R_o\sqrt{\rho_{\ell}/p_{\infty}}$', 'Interpreter', 'Latex', 'FontSize', 20); 

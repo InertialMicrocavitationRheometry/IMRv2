@@ -13,8 +13,8 @@ ycon = log10(ycon);
 clevels = 50;
 feps_r = f_f_filter(f_r,lR,lr_N);
 tau_r = 2*(feps_r./DRe+1./Re8).*varsigmadot_r;
-min_tau_r = min(min(tau_r));
-max_tau_r = max(max(tau_r));
+min_tau_r = min(min(tau_r))
+max_tau_r = max(max(tau_r))
 ntau_r = tau_r/max_tau_r;
 
 % f contour figure
@@ -51,10 +51,10 @@ xlabel('$t / t_c$', 'Interpreter', 'Latex', 'FontSize', 20);
 ylabel('log$_{10}(\it{r}/R_o)$','Interpreter','Latex','FontSize',24);
 colormap jet;
 cbar = colorbar;
-cbar.Label.String = '$\tau_{rr}/p_{\mathrm{atm}}$';
+cbar.Label.String = '$\tau_{rr}/\mathrm{max}(\tau_{rr})$';
 set(cbar,'TickLabelInterpreter','latex');
 pos = get(cbar,'Position');
-cbar.Label.Position = [1.5*pos(1) -1.08];
+cbar.Label.Position = [1.5*pos(1) -1.2];
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
 caxis([-1 1])

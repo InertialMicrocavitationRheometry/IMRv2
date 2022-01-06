@@ -37,7 +37,7 @@ f = 2E6;
 R0= 0.5E-6;
 
 % RUNNING FREQUENCY VARIATION
-p_range = A*2.^(-2:0.5:3);
+p_range = A*2.^(-2.5:0.5:2.5);
 p_l_mu_max = zeros(length(p_range),1);
 p_l_mu_avg = zeros(length(p_range),1);
 R_max = zeros(length(p_range),1);
@@ -47,6 +47,7 @@ tfactor = p_range./p_range(1);
 [Pmt] = f_call_parameters(R0,vmaterial);
 t0 = Pmt(14);
 Pinf = Pmt(19); v_lambda = Pmt(27);
+xrange = (Pinf./p_range*f*t0)';
 % figure(2); hold on;
 for i=1:length(p_range)
     Pext_Amp_Freq = [p_range(i), f]; 
@@ -67,8 +68,8 @@ addpath(genpath(routines));
 addpath(post);
 figure(1)
 hold on;
-plot(Pinf./p_range*f*t0,p_l_mu_max,'or','MarkerFaceColor','r','MarkerSize',8);
-plot(Pinf./p_range*f*t0,R_max,'ob','MarkerFaceColor','b','MarkerSize',8);
+plot(xrange,p_l_mu_max,'or','MarkerFaceColor','r','MarkerSize',8);
+plot(xrange,R_max,'ob','MarkerFaceColor','b','MarkerSize',8);
 % plot(p_range/Pinf,p_l_mu_avg,'^r','MarkerFaceColor','r','MarkerSize',8);
 % plot(p_range/Pinf,R_ave,'^b','MarkerFaceColor','b','MarkerSize',8);
 xlabel('$(R_{o}/R_{o,b})(f R_o\sqrt{\rho_{\ell}/p_{\infty}})(p_{\infty}/A)$', 'Interpreter', 'Latex', 'FontSize', 20); 

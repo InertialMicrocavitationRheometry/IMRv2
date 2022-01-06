@@ -37,14 +37,15 @@ f = 2E6;
 R0= 0.5E-6;
 
 % RUNNING FREQUENCY VARIATION
-R_range = R0*2.^(-2:0.5:3);
+R_range = R0*2.^(-2.5:0.5:2.5);
 p_l_mu_max = zeros(length(R_range),1);
 p_l_mu_avg = zeros(length(R_range),1);
 R_max = zeros(length(R_range),1);
 R_ave = zeros(length(R_range),1);
 tfactor = R_range./R0;
 [Pmt] = f_call_parameters(R0,vmaterial);
-t0 = Pmt(14);
+t0 = Pmt(14); Pinf = Pmt(19);
+xrange = R_range'/R0*f*t0*(Pinf/A);
 % figure(2); hold on;
 for i=1:length(R_range)
     [Pmt] = f_call_parameters(R_range(i),vmaterial);
@@ -67,8 +68,8 @@ addpath(genpath(routines));
 addpath(post);
 figure(1)
 hold on;
-plot(R_range'/R0*f*t0*(Pinf/A),p_l_mu_max,'^r','MarkerFaceColor','r','MarkerSize',8);
-plot(R_range'/R0*f*t0*(Pinf/A),R_max,'^b','MarkerFaceColor','b','MarkerSize',8);
+plot(xrange,p_l_mu_max,'^r','MarkerFaceColor','r','MarkerSize',8);
+plot(xrange,R_max,'^b','MarkerFaceColor','b','MarkerSize',8);
 % plot(R_range/R0,p_l_mu_avg,'^r','MarkerFaceColor','r','MarkerSize',8);
 % plot(R_range/R0,R_ave,'^b','MarkerFaceColor','b','MarkerSize',8);
 xlabel('$R_{o} /R_{o,b}$', 'Interpreter', 'Latex', 'FontSize', 20); 
