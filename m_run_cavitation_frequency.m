@@ -65,8 +65,8 @@ for i=1:length(f_range)
 %     plot(t,R/R_max(i));
 end
 
-yy = [10^4 10^2];
-xx = [2*10^-3 2*10^-1];
+yy = [10^4 3.545E2];
+xx = [2*10^-3 5.704e-2];
 
 addpath(genpath(routines));
 addpath(post);
