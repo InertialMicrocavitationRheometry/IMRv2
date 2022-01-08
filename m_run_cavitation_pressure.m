@@ -79,6 +79,7 @@ set(gcf,'color','w');
 set(gca, 'FontName', 'Times', 'FontSize',20); 
 set(gca,'TickLabelInterpreter','latex');
 ylim([1E0 1E6])
+xlim([1E-3 1E-1])
 xa = gca;
 xa.TickLength = [.03 .03];
 xa.LineWidth = 1.5;

@@ -65,10 +65,14 @@ for i=1:length(f_range)
 %     plot(t,R/R_max(i));
 end
 
+yy = [10^4 10^2];
+xx = [2*10^-3 2*10^-1];
+
 addpath(genpath(routines));
 addpath(post);
 figure(1)
 hold on;
+plot(xx,yy,'k','LineWidth',2);
 plot(xrange,f_l_mu_max,'sr','MarkerFaceColor','r','MarkerSize',8);
 plot(xrange,R_max,'sb','MarkerFaceColor','b','MarkerSize',8);
 % plot(f_range*t0,f_l_mu_avg,'^r','MarkerFaceColor','r','MarkerSize',8);
