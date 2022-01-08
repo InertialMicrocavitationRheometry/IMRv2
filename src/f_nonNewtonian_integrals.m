@@ -13,8 +13,7 @@ function [f,intf,dintf,ddintf] = ...
     abstol = 1E-8; reltol = 1E-8;
     % Setting the parameters and calculating integrals
     switch vmodel
-        case 'newtonian'
-            return;     
+        case 'newtonian'   
         case 'carreau'
             % calculating the viscosity slope at r = R
             f = sf_carreau(nc,lambda,gammadot_R);

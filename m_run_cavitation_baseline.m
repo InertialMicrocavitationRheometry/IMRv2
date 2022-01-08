@@ -49,5 +49,28 @@ v_nc = Pmt(26); v_lambda = Pmt(27);
 lm = 'k';
 r_fig_baseline;
 r_ffield_baseline;
+
+lm = '-.r';
+vmaterial = 'blood_zero';
+vmodel = 'newtonian';
+[ t , R ,U ,P, T,C, Tm,tdel,Tdel,Cdel] = m_cavitation...
+(tend,R0,NT,NTM,Pext_type,Pext_Amp_Freq,disptime,Tgrad,Tmgrad,Cgrad,...
+Dim,comp,vmaterial,vmodel);
+[Pmt] = f_call_parameters(R0,vmaterial);
+Re8 = Pmt(6); DRe = Pmt(24);
+v_nc = Pmt(26); v_lambda = Pmt(27);
+r_fig_baseline;
+
+lm = '--b';
+vmaterial = 'blood_infinity';
+vmodel = 'newtonian';
+[ t , R ,U ,P, T,C, Tm,tdel,Tdel,Cdel] = m_cavitation...
+(tend,R0,NT,NTM,Pext_type,Pext_Amp_Freq,disptime,Tgrad,Tmgrad,Cgrad,...
+Dim,comp,vmaterial,vmodel);
+[Pmt] = f_call_parameters(R0,vmaterial);
+Re8 = Pmt(6); DRe = Pmt(24);
+v_nc = Pmt(26); v_lambda = Pmt(27);
+r_fig_baseline;
+
 rmpath(routines);
 rmpath(post);

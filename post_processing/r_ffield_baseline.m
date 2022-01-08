@@ -1,5 +1,5 @@
-tend = 30;
-tickrange= [0:5:tend];
+fig_tend = 30;
+tickrange= [0:5:fig_tend];
 lR = length(R);
 lr_max = 100;
 lr_N = 200;
@@ -31,7 +31,7 @@ cbar.Label.Position = [pos(1) -0.04];
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
 caxis([0 1]);
-xlim([0 tend]);
+xlim([0 fig_tend]);
 xticks(tickrange)
 set(gcf,'color','w');
 set(gca,'FontName','Times','FontSize',20);
@@ -58,7 +58,7 @@ cbar.Label.Position = [1.5*pos(1) -1.2];
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
 caxis([-1 1])
-xlim([0 tend]);
+xlim([0 fig_tend]);
 xticks(tickrange)
 set(gcf,'color','w');
 set(gca,'FontName','Times','FontSize',20);

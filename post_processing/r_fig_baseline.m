@@ -60,9 +60,12 @@ xticks(tickrange)
 xlim([0 fig_tend])
 ylim([-.1 1.1])
 box on;
-f = sf_carreau(v_nc,v_lambda,gammadot_R);
+m_slope = sf_carreau(v_nc,v_lambda,gammadot_R);
 % fave = cumsum(f)./[1:length(f)]';
-plot(t,f,lm,'LineWidth',2);
+if strcmp('blood_infinity', vmaterial) == 1
+    m_slope = zeros(length(t),1);
+end
+plot(t,m_slope,lm,'LineWidth',2);
 saveas(gcf,'./figs/baseline/f_T','png')
 
 figure(4)
@@ -81,6 +84,6 @@ xa.LineWidth = 1.5;
 xticks(tickrange)
 xlim([0 fig_tend])
 box on;
-tau = 2*(f./DRe+1./Re8).*gammadot_R;
+tau = 2*(m_slope./DRe+1./Re8).*gammadot_R;
 plot(t,tau,lm,'LineWidth',2);
 saveas(gcf,'./figs/baseline/tau_T','png')
