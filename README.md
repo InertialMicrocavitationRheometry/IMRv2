@@ -1,4 +1,4 @@
-## WELCOME TO Inertial Microcavitation Rheometry solver for Non-Newtonian flows
+## Welcome to the Inertial Microcavitation Rheometry solver for Non-Newtonian flows
 
 ### This repository of the code is managed by the Rodriguez Flow Research Group @ Brown University
 ### Developer(s): 
