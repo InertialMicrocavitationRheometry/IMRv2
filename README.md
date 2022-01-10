@@ -2,7 +2,7 @@
 
 ### This repository of the code is managed by the Rodriguez Flow Research Group @ Brown University
 ### Developer(s): 
-1. Mauro Rodriguez (PI), mauro_rodriguez@brown.edu
+1. Mauro Rodriguez, mauro_rodriguez@brown.edu
 2. Eric Hersey, ehersey@umich.edu
 
 ### The main code is in the /src directory, the spectral collocation method version of the code is in the /src_spec directory
