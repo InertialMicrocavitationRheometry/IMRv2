@@ -1,6 +1,6 @@
-## WELCOME TO THE KELLER-MIKSIS SOLVER 
+## WELCOME TO Inertial Microcavitation Rheometry solver for Non-Newtonian flows
 
-### This portion of the code is managed by the Rodriguez Flow Research Group @ Brown University
+### This repository of the code is managed by the Rodriguez Flow Research Group @ Brown University
 ### Developer(s): 
 1. Mauro Rodriguez (PI), mauro_rodriguez@brown.edu
 2. Eric Hersey, ehersey@umich.edu
