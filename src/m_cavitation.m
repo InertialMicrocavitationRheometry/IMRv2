@@ -189,7 +189,7 @@ dp_ML = in.dp_ML;
     T = T*T_inf;
     P = P*P_inf;
     U = U*(R0/t0);
-    tdel= tdel*t0;
+    tdel= tdel*t0; %time vector
     Tdel = Tdel*T_inf;
     Mv = Mv*(Mv0+Ma0);
  end
