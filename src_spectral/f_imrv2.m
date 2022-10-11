@@ -66,35 +66,45 @@ function varargout =  f_imrv2(varargin)
 %*************************************************************************
 %   The various options can be found below.  Code may also run without any
 %   inputs.
-
-[params] = f_call_params(varargin);
-% thermal options
-polytropic  = params(1); cold = params(2); 
-% equation for radial dynamic
-rayleighplesset = params(3); enthalpy = params(4); gil = params(5); 
-% constitutive model
-neoHook = params(6); voigt = params(7); linelas = params(8); 
-liner = params(9); oldb = params(10); ptt = params(11); gies = params(12); 
-% display options
-dimensionalout = params(13); progdisplay = params(14); detail = params(15); 
-plotresult = params(16); radiusonly = params(17); vitalsreport = params(18); 
+par = f_call_params(varargin{:});
+params = cell2mat(par);
+% numerical settings 
+polytropic      = params(1); cold = params(2); rayleighplesset = params(3);
+enthalpy        = params(4); gil = params(5); neoHook = params(6);
+voigt           = params(7); linelas = params(8); liner = params(9);
+oldb            = params(10); ptt = params(11); gies = params(12);
 % output options
-displayonly = params(19); technical = params(20); 
+dimensionalout  = params(13); progdisplay = params(14); detail = params(15);
+plotresult      = params(16); radiusonly = params(17); vitalsreport = params(18);
+displayonly     = params(19); technical = params(20);
 % solver options
-method = params(21); spectral = params(22); divisions = params(23); 
-% numerical parameters
-Nv = params(24); Nt = params(25); Mt = params(26); Lv = params(27);
-Lt = params(28); C = params(29); GAMa = params(30); 
+method          = params(21);
+spectral        = params(22);
+divisions       = params(23);
+% numerical parameters 
+Nv              = params(24); Nt = params(25); Mt = params(26);
+Lv              = params(27); Lt = params(28);
+% physical parameters%
+% acoustic parameters
+Cstar           = params(29); GAMa = params(30); kappa = params(31);
+nstate          = params(32);
 % dimensionless waveform parameters
-tfin = params(31); om = params(32); ee = params(33); tw = params(34); 
-dt = params(35);
-% dimensionless numbers
-We = params(36); Re = params(37); Ca = params(38); LAM = params(39);
-De = params(40); Fo = params(41);
-% dimensionless thermal quantities
-alpha = params(42); chi = params(43); iota = params(44);
+tfin            = params(33); om = params(34); ee = params(35); 
+tw              = params(36); dt = params(37); mn = params(38); 
+% dimensionless viscoelastic
+We              = params(39); Re8 = params(40); DRe = params(41); 
+v_a             = params(42); v_nc = params(43); Ca = params(44);
+LAM             = params(45); De = params(46); JdotA = params(47); 
+v_lambda_star   = params(48); 
+% dimensionless thermal 
+Fom             = params(49); Br = params(50); alpha = params(51); 
+chi             = params(52); iota = params(53);
+% dimensionaless mass transfer 
+Foh             = params(54); C0 = params(55); Rv_star = params(56);
+Ra_star         = params(57); L_heat_star = params(58); mv0 = params(59); 
+ma0             = params(60); 
 % dimensionless initial conditions
-Rzero = params(45); Uzero = params(46); pzero = params(47);
+Rzero           = params(61); Uzero = params(62); pzero = params(63);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numerical setup and precomputations %
@@ -115,8 +125,8 @@ sCA = sCA(2:end,2:end) - 1;
 sCI = sCI(2:end,2:end);
 sCAd = sCAd(2:end,2:end);
 % precomputations
-LDR = LAM*De/Re;
-sam = p0star - We + GAMa;
+LDR = LAM*De/Re8;
+sam = pzero- We + GAMa;
 no = (nstate-1)/nstate;
 kapover = (kappa-1)/kappa;
 yT = 2*Lt./(1+xi) - Lt + 1;
@@ -174,21 +184,21 @@ init = [Rzero; Uzero; pzero; % radius, velocity, pressure
 tspan = linspace(0,tfin,detail);
 stepcount = 0;
 
-if strcmp(method,'15s')
+if method == 15
     if divisions == 0
         options = odeset();
     else
         options = odeset('MaxStep',tfin/divisions,'RelTol',1e-4);
     end
     [t,X] = ode15s(@SVBDODE,tspan,init,options);
-elseif strcmp(method,'23s')
+elseif method == 23
     if divisions == 0
         options = odeset();
     else
         options = odeset('MaxStep',tfin/divisions);
     end
     [t,X] = ode23s(@SVBDODE,tspan,init,options);
-elseif strcmp(method,'45')
+elseif method == 45
     if divisions == 0
         options = odeset('NonNegative',1);
     else
