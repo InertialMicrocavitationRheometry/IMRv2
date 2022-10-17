@@ -6,10 +6,10 @@ function [vecout]  = f_call_params(varargin)
     % display options
     dimensionalout  = 0;        % output result in dimensional variables
     progdisplay     = 0;        % display progress while code running
-    detail          = 100;    	% number of points in time to store result
+    detail          = 1000;    	% number of points in time to store result
     plotresult      = 1;        % generate figure containing results
-    radiusonly      = 0;        % only produce R(t) curve
-    vitalsreport    = 1;        % display accuracy data
+    radiusonly      = 1;        % only produce R(t) curve
+    vitalsreport    = 0;        % display accuracy data
     % output options
     displayonly     = 0;        % do not generate output
     technical       = 0;        % output technical data
@@ -18,21 +18,21 @@ function [vecout]  = f_call_params(varargin)
     enthalpy        = 0;        % Keller-Miksis enthalpy equations
     gil             = 0;        % Gilmore equation
     % thermal assumptions, default is no thermal assumptions
-    polytropic      = 0;        % polytropic assumption
+    polytropic      = 1;        % polytropic assumption
     cold            = 0;        % cold fluid assumption
-    vapor           = 0;        % ignore vapor pressure
+    vapor           = 1;        % ignore vapor pressure
     % constitutive model, default is UCM with linear elasticity
     neoHook         = 0;        % neo-Hookean
     voigt           = 0;        % Voigt model
     linelas         = 0;        % linear elastic model
     liner           = 0;        % linear model?
-    oldb            = 1;        % Oldroyd-B
+    oldb            = 0;        % Oldroyd-B
     ptt             = 0;        % Phan-Thien-Tanner
     gies            = 0;        % Giesekus fluid
     vmaterial       = 'water';
     % solver options
     method          = 45;       % ode45
-    spectral        = 1;        % force spectral collocation solution
+    spectral        = 0;        % force spectral collocation solution
     divisions       = 0;        % minimum number of timesteps
     % numerical parameters
     Nv              = 25;       
@@ -89,7 +89,7 @@ function [vecout]  = f_call_params(varargin)
     S       = 0.072;              % (N/m) Liquid Surface Tension 
     % non-Newtonian viscosity
     [mu8,Dmu,v_a,v_nc,v_lambda] = f_nonNewtonian_Re(vmaterial); % viscosity
-	G       = 1E3;                % (Pa) Medium Shear Modulus 
+	G       = 1E1;                % (Pa) Medium Shear Modulus 
     lambda1 = 0.5e-6;             % relaxation time (s)
     lambda2 = lambda1;            % retardation time (s)
     Pv      = f_pvsat(T8);    

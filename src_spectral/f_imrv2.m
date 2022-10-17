@@ -97,10 +97,10 @@ v_a             = params(42); v_nc = params(43); Ca = params(44);
 LAM             = params(45); De = params(46); JdotA = params(47); 
 v_lambda_star   = params(48); 
 % dimensionless thermal 
-Fom             = params(49); Br = params(50); alpha = params(51); 
+Foh             = params(49); Br = params(50); alpha = params(51); 
 chi             = params(52); iota = params(53);
 % dimensionaless mass transfer 
-Foh             = params(54); C0 = params(55); Rv_star = params(56);
+Fom             = params(54); C0 = params(55); Rv_star = params(56);
 Ra_star         = params(57); L_heat_star = params(58); mv0 = params(59); 
 ma0             = params(60); 
 % dimensionless initial conditions
@@ -183,6 +183,7 @@ init = [Rzero; Uzero; pzero; % radius, velocity, pressure
 %%%%%%%%%%%%%%%%%%%% SOLVER CALL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 tspan = linspace(0,tfin,detail);
+% tspan = [0 tfin];
 stepcount = 0;
 
 if method == 15
@@ -358,6 +359,7 @@ function dXdt = SVBDODE(t,X)
         end
         pVap = (f_pvsat(T(end)*T8)/P8);
     end
+    J = 0; JdotX = 0; Z1dot = 0; Z2dot = 0;
     % stress
     if neoHook == 1 % Kelvin-Voigt with neo-Hookean elasticity
         % ignore stress sub-integrals
@@ -544,7 +546,8 @@ if plotresult == 1
         ylabel('R');
         axis([0 t(end) 0 (max(R) + min(R))]);
         subplot(3 - polytropic,1,2);
-        semilogy(t,abs(c(end,:)),t,abs(d(end,:))); ylabel('c_P, d_P');
+        semilogy(t,abs(c(end,:)),t,abs(d(end,:))); 
+        ylabel('c_P, d_P');
         axis([0 t(end) 1e-20 1]);
         if polytropic == 0
             if cold == 1, b = zeros(size(a)); end
@@ -596,7 +599,7 @@ elseif enthalpy == 1
 else
     eqn = 'Keller-Miksis in pressure';
 end
-
+const = 'none';
 if voigt == 0
     if neoHook == 1
         if Ca == Inf
