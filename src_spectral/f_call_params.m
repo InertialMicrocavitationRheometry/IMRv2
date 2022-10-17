@@ -5,8 +5,8 @@ function [vecout]  = f_call_params(varargin)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % display options
     dimensionalout  = 0;        % output result in dimensional variables
-    progdisplay     = 1;        % display progress while code running
-    detail          = 2000;    	% number of points in time to store result
+    progdisplay     = 0;        % display progress while code running
+    detail          = 100;    	% number of points in time to store result
     plotresult      = 1;        % generate figure containing results
     radiusonly      = 0;        % only produce R(t) curve
     vitalsreport    = 1;        % display accuracy data
@@ -18,26 +18,26 @@ function [vecout]  = f_call_params(varargin)
     enthalpy        = 0;        % Keller-Miksis enthalpy equations
     gil             = 0;        % Gilmore equation
     % thermal assumptions, default is no thermal assumptions
-    polytropic      = 1;        % polytropic assumption
+    polytropic      = 0;        % polytropic assumption
     cold            = 0;        % cold fluid assumption
     vapor           = 0;        % ignore vapor pressure
     % constitutive model, default is UCM with linear elasticity
     neoHook         = 0;        % neo-Hookean
-    voigt           = 1;        % Voigt model
+    voigt           = 0;        % Voigt model
     linelas         = 0;        % linear elastic model
     liner           = 0;        % linear model?
-    oldb            = 0;        % Oldroyd-B
+    oldb            = 1;        % Oldroyd-B
     ptt             = 0;        % Phan-Thien-Tanner
     gies            = 0;        % Giesekus fluid
     vmaterial       = 'water';
     % solver options
     method          = 45;       % ode45
-    spectral        = 0;        % force spectral collocation solution
+    spectral        = 1;        % force spectral collocation solution
     divisions       = 0;        % minimum number of timesteps
     % numerical parameters
-    Nv              = 20;       
-    Nt              = 10; 
-    Mt              = 10; 
+    Nv              = 25;       
+    Nt              = 20; 
+    Mt              = 20; 
     Lv              = 3; 
     Lt              = 3;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -48,7 +48,7 @@ function [vecout]  = f_call_params(varargin)
     %%%%%%%%%%%%%%%%%%%%%%%%%
     % waveform parameters   %
     %%%%%%%%%%%%%%%%%%%%%%%%% 
-    TFin            = 0.6e-6;   % final time (s)
+    TFin            = 5e-7;   % final time (s)
     pA              = 2e6;      % pressure amplitude (Pa)
     omega           = 4e6*2*pi; % frequency (rad/s)
     TW              = 0;        % gaussian width (s)
@@ -218,6 +218,7 @@ function [vecout]  = f_call_params(varargin)
     % Final non-dimensional variables
     t0      = R0/Uc;                    % characteristic time (s) 
 	% dimensionless vapor and infinity pressure
+    Pv_star = Pv/P8;
 	P0_star = P0/P8;                    % 
     % dimensionless waveform parameters
     tfin    = TFin/t0;                  % simulation time
@@ -365,7 +366,7 @@ vecout = {...
       We Re8 DRe v_a v_nc Ca LAM De JdotA v_lambda_star ... % dimensionless viscoelastic
       Fom Br alpha chi iota ... % dimensionless thermal 
       Foh C0 Rv_star Ra_star L_heat_star mv0 ma0 ... % dimensionaless mass transfer 
-      Rzero Uzero pzero ... % dimensionless initial conditions
+      Rzero Uzero pzero P8 T8 Pv_star... % dimensionless initial conditions
       };  
 end
 

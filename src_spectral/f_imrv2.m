@@ -105,7 +105,8 @@ Ra_star         = params(57); L_heat_star = params(58); mv0 = params(59);
 ma0             = params(60); 
 % dimensionless initial conditions
 Rzero           = params(61); Uzero = params(62); pzero = params(63);
-
+P8              = params(64); T8 = params(65); Pv_star = params(66);
+p0star          = pzero;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numerical setup and precomputations %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -126,7 +127,7 @@ sCI = sCI(2:end,2:end);
 sCAd = sCAd(2:end,2:end);
 % precomputations
 LDR = LAM*De/Re8;
-sam = pzero- We + GAMa;
+sam = pzero - We + GAMa;
 no = (nstate-1)/nstate;
 kapover = (kappa-1)/kappa;
 yT = 2*Lt./(1+xi) - Lt + 1;
@@ -175,8 +176,8 @@ init = [Rzero; Uzero; pzero; % radius, velocity, pressure
     zeros(Nt+1,1); % auxiliary temperature spectrum
     ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
     zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
-    0; % initial stress integral
-    zeros(Nt+1,1)]; % initial vapor concentration
+    0]; % initial stress integral
+    %zeros(Nt+1,1)]; % initial vapor concentration
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% SOLVER CALL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -314,6 +315,7 @@ function dXdt = SVBDODE(t,X)
         % polytropic approximation
         p = p0star*R^(-3*kappa);
         pdot = -3*kappa*U/R*p;
+        pVap = Pv_star;
     else
         % extract auxiliary temperature
         SI = gA*X(ia);
@@ -339,77 +341,78 @@ function dXdt = SVBDODE(t,X)
             TL = mA*X(ib);
             % new derivative of medium temperature
             first_term = (1+xi).^2/(Lt*R).*...
-                (Fo/R*((1+xi)/(2*Lt) - 1./yT) + ...
+                (Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
                 U/2*(1./yT.^2 - yT)).*(mAPd*TL);
-            second_term = Fo/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
+            second_term = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
             TLdot =  first_term + second_term;
             % include viscous heating
             if spectral == 1
                 TLdot = TLdot - 2*Br*U./(R*yT.^3).*(ZZT*(X(ic) - X(id)));    
             elseif voigt == 1 || neoHook == 1 || linelas == 1
-                TLdot = TLdot + 4*Br./yT.^6*(U/R*(1-1/R^3)/Ca + 3/Re*(U/R)^2);      
+                TLdot = TLdot + 4*Br./yT.^6*(U/R*(1-1/R^3)/Ca + 3/Re8*(U/R)^2);      
             end
             % enforce boundary condition and solve
             TLdot(end) = 0;
             qdot = [ones(1,Nt+1) -(alpha*(T(1)-1)+1)*ones(1,Mt+1); Q]...
                 \[0; SIdot(2:end); TLdot(2:end); 0];       
         end
+        pVap = (f_pvsat(T(end)*T8)/P8);
     end
     % stress
     if neoHook == 1 % Kelvin-Voigt with neo-Hookean elasticity
         % ignore stress sub-integrals
         Z1dot = 0; Z2dot = 0;
         % compute stress integral
-        J = (4/R + 1/R^4 - 5)/(2*Ca) - 4/Re*U/R;
-        JdotX = -2*U*(1/R^2 + 1/R^5)/Ca + 4/Re*U^2/R^2;
+        J = (4/R + 1/R^4 - 5)/(2*Ca) - 4/Re8*U/R;
+        JdotX = -2*U*(1/R^2 + 1/R^5)/Ca + 4/Re8*U^2/R^2;
     elseif voigt == 1 % Kelvin-Voigt (Yang-Church)
         % ignore stress sub-integrals
         Z1dot = 0; Z2dot = 0;
         % compute stress integral
-        J = -4/(3*Ca)*(1 - 1/R^3) - 4/Re*U/R;
-        JdotX = -4/Ca*U/R^4 + 4/Re*U^2/R^2;
+        J = -4/(3*Ca)*(1 - 1/R^3) - 4/Re8*U/R;
+        JdotX = -4/Ca*U/R^4 + 4/Re8*U^2/R^2;
     elseif linelas == 1 % Linear elastic
         % ignore stress sub-integrals
         Z1dot = 0; Z2dot = 0;     
         % compute stress integral
-        J = -2/Ca*(1 - 1/R^2) - 4/Re*U/R;
-        JdotX = -4/Ca*U/R^3 + 4/Re*U^2/R^2;
+        J = -2/Ca*(1 - 1/R^2) - 4/Re8*U/R;
+        JdotX = -4/Ca*U/R^3 + 4/Re8*U^2/R^2;
     elseif spectral == 1 % Giesekus, PTT, or forced spectral         
         % extract stress spectrum
         c = X(ic); d = X(id);
         % inverse Chebyshev transforms and derivatives
         [trr,dtrr,t00,dt00] = stressdiff(c,d);
         % new spectral coefficient derivatives
-        exptau = exp(ptt*Re*De*(trr + 2*t00));            
+        exptau = exp(ptt*Re8*De*(trr + 2*t00));            
         Z1dot = stresssolve(-(exptau/De + zeNO*4*U./(yV.^3*R) ...
-            + gies*Re*trr).*trr ...
+            + gies*Re8*trr).*trr ...
             + (1-ze).^2*U/(2*Lv*R).*(yV - zeNO./yV.^2).*dtrr ...
-            - 4./yV.^3*((1-1/R^3)/(3*Ca) + U/(Re*R) ...
-            + LDR*(2*U^2/R^2 + Udot/R))/De - zeNO*4*LAM/Re*(U/R)^2./yV.^6);
+            - 4./yV.^3*((1-1/R^3)/(3*Ca) + U/(Re8*R) ...
+            + LDR*(2*U^2/R^2 + Udot/R))/De - zeNO*4*LAM/Re8*(U/R)^2./yV.^6);
         Z2dot = stresssolve(-(exptau/De - zeNO*2*U./(yV.^3*R) ...
-            + gies*Re*t00).*t00 ...
+            + gies*Re8*t00).*t00 ...
             + (1-ze).^2*U/(2*Lv*R).*(yV - zeNO./yV.^2).*dt00 ...
-            + 2./yV.^3*((1-1/R^3)/(3*Ca) + U/(Re*R) ...
-            + LDR*(2*U^2/R^2 + Udot/R))/De - zeNO*10*LAM/Re*(U/R)^2./yV.^6);
+            + 2./yV.^3*((1-1/R^3)/(3*Ca) + U/(Re8*R) ...
+            + LDR*(2*U^2/R^2 + Udot/R))/De - zeNO*10*LAM/Re8*(U/R)^2./yV.^6);
         % compute stress integral
         J = 2*sum(cdd.*(c-d));
         JdotX = 2*sum(cdd.*(Z1dot - Z2dot));   
     elseif liner == 1 % linear Maxwell, linear Jeffreys, linear Zener
         % extract
         Z1 = X(ic);
-        J = Z1/R^3 - 4*LAM/Re*U/R;
+        J = Z1/R^3 - 4*LAM/Re8*U/R;
         % stress integral derivative
-        Z1dot = -Z1/De + 4*(LAM-1)/(Re*De)*R^2*U - 4*(R^3-1)/(3*Ca*De);
+        Z1dot = -Z1/De + 4*(LAM-1)/(Re8*De)*R^2*U - 4*(R^3-1)/(3*Ca*De);
         Z2dot = 0;
-        JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re*U^2/R^2;     
+        JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re8*U^2/R^2;     
     elseif oldb == 1 % upper-convected Maxwell, OldRoyd-B
         % extract stress sub-integrals
         Z1 = X(ic); Z2 = X(id);
         % compute new derivatives
-        Z1dot = -(1/De - 2*U/R)*Z1 + 2*(LAM-1)/(Re*De)*R^2*U;
-        Z2dot = -(1/De + 1*U/R)*Z2 + 2*(LAM-1)/(Re*De)*R^2*U;
-        J = (Z1 + Z2)/R^3 - 4*LAM/Re*U/R;
-        JdotX = (Z1dot+Z2dot)/R^3 - 3*U/R^4*(Z1+Z2) + 4*LAM/Re*U^2/R^2;
+        Z1dot = -(1/De - 2*U/R)*Z1 + 2*(LAM-1)/(Re8*De)*R^2*U;
+        Z2dot = -(1/De + 1*U/R)*Z2 + 2*(LAM-1)/(Re8*De)*R^2*U;
+        J = (Z1 + Z2)/R^3 - 4*LAM/Re8*U/R;
+        JdotX = (Z1dot+Z2dot)/R^3 - 3*U/R^4*(Z1+Z2) + 4*LAM/Re8*U^2/R^2;
     end
     
 %     %***************************************
@@ -432,26 +435,26 @@ function dXdt = SVBDODE(t,X)
     % bubble wall acceleration
     % Rayleigh-Plesset        
     if rayleighplesset == 1
-        Udot = (p - p8bar + pVap - pf(t) - We/R + J - 1.5*U^2)/R;
+        Udot = (p - 1 + pVap - pf(t) - We/R + J - 1.5*U^2)/R;
     % Keller-Miksis in enthalpy
     elseif enthalpy == 1    
         hB = sam/no*(((p - We/R + GAMa + J)/sam)^no - 1);
         hH = (sam/(p + pVap - We/R + GAMa + J))^(1/nstate);
-        Udot = ((1 + U/C)*(hB - pf(t)) - R/C*pfdot(t) ...
-            + R/C*hH*(pdot + We*U/R^2 + JdotX) ...
-            - 1.5*(1 - U/(3*C))*U^2)/((1 - U/C)*R + JdotA*hH/C);
+        Udot = ((1 + U/Cstar)*(hB - pf(t)) - R/Cstar*pfdot(t) ...
+            + R/Cstar*hH*(pdot + We*U/R^2 + JdotX) ...
+            - 1.5*(1 - U/(3*Cstar))*U^2)/((1 - U/Cstar)*R + JdotA*hH/Cstar);
     % Gilmore equation
 	elseif gil == 1
         hB = sam/no*(((p - We/R + GAMa + J)/sam)^no - 1);
         hH = (sam/(p + pVap - We/R + GAMa + J))^(1/nstate);
-        Udot = ((1 + U/C)*(hB - pf(t)) - R/C*pfdot(t) ...
-            + R/C*hH*(pdot + We*U/R^2 + JdotX) ...
-            - 1.5*(1 - U/(3*C))*U^2)/((1 - U/C)*R + JdotA*hH/C);
+        Udot = ((1 + U/Cstar)*(hB - pf(t)) - R/Cstar*pfdot(t) ...
+            + R/Cstar*hH*(pdot + We*U/R^2 + JdotX) ...
+            - 1.5*(1 - U/(3*Cstar))*U^2)/((1 - U/Cstar)*R + JdotA*hH/Cstar);
     % Keller-Miksis in pressure        
     else    
-        Udot = ((1+U./C)*(p -p8bar + pVap - pf(t) - We./R + J) ...
-            + R./C.*(pdot + We.*U./R.^2 + JdotX - pfdot(t)) ...
-            - 1.5.*(1-U./(3.*C)).*U.^2)./((1-U./C).*R + JdotA./C);
+        Udot = ((1+U./Cstar)*(p - 1 + pVap - pf(t) - We./R + J) ...
+            + R./Cstar.*(pdot + We.*U./R.^2 + JdotX - pfdot(t)) ...
+            - 1.5.*(1-U./(3.*Cstar)).*U.^2)./((1-U./Cstar).*R + JdotA./Cstar);
     end
     % output assembly
     Jdot = JdotX - JdotA*Udot/R;
@@ -468,7 +471,9 @@ a = X(:,ia)'; b = X(:,ib)'; c = X(:,ic)'; d = X(:,id)';
 I = X(:,end);
 pA = zeros(size(t));
 % Udot = R2dot(t,X);
-for n = 1:length(t), pA(n) = pf(t(n)); end 
+for n = 1:length(t)
+    pA(n) = pf(t(n)); 
+end 
 
 % transform to real space
 if spectral == 1
@@ -508,17 +513,22 @@ end
 
 % display figure
 if plotresult == 1
-    
     if vitalsreport == 0
         if radiusonly == 1
-            plot(t,R); hold('on'); grid('on');
+            plot(t,R); 
+            hold('on'); 
+            grid('on');
             axis([0 t(end) 0 (max(R) + min(R))]);
         else
             subplot(2 + spectral,1,1);
-            plot(t,R); grid('on'); ylabel('R');
+            plot(t,R); 
+            grid('on'); 
+            ylabel('R');
             axis([0 t(end) 0 (max(R) + min(R))]);
             subplot(2 + spectral,1,2);
-            plot(t,I); ylabel('J');
+            plot(t,I); 
+            grid('on');
+            ylabel('J');
             if spectral == 1
                 subplot(3,1,3);
                 plot(t,trr(end,:),t,t00(end,:));
@@ -527,9 +537,11 @@ if plotresult == 1
             xlabel('t');
         end
     else
-        
         subplot(3 - polytropic,1,1);
-        plot(t,R); hold('on'); grid('on'); ylabel('R');
+        plot(t,R); 
+        hold('on'); 
+        grid('on'); 
+        ylabel('R');
         axis([0 t(end) 0 (max(R) + min(R))]);
         subplot(3 - polytropic,1,2);
         semilogy(t,abs(c(end,:)),t,abs(d(end,:))); ylabel('c_P, d_P');
@@ -537,7 +549,8 @@ if plotresult == 1
         if polytropic == 0
             if cold == 1, b = zeros(size(a)); end
             subplot(3,1,3);
-            semilogy(t,abs(a(end,:)),t,abs(b(end,:))); ylabel('a_N, b_M');
+            semilogy(t,abs(a(end,:)),t,abs(b(end,:))); 
+            ylabel('a_N, b_M');
             axis([0 t(end) 1e-20 1]);
         end
         xlabel('t');
@@ -546,9 +559,9 @@ if plotresult == 1
 end
 
 % assemble output
-% if displayonly == 1, varargout = {};
-% else
-    
+if displayonly == 1
+    varargout = {};
+else
     % standard outputs
     varargout{1} = t;
     varargout{2} = R;
@@ -562,18 +575,18 @@ end
         varargout{9} = TL;
     else
         varargout{9} = ((T8 - 1)*dimensionalout + 1)*ones(divisions,1);
-    end
-   
+    end   
     % technical data
-%     if technical == 1
-        varargout{10} = a; varargout{11} = b;
-        varargout{12} = c; varargout{13} = d;
+    if technical == 1
+        varargout{10} = a; 
+        varargout{11} = b;
+        varargout{12} = c; 
+        varargout{13} = d;
         varargout{14} = [stepcount p0 alpha];
         varargout{15} = pA;
 %         varargout{16} = Udot;
-%     end
-    
-% end
+    end 
+end
 
 % convert run settings to strings
 if rayleighplesset == 1
@@ -649,7 +662,7 @@ disp(['Medium rheology: ' const]);
 disp(['Thermal effects: ' therm]);
 disp(['Solution method: ' solut]);
 disp('--- Dimensionless numbers ---');
-disp(['Re = ' num2str(Re,'%10.10f')]);
+disp(['Re8 = ' num2str(Re8,'%10.10f')]);
 disp(['De = ' num2str(De,'%10.10f')]);
 disp(['Ca = ' num2str(Ca,'%10.10f')]);
 disp(['LM = ' num2str(LAM,'%10.10f')]);
