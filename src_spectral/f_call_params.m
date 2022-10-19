@@ -15,10 +15,10 @@ function [vecout]  = f_call_params(varargin)
     technical       = 0;        % output technical data
     % model for radial bubble dynamics, default is KME in pressure
     rayleighplesset = 0;        % Rayleigh-Plesset equation
-    enthalpy        = 0;        % Keller-Miksis enthalpy equations
+    enthalpy        = 1;        % Keller-Miksis enthalpy equations
     gil             = 0;        % Gilmore equation
     % thermal assumptions, default is no thermal assumptions
-    polytropic      = 1;        % polytropic assumption
+    polytropic      = 0;        % polytropic assumption
     cold            = 0;        % cold fluid assumption
     vapor           = 1;        % ignore vapor pressure
     % constitutive model, default is UCM with linear elasticity
@@ -48,12 +48,13 @@ function [vecout]  = f_call_params(varargin)
     %%%%%%%%%%%%%%%%%%%%%%%%%
     % waveform parameters   %
     %%%%%%%%%%%%%%%%%%%%%%%%% 
-    TFin            = 5e-7;   % final time (s)
-    pA              = 2e6;      % pressure amplitude (Pa)
+    TFin            = 5e-7;     % final time (s)
+    pA              = 2e6;    % pressure amplitude (Pa)
     omega           = 4e6*2*pi; % frequency (rad/s)
     TW              = 0;        % gaussian width (s)
     DT              = 0;        % delay (s)
     mn              = 0;        % power shift for waveform
+    wavetype        = 2;
     %%%%%%%%%%%%%%%%%%%%%%%%%
     % acoustic parameters %
     %%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -218,7 +219,7 @@ function [vecout]  = f_call_params(varargin)
     % Final non-dimensional variables
     t0      = R0/Uc;                    % characteristic time (s) 
 	% dimensionless vapor and infinity pressure
-    Pv_star = Pv/P8;
+    Pv_star = vapor*Pv/P8;
 	P0_star = P0/P8;                    % 
     % dimensionless waveform parameters
     tfin    = TFin/t0;                  % simulation time
@@ -362,7 +363,7 @@ vecout = {...
       Nv Nt Mt Lv Lt ... 
       ... % physical parameters%
       Cstar GAMa kappa nstate ... % acoustic parameters
-      tfin om ee tw dt mn ... % dimensionless waveform parameters
+      tfin om ee tw dt mn wavetype ... % dimensionless waveform parameters
       We Re8 DRe v_a v_nc Ca LAM De JdotA v_lambda_star ... % dimensionless viscoelastic
       Fom Br alpha chi iota ... % dimensionless thermal 
       Foh C0 Rv_star Ra_star L_heat_star mv0 ma0 ... % dimensionaless mass transfer 

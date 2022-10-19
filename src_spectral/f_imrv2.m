@@ -91,21 +91,24 @@ nstate          = params(32);
 % dimensionless waveform parameters
 tfin            = params(33); om = params(34); ee = params(35); 
 tw              = params(36); dt = params(37); mn = params(38); 
+wavetype        = params(39);
+pvarargin = {wavetype,om,ee,tw,dt,mn};
 % dimensionless viscoelastic
-We              = params(39); Re8 = params(40); DRe = params(41); 
-v_a             = params(42); v_nc = params(43); Ca = params(44);
-LAM             = params(45); De = params(46); JdotA = params(47); 
-v_lambda_star   = params(48); 
+We              = params(40); Re8 = params(41); DRe = params(42); 
+v_a             = params(43); v_nc = params(44); Ca = params(45);
+LAM             = params(46); De = params(47); JdotA = params(48); 
+v_lambda_star   = params(49); 
+iWe             = 1/We;
 % dimensionless thermal 
-Foh             = params(49); Br = params(50); alpha = params(51); 
-chi             = params(52); iota = params(53);
+Foh             = params(50); Br = params(51); alpha = params(52); 
+chi             = params(53); iota = params(54);
 % dimensionaless mass transfer 
-Fom             = params(54); C0 = params(55); Rv_star = params(56);
-Ra_star         = params(57); L_heat_star = params(58); mv0 = params(59); 
-ma0             = params(60); 
+Fom             = params(55); C0 = params(56); Rv_star = params(57);
+Ra_star         = params(58); L_heat_star = params(59); mv0 = params(60); 
+ma0             = params(61); 
 % dimensionless initial conditions
-Rzero           = params(61); Uzero = params(62); pzero = params(63);
-P8              = params(64); T8 = params(65); Pv_star = params(66);
+Rzero           = params(62); Uzero = params(63); pzero = params(64);
+P8              = params(65); T8 = params(66); Pv_star = params(67);
 p0star          = pzero;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numerical setup and precomputations %
@@ -127,7 +130,7 @@ sCI = sCI(2:end,2:end);
 sCAd = sCAd(2:end,2:end);
 % precomputations
 LDR = LAM*De/Re8;
-sam = pzero - We + GAMa;
+sam = pzero - iWe + GAMa;
 no = (nstate-1)/nstate;
 kapover = (kappa-1)/kappa;
 yT = 2*Lt./(1+xi) - Lt + 1;
@@ -220,41 +223,7 @@ end
 %%%%%%%%%%%%%%% functions called by solver %%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% % acoustic pressure
-% mn = 3.7;
-% function p = pf(t)
-%     
-%     if t < dt - pi/om
-%         p = 0;
-%     elseif t > dt + pi/om
-%         p = 0;
-%     else
-%         p = ee*(0.5 + 0.5*cos(om*(t - dt))).^mn;
-%     end
-%     
-% end
-% 
-% % time derivative of acoustic pressure
-% function pdot = pfdot(t)
-%     if t < dt - pi/om
-%         pdot = 0;
-%     elseif t > dt + pi/om
-%         pdot = 0;
-%     else
-%         pdot = -ee*mn*(0.5+0.5*cos(om*(t-dt))).^(mn-1)*0.5*om.*sin(om*(t-dt));
-%     end
-%     
-% end
 
-% acoustic pressure
-function p = pf(t)
-    p = ee;
-end
-
-% time derivative of acoustic pressure
-function pdot = pfdot(t)
-    pdot = 0;
-end
 
 % stress differentiator
 function [trr,dtrr,t00,dt00] = stressdiff(c,d)
@@ -327,13 +296,11 @@ function dXdt = SVBDODE(t,X)
         T = (alpha - 1 + sqrt(1+2*alpha*SI))/alpha;
         D = kapover*(alpha*T.^2 + (1-alpha)*T)/p;
         % new pressure and auxiliary temperature derivative
-        pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U);
-        
+        pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U);   
         SIdot = pdot*D + chi/R^2*(2*D./y - kapover/p*(dSI - dSI(1)*y)).*dSI ...
             + chi*D/R^2.*ddSI;
         SIdot(end) = pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
-            + kapover/p*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);
-        
+            + kapover/p*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);       
         if cold == 1 % cold-liquid approximation
             % solve auxiliary temperature with boundary condition
             qdot = gAI*[0; SIdot(2:end)];
@@ -433,29 +400,32 @@ function dXdt = SVBDODE(t,X)
 %     C_prime(end) = 0;
 %     C_prime = C_prime*Cgrad;
 %     %***************************************
+
+    % pressure waveform
+    [pf8,pf8dot] = f_pinfinity(t,pvarargin{:});
     
     % bubble wall acceleration
     % Rayleigh-Plesset        
     if rayleighplesset == 1
-        Udot = (p - 1 + pVap - pf(t) - We/R + J - 1.5*U^2)/R;
+        Udot = (p - 1 + pVap - pf8 - iWe/R + J - 1.5*U^2)/R;
     % Keller-Miksis in enthalpy
     elseif enthalpy == 1    
-        hB = sam/no*(((p - We/R + GAMa + J)/sam)^no - 1);
-        hH = (sam/(p + pVap - We/R + GAMa + J))^(1/nstate);
-        Udot = ((1 + U/Cstar)*(hB - pf(t)) - R/Cstar*pfdot(t) ...
-            + R/Cstar*hH*(pdot + We*U/R^2 + JdotX) ...
+        hB = sam/no*(((p - iWe/R + GAMa + J)/sam)^no - 1);
+        hH = (sam/(p + pVap - iWe/R + GAMa + J))^(1/nstate);
+        Udot = ((1 + U/Cstar)*(hB - pf8) - R/Cstar*pf8dot ...
+            + R/Cstar*hH*(pdot + iWe*U/R^2 + JdotX) ...
             - 1.5*(1 - U/(3*Cstar))*U^2)/((1 - U/Cstar)*R + JdotA*hH/Cstar);
     % Gilmore equation
 	elseif gil == 1
-        hB = sam/no*(((p - We/R + GAMa + J)/sam)^no - 1);
-        hH = (sam/(p + pVap - We/R + GAMa + J))^(1/nstate);
-        Udot = ((1 + U/Cstar)*(hB - pf(t)) - R/Cstar*pfdot(t) ...
-            + R/Cstar*hH*(pdot + We*U/R^2 + JdotX) ...
+        hB = sam/no*(((p - iWe/R + GAMa + J)/sam)^no - 1);
+        hH = (sam/(p + pVap - iWe/R + GAMa + J))^(1/nstate);
+        Udot = ((1 + U/Cstar)*(hB - pf8) - R/Cstar*pf8dot ...
+            + R/Cstar*hH*(pdot + iWe*U/R^2 + JdotX) ...
             - 1.5*(1 - U/(3*Cstar))*U^2)/((1 - U/Cstar)*R + JdotA*hH/Cstar);
     % Keller-Miksis in pressure        
     else    
-        Udot = ((1+U./Cstar)*(p - 1 + pVap - pf(t) - We./R + J) ...
-            + R./Cstar.*(pdot + We.*U./R.^2 + JdotX - pfdot(t)) ...
+        Udot = ((1+U./Cstar)*(p - 1 + pVap - pf8 - iWe./R + J) ...
+            + R./Cstar.*(pdot + iWe.*U./R.^2 + JdotX - pf8dot) ...
             - 1.5.*(1-U./(3.*Cstar)).*U.^2)./((1-U./Cstar).*R + JdotA./Cstar);
     end
     % output assembly
@@ -474,7 +444,7 @@ I = X(:,end);
 pA = zeros(size(t));
 % Udot = R2dot(t,X);
 for n = 1:length(t)
-    pA(n) = pf(t(n)); 
+    pA(n) = f_pinfinity(t(n),pvarargin{:}); 
 end 
 
 % transform to real space
