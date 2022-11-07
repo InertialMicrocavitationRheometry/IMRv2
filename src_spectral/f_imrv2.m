@@ -101,14 +101,14 @@ v_lambda_star   = params(49);
 iWe             = 1/We;
 % dimensionless thermal 
 Foh             = params(50); Br = params(51); alpha = params(52); 
-chi             = params(53); iota = params(54);
+beta            = params(53); chi = params(54); iota = params(55);
 % dimensionaless mass transfer 
-Fom             = params(55); C0 = params(56); Rv_star = params(57);
-Ra_star         = params(58); L_heat_star = params(59); mv0 = params(60); 
-ma0             = params(61); 
+Fom             = params(56); C0 = params(57); Rv_star = params(58);
+Ra_star         = params(59); L_heat_star = params(60); mv0 = params(61); 
+ma0             = params(62); 
 % dimensionless initial conditions
-Rzero           = params(62); Uzero = params(63); pzero = params(64);
-P8              = params(65); T8 = params(66); Pv_star = params(67);
+Rzero           = params(63); Uzero = params(64); pzero = params(65);
+P8              = params(66); T8 = params(67); Pv_star = params(68);
 p0star          = pzero;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numerical setup and precomputations %
@@ -126,8 +126,11 @@ Q = [gA(2:end,:) zeros(Nt,Mt+1);
 Q = sparse(Q);
 [sCA,sCI,sCAd,~,~,~] = dcdmtx(Nv);
 sCA = sCA(2:end,2:end) - 1;
+sCA = sparse(sCA);
 sCI = sCI(2:end,2:end);
+sCI = sparse(sCI);
 sCAd = sCAd(2:end,2:end);
+sCAd = sparse(sCAd);
 % precomputations
 LDR = LAM*De/Re8;
 sam = pzero - iWe + GAMa;
@@ -172,15 +175,14 @@ ia = 4:(4+Nt);
 ib = (5+Nt):(5+Nt+Mt);
 ic = (6+Nt+Mt):(5+Nt+Mt+Nv);
 id = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
-ie = (6+Nt+Mt+2*Nv):(5+2*Nt+Mt+2*Nv);
-
+ie = (6+Nt+Mt+2*Nv):(6+2*Nt+Mt+2*Nv);
 % initial condition assembly
 init = [Rzero; Uzero; pzero; % radius, velocity, pressure
     zeros(Nt+1,1); % auxiliary temperature spectrum
     ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
     zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
-    0]; % initial stress integral
-    %zeros(Nt+1,1)]; % initial vapor concentration
+    0; % initial stress integral
+    C0*zeros(Nt+1,1)]; % initial vapor concentration
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% SOLVER CALL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -202,12 +204,12 @@ elseif method == 23
     else
         options = odeset('MaxStep',tfin/divisions);
     end
-    [t,X] = ode23s(@SVBDODE,tspan,init,options);
+    [t,X] = ode23tb(@SVBDODE,tspan,init,options);
 elseif method == 45
     if divisions == 0
         options = odeset('NonNegative',1);
     else
-        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-12);
+        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-8);
     end
     [t,X] = ode45(@SVBDODE,tspan,init,options);
 else
@@ -222,8 +224,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%% functions called by solver %%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 
 % stress differentiator
 function [trr,dtrr,t00,dt00] = stressdiff(c,d)
@@ -296,7 +296,9 @@ function dXdt = SVBDODE(t,X)
         T = (alpha - 1 + sqrt(1+2*alpha*SI))/alpha;
         D = kapover*(alpha*T.^2 + (1-alpha)*T)/p;
         % new pressure and auxiliary temperature derivative
-        pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U);   
+        pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U) ;   
+            % TODO
+            %+ Cgrad*k*P*Fom*Rv_star*DC(end)/( T(end)*R* Rmix(end)* (1-C(end)));
         SIdot = pdot*D + chi/R^2*(2*D./y - kapover/p*(dSI - dSI(1)*y)).*dSI ...
             + chi*D/R^2.*ddSI;
         SIdot(end) = pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
@@ -325,24 +327,24 @@ function dXdt = SVBDODE(t,X)
                 \[0; SIdot(2:end); TLdot(2:end); 0];       
         end
         pVap = (f_pvsat(T(end)*T8)/P8);
+        U_vel = (chi/R*(kappa-1).*dSI-y*R*pdot/3)/(kappa*p);
+        C = gA*X(ie);
+        K_star = alpha*T+beta;
+        % TODO 
+        % C(end) =  CW(T(end),P);
+        Rmix = C*Rv_star + (1-C)*Ra_star; 
     end
     J = 0; JdotX = 0; Z1dot = 0; Z2dot = 0;
     % stress
     if neoHook == 1 % Kelvin-Voigt with neo-Hookean elasticity
-        % ignore stress sub-integrals
-        Z1dot = 0; Z2dot = 0;
         % compute stress integral
         J = (4/R + 1/R^4 - 5)/(2*Ca) - 4/Re8*U/R;
         JdotX = -2*U*(1/R^2 + 1/R^5)/Ca + 4/Re8*U^2/R^2;
     elseif voigt == 1 % Kelvin-Voigt (Yang-Church)
-        % ignore stress sub-integrals
-        Z1dot = 0; Z2dot = 0;
         % compute stress integral
         J = -4/(3*Ca)*(1 - 1/R^3) - 4/Re8*U/R;
         JdotX = -4/Ca*U/R^4 + 4/Re8*U^2/R^2;
     elseif linelas == 1 % Linear elastic
-        % ignore stress sub-integrals
-        Z1dot = 0; Z2dot = 0;     
         % compute stress integral
         J = -2/Ca*(1 - 1/R^2) - 4/Re8*U/R;
         JdotX = -4/Ca*U/R^3 + 4/Re8*U^2/R^2;
@@ -384,22 +386,21 @@ function dXdt = SVBDODE(t,X)
         JdotX = (Z1dot+Z2dot)/R^3 - 3*U/R^4*(Z1+Z2) + 4*LAM/Re8*U^2/R^2;
     end
     
-%     %***************************************
-%     % Vapor concentration equation 
-%     
-%     U_mix = U_vel + fom/R*((Rv_star - Ra_star)./Rmix).*DC  ;
-%     one = DDC;
-%     two = DC.*(DTau./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*DC );
-%     three =  (U_mix-U.*yk)/R.*DC; 
-%     % *****************************************
-%     
-%     % *****************************************
-%     % C_prime
-%     
-%     C_prime = fom/R^2*(one - two) - three;
-%     C_prime(end) = 0;
-%     C_prime = C_prime*Cgrad;
-%     %***************************************
+    %***************************************
+    % Vapor concentration equation 
+      dC = gAPd*C;
+      ddC = gAPdd*C;
+      U_mix = U_vel + Fom/R*((Rv_star - Ra_star)./Rmix).*dC ;
+      one = ddC;
+      two = dC.*(dSI./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*dC );
+      three =  (U_mix-U.*y)/R.*dC; 
+    % *****************************************
+    % *****************************************
+    % C_prime
+    Cdot = Fom/R^2*(one - two) - three;
+    Cdot(end) = 0;
+    %C_prime = C_prime*Cgrad; %could implement Cgrad to turn off mass diffusion, set up if statements instead
+    %***************************************
 
     % pressure waveform
     [pf8,pf8dot] = f_pinfinity(t,pvarargin{:});
@@ -430,7 +431,7 @@ function dXdt = SVBDODE(t,X)
     end
     % output assembly
     Jdot = JdotX - JdotA*Udot/R;
-    dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot];
+    dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot; Cdot];
 end
 
 %%%%%%%%%%%%%%%%%%%

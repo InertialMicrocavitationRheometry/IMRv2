@@ -5,11 +5,11 @@ function [vecout]  = f_call_params(varargin)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % display options
     dimensionalout  = 0;        % output result in dimensional variables
-    progdisplay     = 0;        % display progress while code running
-    detail          = 1000;    	% number of points in time to store result
+    progdisplay     = 1;        % display progress while code running
+    detail          = 2000;    	% number of points in time to store result
     plotresult      = 1;        % generate figure containing results
     radiusonly      = 1;        % only produce R(t) curve
-    vitalsreport    = 0;        % display accuracy data
+    vitalsreport    = 1;        % display accuracy data
     % output options
     displayonly     = 0;        % do not generate output
     technical       = 0;        % output technical data
@@ -25,19 +25,19 @@ function [vecout]  = f_call_params(varargin)
     neoHook         = 0;        % neo-Hookean
     voigt           = 0;        % Voigt model
     linelas         = 0;        % linear elastic model
-    liner           = 0;        % linear model?
-    oldb            = 0;        % Oldroyd-B
+    liner           = 0;        % linear model
+    oldb            = 1;        % Oldroyd-B
     ptt             = 0;        % Phan-Thien-Tanner
     gies            = 0;        % Giesekus fluid
     vmaterial       = 'water';
     % solver options
     method          = 45;       % ode45
-    spectral        = 0;        % force spectral collocation solution
+    spectral        = 1;        % force spectral collocation solution
     divisions       = 0;        % minimum number of timesteps
     % numerical parameters
-    Nv              = 25;       
-    Nt              = 20; 
-    Mt              = 20; 
+    Nt              = 7; 
+    Mt              = 7; 
+    Nv              = Nt*Mt;           
     Lv              = 3; 
     Lt              = 3;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -48,7 +48,7 @@ function [vecout]  = f_call_params(varargin)
     %%%%%%%%%%%%%%%%%%%%%%%%%
     % waveform parameters   %
     %%%%%%%%%%%%%%%%%%%%%%%%% 
-    TFin            = 5e-7;     % final time (s)
+    TFin            = 3e-7;     % final time (s)
     pA              = 2e6;    % pressure amplitude (Pa)
     omega           = 4e6*2*pi; % frequency (rad/s)
     TW              = 0;        % gaussian width (s)
@@ -234,7 +234,8 @@ function [vecout]  = f_call_params(varargin)
     chi     = T8*K8/(P8*R0*Uc);
     iota    = Km/(K8*Lt);
     Foh     = Dm/(Uc*R0); 
-    alpha   = AT*T8 /  K8;              % we do not need beta = BT/K8
+    alpha   = AT*T8/K8;              % we do not need beta = BT/K8, we do for diffusion
+    beta  = BT/K8;
     Br      = Uc^2/(Cp*T8);      
     % mass diffusion
 	Fom     = D0/(Uc*R0);
@@ -365,7 +366,7 @@ vecout = {...
       Cstar GAMa kappa nstate ... % acoustic parameters
       tfin om ee tw dt mn wavetype ... % dimensionless waveform parameters
       We Re8 DRe v_a v_nc Ca LAM De JdotA v_lambda_star ... % dimensionless viscoelastic
-      Fom Br alpha chi iota ... % dimensionless thermal 
+      Fom Br alpha beta chi iota ... % dimensionless thermal 
       Foh C0 Rv_star Ra_star L_heat_star mv0 ma0 ... % dimensionaless mass transfer 
       Rzero Uzero pzero P8 T8 Pv_star... % dimensionless initial conditions
       };  
