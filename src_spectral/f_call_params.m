@@ -5,7 +5,7 @@ function [vecout]  = f_call_params(varargin)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % display options
     dimensionalout  = 0;        % output result in dimensional variables
-    progdisplay     = 1;        % display progress while code running
+    progdisplay     = 0;        % display progress while code running
     detail          = 2000;    	% number of points in time to store result
     plotresult      = 1;        % generate figure containing results
     radiusonly      = 1;        % only produce R(t) curve
@@ -21,6 +21,8 @@ function [vecout]  = f_call_params(varargin)
     polytropic      = 0;        % polytropic assumption
     cold            = 0;        % cold fluid assumption
     vapor           = 1;        % ignore vapor pressure
+    % mass transfer, default is no mass transfer
+    cgrad           = 1;
     % constitutive model, default is UCM with linear elasticity
     neoHook         = 0;        % neo-Hookean
     voigt           = 0;        % Voigt model
@@ -35,20 +37,20 @@ function [vecout]  = f_call_params(varargin)
     spectral        = 1;        % force spectral collocation solution
     divisions       = 0;        % minimum number of timesteps
     % numerical parameters
-    Nt              = 7; 
-    Mt              = 7; 
-    Nv              = Nt*Mt;           
+    Nt              = 9; 
+    Mt              = 9; 
+    Nv              = 100;           
     Lv              = 3; 
     Lt              = 3;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % default physical parameters %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    R0              = 1E-6;     % initial bubble radius
+    R0              = 5E-6;     % initial bubble radius
     U0              = 0;        % initial velocity (m/s)
     %%%%%%%%%%%%%%%%%%%%%%%%%
     % waveform parameters   %
     %%%%%%%%%%%%%%%%%%%%%%%%% 
-    TFin            = 3e-7;     % final time (s)
+    TFin            = 1e-7;     % final time (s)
     pA              = 2e6;    % pressure amplitude (Pa)
     omega           = 4e6*2*pi; % frequency (rad/s)
     TW              = 0;        % gaussian width (s)
@@ -316,7 +318,7 @@ end
 if rayleighplesset == 1, enthalpy = 0; end
 if enthalpy == 1, rayleighplesset = 0; end
 if polytropic == 1, cold = 0; end
-if cold == 1, polytropic = 0; end
+if cold == 1, polytropic = 0; cgrad = 0; end
 
 if neoHook == 1
     [voigt,linelas,liner,ptt,gies,LAM] = deal(0);
@@ -353,7 +355,7 @@ end
 
 vecout = {...
       ... % numerical settings 
-      polytropic cold rayleighplesset enthalpy gil ...
+      polytropic cold cgrad rayleighplesset enthalpy gil ...
       neoHook voigt linelas liner oldb ptt gies ...
       ...% output options
       dimensionalout progdisplay detail plotresult ...

@@ -69,46 +69,46 @@ function varargout =  f_imrv2(varargin)
 par = f_call_params(varargin{:});
 params = cell2mat(par);
 % numerical settings 
-polytropic      = params(1); cold = params(2); rayleighplesset = params(3);
-enthalpy        = params(4); gil = params(5); neoHook = params(6);
-voigt           = params(7); linelas = params(8); liner = params(9);
-oldb            = params(10); ptt = params(11); gies = params(12);
+polytropic      = params(1); cold = params(2); cgrad = params(3); rayleighplesset = params(4);
+enthalpy        = params(5); gil = params(6); neoHook = params(7);
+voigt           = params(8); linelas = params(9); liner = params(10);
+oldb            = params(11); ptt = params(12); gies = params(13);
 % output options
-dimensionalout  = params(13); progdisplay = params(14); detail = params(15);
-plotresult      = params(16); radiusonly = params(17); vitalsreport = params(18);
-displayonly     = params(19); technical = params(20);
+dimensionalout  = params(14); progdisplay = params(15); detail = params(16);
+plotresult      = params(17); radiusonly = params(18); vitalsreport = params(19);
+displayonly     = params(20); technical = params(21);
 % solver options
-method          = params(21);
-spectral        = params(22);
-divisions       = params(23);
+method          = params(22);
+spectral        = params(23);
+divisions       = params(24);
 % numerical parameters 
-Nv              = params(24); Nt = params(25); Mt = params(26);
-Lv              = params(27); Lt = params(28);
+Nv              = params(25); Nt = params(26); Mt = params(27);
+Lv              = params(28); Lt = params(29);
 % physical parameters%
 % acoustic parameters
-Cstar           = params(29); GAMa = params(30); kappa = params(31);
-nstate          = params(32);
+Cstar           = params(30); GAMa = params(31); kappa = params(32);
+nstate          = params(33);
 % dimensionless waveform parameters
-tfin            = params(33); om = params(34); ee = params(35); 
-tw              = params(36); dt = params(37); mn = params(38); 
-wavetype        = params(39);
+tfin            = params(34); om = params(35); ee = params(36); 
+tw              = params(37); dt = params(38); mn = params(39); 
+wavetype        = params(40);
 pvarargin = {wavetype,om,ee,tw,dt,mn};
 % dimensionless viscoelastic
-We              = params(40); Re8 = params(41); DRe = params(42); 
-v_a             = params(43); v_nc = params(44); Ca = params(45);
-LAM             = params(46); De = params(47); JdotA = params(48); 
-v_lambda_star   = params(49); 
+We              = params(41); Re8 = params(42); DRe = params(43); 
+v_a             = params(44); v_nc = params(45); Ca = params(46);
+LAM             = params(47); De = params(48); JdotA = params(49); 
+v_lambda_star   = params(50); 
 iWe             = 1/We;
 % dimensionless thermal 
-Foh             = params(50); Br = params(51); alpha = params(52); 
-beta            = params(53); chi = params(54); iota = params(55);
+Foh             = params(51); Br = params(52); alpha = params(53); 
+beta            = params(54); chi = params(55); iota = params(56);
 % dimensionaless mass transfer 
-Fom             = params(56); C0 = params(57); Rv_star = params(58);
-Ra_star         = params(59); L_heat_star = params(60); mv0 = params(61); 
-ma0             = params(62); 
+Fom             = params(57); C0 = params(58); Rv_star = params(59);
+Ra_star         = params(60); L_heat_star = params(61); mv0 = params(62); 
+ma0             = params(63); 
 % dimensionless initial conditions
-Rzero           = params(63); Uzero = params(64); pzero = params(65);
-P8              = params(66); T8 = params(67); Pv_star = params(68);
+Rzero           = params(64); Uzero = params(65); pzero = params(66);
+P8              = params(67); T8 = params(68); Pv_star = params(69);
 p0star          = pzero;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numerical setup and precomputations %
@@ -175,14 +175,14 @@ ia = 4:(4+Nt);
 ib = (5+Nt):(5+Nt+Mt);
 ic = (6+Nt+Mt):(5+Nt+Mt+Nv);
 id = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
-ie = (6+Nt+Mt+2*Nv):(6+2*Nt+Mt+2*Nv);
+ie = (7+Nt+Mt+2*Nv):(7+2*Nt+Mt+2*Nv);
 % initial condition assembly
 init = [Rzero; Uzero; pzero; % radius, velocity, pressure
     zeros(Nt+1,1); % auxiliary temperature spectrum
     ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
     zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
     0; % initial stress integral
-    C0*zeros(Nt+1,1)]; % initial vapor concentration
+    gAI*C0*ones(Nt+1,1)]; % initial non-dimensional vapor concentration
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% SOLVER CALL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -195,28 +195,28 @@ if method == 15
     if divisions == 0
         options = odeset();
     else
-        options = odeset('MaxStep',tfin/divisions,'RelTol',1e-4);
+        options = odeset('MaxStep',tfin/divisions,'RelTol',1e-6);
     end
     [t,X] = ode15s(@SVBDODE,tspan,init,options);
 elseif method == 23
     if divisions == 0
         options = odeset();
     else
-        options = odeset('MaxStep',tfin/divisions);
+        options = odeset('MaxStep',tfin/divisions,'RelTol',1e-6);
     end
     [t,X] = ode23tb(@SVBDODE,tspan,init,options);
 elseif method == 45
     if divisions == 0
         options = odeset('NonNegative',1);
     else
-        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-8);
+        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-4);
     end
     [t,X] = ode45(@SVBDODE,tspan,init,options);
 else
     if divisions == 0
         options = odeset('NonNegative',1);
     else
-        options = odeset('NonNegative',1,'MaxStep',tfin/divisions);
+        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-6);
     end
     [t,X] = ode45(@SVBDODE,tspan,init,options);
 end
@@ -273,7 +273,7 @@ end
 % solver function %
 %%%%%%%%%%%%%%%%%%%
 function dXdt = SVBDODE(t,X)
-    
+    cgrad = 1;
     stepcount = stepcount + 1;
     if progdisplay == 1, disp(t/tfin); end
     
@@ -295,10 +295,24 @@ function dXdt = SVBDODE(t,X)
         % temperature and thermal diffusivity fields
         T = (alpha - 1 + sqrt(1+2*alpha*SI))/alpha;
         D = kapover*(alpha*T.^2 + (1-alpha)*T)/p;
+        % Vapor concentration gradients
+        C = gA*X(ie);
+        C(1) =  CW(T(1),p); % concentration at the bubble wall
+        dC = gAPd*C;
+        ddC = gAPdd*C;
+        Rmix = C*Rv_star + (1-C)*Ra_star; 
+        pVap = (f_pvsat(T(end)*T8)/P8);
+        K_star = alpha*T+beta;
         % new pressure and auxiliary temperature derivative
-        pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U) ;   
-            % TODO
-            %+ Cgrad*k*P*Fom*Rv_star*DC(end)/( T(end)*R* Rmix(end)* (1-C(end)));
+        if cgrad == 0
+            pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U) ;   
+        else
+            pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U) + ... 
+                kappa*p*Fom*Rv_star*dC(1)/( T(1)*R*Rmix(1)*(1-C(1)));
+        end
+        % U_vel could be used in definition of SIdot, to do, not priority
+        U_vel = (chi/R*(kappa-1).*dSI-y*R*pdot/3)/(kappa*p);
+        % SIdot is correct but simplified (not using U_vel)
         SIdot = pdot*D + chi/R^2*(2*D./y - kapover/p*(dSI - dSI(1)*y)).*dSI ...
             + chi*D/R^2.*ddSI;
         SIdot(end) = pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
@@ -310,8 +324,7 @@ function dXdt = SVBDODE(t,X)
             % extract medium temperature
             TL = mA*X(ib);
             % new derivative of medium temperature
-            first_term = (1+xi).^2/(Lt*R).*...
-                (Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
+            first_term = (1+xi).^2/(Lt*R).*(Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
                 U/2*(1./yT.^2 - yT)).*(mAPd*TL);
             second_term = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
             TLdot =  first_term + second_term;
@@ -323,19 +336,22 @@ function dXdt = SVBDODE(t,X)
             end
             % enforce boundary condition and solve
             TLdot(end) = 0;
+            %TODO ADD THE MASS TRANSFER TERM
             qdot = [ones(1,Nt+1) -(alpha*(T(1)-1)+1)*ones(1,Mt+1); Q]...
                 \[0; SIdot(2:end); TLdot(2:end); 0];       
         end
-        pVap = (f_pvsat(T(end)*T8)/P8);
-        U_vel = (chi/R*(kappa-1).*dSI-y*R*pdot/3)/(kappa*p);
-        C = gA*X(ie);
-        K_star = alpha*T+beta;
-        % TODO 
-        % C(end) =  CW(T(end),P);
-        Rmix = C*Rv_star + (1-C)*Ra_star; 
     end
+    % vapor concentration equation 
+    if cgrad == 1
+        U_mix = U_vel + Fom/R*((Rv_star - Ra_star)./Rmix).*dC ;
+        one = ddC;
+        two = dC.*(dSI./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*dC );
+        three =  (U_mix-U.*y)/R.*dC; 
+        Cdot = Fom/R^2*(one - two) - three;
+        Cdot(1) = 0;
+    end    
     J = 0; JdotX = 0; Z1dot = 0; Z2dot = 0;
-    % stress
+    % stress equation
     if neoHook == 1 % Kelvin-Voigt with neo-Hookean elasticity
         % compute stress integral
         J = (4/R + 1/R^4 - 5)/(2*Ca) - 4/Re8*U/R;
@@ -386,22 +402,6 @@ function dXdt = SVBDODE(t,X)
         JdotX = (Z1dot+Z2dot)/R^3 - 3*U/R^4*(Z1+Z2) + 4*LAM/Re8*U^2/R^2;
     end
     
-    %***************************************
-    % Vapor concentration equation 
-      dC = gAPd*C;
-      ddC = gAPdd*C;
-      U_mix = U_vel + Fom/R*((Rv_star - Ra_star)./Rmix).*dC ;
-      one = ddC;
-      two = dC.*(dSI./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*dC );
-      three =  (U_mix-U.*y)/R.*dC; 
-    % *****************************************
-    % *****************************************
-    % C_prime
-    Cdot = Fom/R^2*(one - two) - three;
-    Cdot(end) = 0;
-    %C_prime = C_prime*Cgrad; %could implement Cgrad to turn off mass diffusion, set up if statements instead
-    %***************************************
-
     % pressure waveform
     [pf8,pf8dot] = f_pinfinity(t,pvarargin{:});
     
@@ -434,13 +434,23 @@ function dXdt = SVBDODE(t,X)
     dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot; Cdot];
 end
 
+function Cw= CW(Tw,P)
+    
+  % Calculates the concentration at the bubble wall 
+  %Function of P and temp at the wall 
+ 
+  thetha = Rv_star/Ra_star*(P./(f_pvsat(Tw*T8)/P8) -1);
+  Cw = 1./(1+thetha); 
+  
+end
+
 %%%%%%%%%%%%%%%%%%%
 % post-processing %
 %%%%%%%%%%%%%%%%%%%
 
 % extract result
 R = X(:,1); U = X(:,2); p = X(:,3);
-a = X(:,ia)'; b = X(:,ib)'; c = X(:,ic)'; d = X(:,id)';
+a = X(:,ia)'; b = X(:,ib)'; c = X(:,ic)'; d = X(:,id)'; e = X(:,ie)';
 I = X(:,end);
 pA = zeros(size(t));
 % Udot = R2dot(t,X);
@@ -462,12 +472,13 @@ if polytropic == 0
 else
     T = R.^(-3*kappa);
 end
+C = gA*e;
 
 if dimensionalout == 1
     
     % re-dimensionalize problem
     t = t*tc; R = R*Rref; U = U*uc; p = p*p0; pA = pA*p0; I = I*p0; T = T*T8;
-    c = c*p0; d = d*p0; Udot = Udot*uc/tc;
+    c = c*p0; d = d*p0; e = e*C0; C = C*C0; Udot = Udot*uc/tc;
     if spectral == 1
         trr = trr*p0; 
         t00 = t00*p0; 
@@ -545,20 +556,22 @@ else
     varargout{6} = t00;
     varargout{7} = I;
     varargout{8} = T;    
+    varargout{9} = C;
     if polytropic == 0 && cold == 0
-        varargout{9} = TL;
+        varargout{10} = TL;
     else
-        varargout{9} = ((T8 - 1)*dimensionalout + 1)*ones(divisions,1);
+        varargout{10} = ((T8 - 1)*dimensionalout + 1)*ones(divisions,1);
     end   
     % technical data
     if technical == 1
-        varargout{10} = a; 
-        varargout{11} = b;
-        varargout{12} = c; 
-        varargout{13} = d;
-        varargout{14} = [stepcount p0 alpha];
-        varargout{15} = pA;
-%         varargout{16} = Udot;
+        varargout{11} = a; 
+        varargout{12} = b;
+        varargout{13} = c; 
+        varargout{14} = d;
+        varargout{15} = e;
+        varargout{16} = [stepcount p0 alpha];
+        varargout{17} = pA;
+%         varargout{17} = Udot;
     end 
 end
 
@@ -643,6 +656,8 @@ disp(['LM = ' num2str(LAM,'%10.10f')]);
 disp('--- Match ---');
 
 end
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % precomputation functions %
