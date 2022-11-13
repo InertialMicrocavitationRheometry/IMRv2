@@ -37,20 +37,20 @@ function [vecout]  = f_call_params(varargin)
     spectral        = 1;        % force spectral collocation solution
     divisions       = 0;        % minimum number of timesteps
     % numerical parameters
-    Nt              = 9; 
-    Mt              = 9; 
-    Nv              = 100;           
+    Nt              = 4; 
+    Mt              = 5; 
+    Nv              = 120;           
     Lv              = 3; 
     Lt              = 3;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % default physical parameters %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    R0              = 5E-6;     % initial bubble radius
+    R0              = 2E-6;     % initial bubble radius
     U0              = 0;        % initial velocity (m/s)
     %%%%%%%%%%%%%%%%%%%%%%%%%
     % waveform parameters   %
     %%%%%%%%%%%%%%%%%%%%%%%%% 
-    TFin            = 1e-7;     % final time (s)
+    TFin            = 5e-7;     % final time (s)
     pA              = 2e6;    % pressure amplitude (Pa)
     omega           = 4e6*2*pi; % frequency (rad/s)
     TW              = 0;        % gaussian width (s)

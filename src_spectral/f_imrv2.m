@@ -120,9 +120,9 @@ ze = cos(pi*(1:Nv)'/Nv);
 % collocation matrix construction
 [gA,gAI,~,~,gAPd,gAPdd] = dcdmtxe(Nt);
 [mA,~,~,~,mAPd,mAPdd] = dcdmtx(Mt);
-Q = [gA(2:end,:) zeros(Nt,Mt+1);
-    zeros(Mt,Nt+1) mA(2:end,:);
-    2*(0:Nt).^2 iota*(0:Mt).^2];
+Q = [gA(2:end,:) zeros(Nt,Mt+1) zeros(Nt,Nt+1);
+    zeros(Mt,Nt+1) mA(2:end,:)  zeros(Mt,Nt+1);
+    zeros(Nt,Nt+1) zeros(Nt,Mt+1)  gA(2:end,:)];
 Q = sparse(Q);
 [sCA,sCI,sCAd,~,~,~] = dcdmtx(Nv);
 sCA = sCA(2:end,2:end) - 1;
@@ -169,20 +169,21 @@ else
     zeNO = 0; 
 end
 if spectral == 0, Nv = 1; end
-if polytropic == 1, Nt = -1; Mt = -1; qdot = []; end
+if polytropic == 1, Nt = -1; Mt = -1; qCdot = []; end
 if cold == 1, Mt = -1; end
-ia = 4:(4+Nt);
-ib = (5+Nt):(5+Nt+Mt);
-ic = (6+Nt+Mt):(5+Nt+Mt+Nv);
-id = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
-ie = (7+Nt+Mt+2*Nv):(7+2*Nt+Mt+2*Nv);
+ia = 4:(4+Nt);                          % auxiliary (internal) temperature spectrum
+ib = (5+Nt):(5+Nt+Mt);                  % medium temperature spectrum
+ie = (6+Nt+Mt):(6+2*Nt+Mt);             % water vapor spectrum
+ic = (7+2*Nt+Mt):(6+2*Nt+Mt+Nv);        % stress spectrum
+id = (7+2*Nt+Mt+Nv):(6+2*Nt+Mt+2*Nv);   % second stress spectrum
+
 % initial condition assembly
 init = [Rzero; Uzero; pzero; % radius, velocity, pressure
     zeros(Nt+1,1); % auxiliary temperature spectrum
     ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
+    gAI*C0*ones(Nt+1,1); % initial non-dimensional vapor concentration
     zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
-    0; % initial stress integral
-    gAI*C0*ones(Nt+1,1)]; % initial non-dimensional vapor concentration
+    0]; % initial stress integral
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% SOLVER CALL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -297,11 +298,11 @@ function dXdt = SVBDODE(t,X)
         D = kapover*(alpha*T.^2 + (1-alpha)*T)/p;
         % Vapor concentration gradients
         C = gA*X(ie);
-        C(1) =  CW(T(1),p); % concentration at the bubble wall
+        Cw =  CW(T(1),p); % concentration at the bubble wall
         dC = gAPd*C;
         ddC = gAPdd*C;
         Rmix = C*Rv_star + (1-C)*Ra_star; 
-        pVap = (f_pvsat(T(end)*T8)/P8);
+        pVap = (f_pvsat(T(1)*T8)/P8);
         K_star = alpha*T+beta;
         % new pressure and auxiliary temperature derivative
         if cgrad == 0
@@ -316,10 +317,10 @@ function dXdt = SVBDODE(t,X)
         SIdot = pdot*D + chi/R^2*(2*D./y - kapover/p*(dSI - dSI(1)*y)).*dSI ...
             + chi*D/R^2.*ddSI;
         SIdot(end) = pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
-            + kapover/p*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);       
+            + kapover/p*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);               
         if cold == 1 % cold-liquid approximation
             % solve auxiliary temperature with boundary condition
-            qdot = gAI*[0; SIdot(2:end)];
+            qCdot = gAI*[0; SIdot(2:end)];
         else
             % extract medium temperature
             TL = mA*X(ib);
@@ -336,20 +337,27 @@ function dXdt = SVBDODE(t,X)
             end
             % enforce boundary condition and solve
             TLdot(end) = 0;
-            %TODO ADD THE MASS TRANSFER TERM
-            qdot = [ones(1,Nt+1) -(alpha*(T(1)-1)+1)*ones(1,Mt+1); Q]...
-                \[0; SIdot(2:end); TLdot(2:end); 0];       
+            % vapor concentration equation 
+            if cgrad == 1
+                U_mix = U_vel + Fom/R*((Rv_star - Ra_star)./Rmix).*dC ;
+                one = ddC;
+                two = dC.*(dSI./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*dC );
+                three =  (U_mix-U.*y)/R.*dC; 
+                Cdot = Fom/R^2*(one - two) - three;
+            end                
+            % solving for the system of equations with the BCs
+            alphaTw = (alpha*(T(1)-1)+1);
+            walltempBC = [ones(1,Nt+1) -alphaTw*ones(1,Mt+1) zeros(1,Nt+1)];        
+            mdd = Fom*L_heat_star/(1-Cw)*(p/((Cw*(Rv_star-Ra_star)+Ra_star)*T(1)));
+            wallheatfluxBC = [(1/alphaTw)*(0:Nt).^2 0.5*iota*(0:Mt).^2 mdd*(0:Nt).^2];
+            dPvdT = f_dpvsatdT(T(1)*T8)/P8;
+            dadtFactor = -Cw/alphaTw * ((1/pVap)*dPvdT - 1/T(1));
+            wallvaporBC = [dadtFactor*ones(1,Nt+1) zeros(1,Mt+1) ones(1,Nt+1)];
+            AA = [Q;walltempBC;wallheatfluxBC;wallvaporBC];
+            bb = [SIdot(2:end); TLdot(2:end); Cdot(2:end); 0; 0; 0];
+            qCdot = AA\bb;       
         end
     end
-    % vapor concentration equation 
-    if cgrad == 1
-        U_mix = U_vel + Fom/R*((Rv_star - Ra_star)./Rmix).*dC ;
-        one = ddC;
-        two = dC.*(dSI./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*dC );
-        three =  (U_mix-U.*y)/R.*dC; 
-        Cdot = Fom/R^2*(one - two) - three;
-        Cdot(1) = 0;
-    end    
     J = 0; JdotX = 0; Z1dot = 0; Z2dot = 0;
     % stress equation
     if neoHook == 1 % Kelvin-Voigt with neo-Hookean elasticity
@@ -431,7 +439,7 @@ function dXdt = SVBDODE(t,X)
     end
     % output assembly
     Jdot = JdotX - JdotA*Udot/R;
-    dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot; Cdot];
+    dXdt = [U; Udot; pdot; qCdot; Z1dot; Z2dot; Jdot];
 end
 
 function Cw= CW(Tw,P)
@@ -442,6 +450,14 @@ function Cw= CW(Tw,P)
   thetha = Rv_star/Ra_star*(P./(f_pvsat(Tw*T8)/P8) -1);
   Cw = 1./(1+thetha); 
   
+end
+
+function [ dPvdT ] = f_dpvsatdT( T )
+%Calculates the saturated vapor pressure using temperature 
+% Per (A. Preston 2004, Thesis)
+
+dPvdT = 5200*1.17e11*exp(-5200./(T))/T^2; 
+
 end
 
 %%%%%%%%%%%%%%%%%%%
