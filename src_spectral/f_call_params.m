@@ -20,7 +20,7 @@ function [vecout]  = f_call_params(varargin)
     % thermal assumptions, default is no thermal assumptions
     polytropic      = 0;        % polytropic assumption
     cold            = 0;        % cold fluid assumption
-    vapor           = 1;        % ignore vapor pressure
+    vapor           = 1;        % 0 : ignore vapor pressure, 1 : have it
     % mass transfer, default is no mass transfer
     cgrad           = 1;
     % constitutive model, default is UCM with linear elasticity
@@ -37,9 +37,9 @@ function [vecout]  = f_call_params(varargin)
     spectral        = 1;        % force spectral collocation solution
     divisions       = 0;        % minimum number of timesteps
     % numerical parameters
-    Nt              = 4; 
-    Mt              = 5; 
-    Nv              = 120;           
+    Nt              = 12; 
+    Mt              = 12; 
+    Nv              = 180;           
     Lv              = 3; 
     Lt              = 3;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

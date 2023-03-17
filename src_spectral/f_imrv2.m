@@ -1,6 +1,5 @@
 function varargout =  f_imrv2(varargin)
 % IMR V2
-% TODO WRITE INTRO TO THE CODE
 
 % Original Authors: Matthew Warnez & Carlos Barajas
 % Developer(s): Mauro Rodriguez (mauro_rodriguez@brown.edu)
@@ -69,9 +68,9 @@ function varargout =  f_imrv2(varargin)
 par = f_call_params(varargin{:});
 params = cell2mat(par);
 % numerical settings 
-polytropic      = params(1); cold = params(2); cgrad = params(3); rayleighplesset = params(4);
-enthalpy        = params(5); gil = params(6); neoHook = params(7);
-voigt           = params(8); linelas = params(9); liner = params(10);
+polytropic      = params(1); cold = params(2); cgrad = params(3); 
+rayleighplesset = params(4); enthalpy = params(5); gil = params(6); 
+neoHook = params(7); voigt = params(8); linelas = params(9); liner = params(10);
 oldb            = params(11); ptt = params(12); gies = params(13);
 % output options
 dimensionalout  = params(14); progdisplay = params(15); detail = params(16);
@@ -298,7 +297,6 @@ function dXdt = SVBDODE(t,X)
         D = kapover*(alpha*T.^2 + (1-alpha)*T)/p;
         % Vapor concentration gradients
         C = gA*X(ie);
-        Cw =  CW(T(1),p); % concentration at the bubble wall
         dC = gAPd*C;
         ddC = gAPdd*C;
         Rmix = C*Rv_star + (1-C)*Ra_star; 
@@ -311,8 +309,6 @@ function dXdt = SVBDODE(t,X)
             pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U) + ... 
                 kappa*p*Fom*Rv_star*dC(1)/( T(1)*R*Rmix(1)*(1-C(1)));
         end
-        % U_vel could be used in definition of SIdot, to do, not priority
-        U_vel = (chi/R*(kappa-1).*dSI-y*R*pdot/3)/(kappa*p);
         % SIdot is correct but simplified (not using U_vel)
         SIdot = pdot*D + chi/R^2*(2*D./y - kapover/p*(dSI - dSI(1)*y)).*dSI ...
             + chi*D/R^2.*ddSI;
@@ -339,6 +335,8 @@ function dXdt = SVBDODE(t,X)
             TLdot(end) = 0;
             % vapor concentration equation 
             if cgrad == 1
+                % U_vel could be used in definition of SIdot, to do, not priority
+                U_vel = (chi/R*(kappa-1).*dSI-y*R*pdot/3)/(kappa*p);
                 U_mix = U_vel + Fom/R*((Rv_star - Ra_star)./Rmix).*dC ;
                 one = ddC;
                 two = dC.*(dSI./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*dC );
@@ -346,16 +344,17 @@ function dXdt = SVBDODE(t,X)
                 Cdot = Fom/R^2*(one - two) - three;
             end                
             % solving for the system of equations with the BCs
+            Cw =  CW(T(1),p); % concentration at the bubble wall
             alphaTw = (alpha*(T(1)-1)+1);
             walltempBC = [ones(1,Nt+1) -alphaTw*ones(1,Mt+1) zeros(1,Nt+1)];        
             mdd = Fom*L_heat_star/(1-Cw)*(p/((Cw*(Rv_star-Ra_star)+Ra_star)*T(1)));
             wallheatfluxBC = [(1/alphaTw)*(0:Nt).^2 0.5*iota*(0:Mt).^2 mdd*(0:Nt).^2];
-            dPvdT = f_dpvsatdT(T(1)*T8)/P8;
-            dadtFactor = -Cw/alphaTw * ((1/pVap)*dPvdT - 1/T(1));
-            wallvaporBC = [dadtFactor*ones(1,Nt+1) zeros(1,Mt+1) ones(1,Nt+1)];
-            AA = [Q;walltempBC;wallheatfluxBC;wallvaporBC];
-            bb = [SIdot(2:end); TLdot(2:end); Cdot(2:end); 0; 0; 0];
-            qCdot = AA\bb;       
+            %dPvdT = f_dpvsatdT(T(1)*T8)/P8;
+            %dadtFactor = -Cw * ((1/pVap)*dPvdT + 1/T(1));
+            %wallvaporBC = [dadtFactor*ones(1,Nt+1) zeros(1,Mt+1) ones(1,Nt+1)];
+            AA = [Q;walltempBC;wallheatfluxBC];
+            bb = [SIdot(2:end); TLdot(2:end); Cdot(2:end); 0; 0];
+            qCdot = AA\bb;
         end
     end
     J = 0; JdotX = 0; Z1dot = 0; Z2dot = 0;
@@ -452,14 +451,6 @@ function Cw= CW(Tw,P)
   
 end
 
-function [ dPvdT ] = f_dpvsatdT( T )
-%Calculates the saturated vapor pressure using temperature 
-% Per (A. Preston 2004, Thesis)
-
-dPvdT = 5200*1.17e11*exp(-5200./(T))/T^2; 
-
-end
-
 %%%%%%%%%%%%%%%%%%%
 % post-processing %
 %%%%%%%%%%%%%%%%%%%
@@ -537,26 +528,44 @@ if plotresult == 1
             xlabel('t');
         end
     else
-        subplot(3 - polytropic,1,1);
-        plot(t,R); 
+        subplot(3,1,1);
+        plot(t,R,'k','LineWidth',2); 
         hold('on'); 
-        grid('on'); 
-        ylabel('R');
+        ylabel('$R$','Interpreter','Latex','FontSize',12);
+        box on;
         axis([0 t(end) 0 (max(R) + min(R))]);
-        subplot(3 - polytropic,1,2);
-        semilogy(t,abs(c(end,:)),t,abs(d(end,:))); 
-        ylabel('c_P, d_P');
+        set(gca,'TickLabelInterpreter','latex','FontSize',16)
+        set(gcf,'color','w');
+        subplot(3,1,3);
+        hold on;
+        box on;
+        semilogy(t,abs(c(end,:)),'k-','LineWidth',2);
+        semilogy(t,abs(d(end,:)),'b-','LineWidth',2); 
+        xlabel('$t$','Interpreter','Latex','FontSize',12);
+        ylabel('$c_P$, $d_P$','Interpreter','Latex','FontSize',12);
+        set(gca, 'YScale', 'log');
         axis([0 t(end) 1e-20 1]);
+        leg1 = legend('$c_P$','$d_P$','Location','NorthEast','FontSize',12);
+        set(leg1,'Interpreter','latex');
+        set(gca,'TickLabelInterpreter','latex','FontSize',16)
+        set(gcf,'color','w');
         if polytropic == 0
             if cold == 1, b = zeros(size(a)); end
-            subplot(3,1,3);
-            semilogy(t,abs(a(end,:)),t,abs(b(end,:))); 
-            ylabel('a_N, b_M');
+            subplot(3,1,2);
+            hold on;
+            box on;
+            semilogy(t,abs(a(end,:)),'k-','LineWidth',2);
+            semilogy(t,abs(b(end,:)),'b-','LineWidth',2); 
+            semilogy(t,abs(e(end,:)),'r-','LineWidth',2);
+            ylabel('$a_N$, $b_M$, $e_N$','Interpreter','Latex','FontSize',12);
+            set(gca, 'YScale', 'log');
             axis([0 t(end) 1e-20 1]);
+            leg1 = legend('$a_N$','$b_M$','$e_N$','Location','NorthEast','FontSize',12);
+            set(leg1,'Interpreter','latex');
+        	set(gca,'TickLabelInterpreter','latex','FontSize',16)
+            set(gcf,'color','w');
         end
-        xlabel('t');
     end
-    
 end
 
 % assemble output
