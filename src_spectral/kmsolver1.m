@@ -4,6 +4,7 @@
 % waveform parameters
 clear; close all; clc;
 
+
 TFin = 1E-6;
 Rref = 1E-6;
 R0 = 1E-6;
