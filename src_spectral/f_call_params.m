@@ -22,13 +22,13 @@ function [vecout]  = f_call_params(varargin)
     cold            = 0;        % cold fluid assumption
     vapor           = 1;        % 0 : ignore vapor pressure, 1 : have it
     % mass transfer, default is no mass transfer
-    cgrad           = 1;
+    cgrad           = 0;
     % constitutive model, default is UCM with linear elasticity
-    neoHook         = 0;        % neo-Hookean
+    neoHook         = 1;        % neo-Hookean
     voigt           = 0;        % Voigt model
     linelas         = 0;        % linear elastic model
     liner           = 0;        % linear model
-    oldb            = 1;        % Oldroyd-B
+    oldb            = 0;        % Oldroyd-B
     ptt             = 0;        % Phan-Thien-Tanner
     gies            = 0;        % Giesekus fluid
     vmaterial       = 'water';
