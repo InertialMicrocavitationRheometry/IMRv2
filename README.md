@@ -6,7 +6,7 @@
 * Original Authors: Matthew Warnez & Carlos Barajas
 
 
-##Description: 
+## Description: 
 This code is a reduced version of the IMR code taken from Estrada et al. (2018) JMPS. Additional physics have been added including the Keller-Miksis with enthalpy and non-Newtonian viscosity.
 
 ## Inputs:
