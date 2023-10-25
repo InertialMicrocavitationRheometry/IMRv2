@@ -123,6 +123,7 @@ Q = [gA(2:end,:) zeros(Nt,Mt+1) zeros(Nt,Nt+1);
     zeros(Mt,Nt+1) mA(2:end,:)  zeros(Mt,Nt+1);
     zeros(Nt,Nt+1) zeros(Nt,Mt+1)  gA(2:end,:)];
 Q = sparse(Q);
+
 [sCA,sCI,sCAd,~,~,~] = dcdmtx(Nv);
 sCA = sCA(2:end,2:end) - 1;
 sCA = sparse(sCA);
