@@ -480,7 +480,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%
 
 % display figure
-if plotresult == 1
+%%% NOTE: WE ARE NOT PLOTTING RESULTS AT THIS TIME
+if plotresult == -1 
     if vitalsreport == 0
         if radiusonly == 1
             plot(t,R); 

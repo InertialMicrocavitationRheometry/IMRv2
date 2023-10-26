@@ -37,9 +37,9 @@ function [vecout]  = f_call_params(varargin)
     spectral        = 1;        % force spectral collocation solution
     divisions       = 0;        % minimum number of timesteps
     % numerical parameters
-    Nt              = 12; 
-    Mt              = 12; 
-    Nv              = 180;           
+    Nt              = 4; 
+    Mt              = 4; 
+    Nv              = 40;           
     Lv              = 3; 
     Lt              = 3;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
