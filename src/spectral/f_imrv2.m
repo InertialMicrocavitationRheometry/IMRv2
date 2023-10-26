@@ -73,6 +73,7 @@ v_a             = params(44); v_nc = params(45); Ca = params(46);
 LAM             = params(47); De = params(48); JdotA = params(49); 
 v_lambda_star   = params(50); 
 iWe             = 1/We;
+if Ca==-1;Ca=Inf;end
 % dimensionless thermal 
 Foh             = params(51); Br = params(52); alpha = params(53); 
 beta            = params(54); chi = params(55); iota = params(56);

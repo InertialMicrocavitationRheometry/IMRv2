@@ -22,13 +22,13 @@ function [vecout]  = f_call_params(varargin)
     cold            = 0;        % cold fluid assumption
     vapor           = 1;        % 0 : ignore vapor pressure, 1 : have it
     % mass transfer, default is no mass transfer
-    cgrad           = 1;
+    cgrad           = 0;
     % constitutive model, default is UCM with linear elasticity
-    neoHook         = 0;        % neo-Hookean
+    neoHook         = 1;        % neo-Hookean
     voigt           = 0;        % Voigt model
     linelas         = 0;        % linear elastic model
     liner           = 0;        % linear model
-    oldb            = 1;        % Oldroyd-B
+    oldb            = 0;        % Oldroyd-B
     ptt             = 0;        % Phan-Thien-Tanner
     gies            = 0;        % Giesekus fluid
     vmaterial       = 'water';
@@ -119,20 +119,20 @@ function [vecout]  = f_call_params(varargin)
             end
             switch lower(varargin{n})
             % thermal options
-            case 'poly',    polytropic = varargin{n+1} ~= 0;
-            case 'cold',    cold = varargin{n+1} ~= 0;
-            case 'vapor',   vapor = varargin{n+1} ~= 0;
+            case 'poly',    polytropic = varargin{n+1}; %~= 0;
+            case 'cold',    cold = varargin{n+1}; %~= 0;
+            case 'vapor',   vapor = varargin{n+1}; %~= 0;
             % equation for radial dynamics
-            case 'rpe',     rayleighplesset = varargin{n+1} ~= 0;
-            case 'enth',    enthalpy = varargin{n+1} ~= 0;
-            case 'gil',     gil = varargin{n+1} ~= 0;
+            case 'rpe',     rayleighplesset = varargin{n+1}; %~= 0;
+            case 'enth',    enthalpy = varargin{n+1}; %~= 0;
+            case 'gil',     gil = varargin{n+1}; %~= 0;
             % constitutive model
-            case 'neohook', neoHook = varargin{n+1} ~= 0;
-            case 'voigt',   voigt = varargin{n+1} ~= 0;
-            case 'linelas', linelas = varargin{n+1} ~= 0;
-            case 'liner',   liner = varargin{n+1} ~= 0;
-            case 'oldb',    oldb = varargin{n+1};% ~= 0;
-            case 'ptt',     ptt = varargin{n+1} ~= 0;
+            case 'neohook', neoHook = varargin{n+1}; %~= 0;
+            case 'voigt',   voigt = varargin{n+1}; %~= 0;
+            case 'linelas', linelas = varargin{n+1}; %~= 0;
+            case 'liner',   liner = varargin{n+1}; %~= 0;
+            case 'oldb',    oldb = varargin{n+1}; %~= 0;
+            case 'ptt',     ptt = varargin{n+1}; %~= 0;
             case 'gies',    gies = varargin{n+1};
             % display options
             case 'dimout',  dimensionalout = varargin{n+1} ~= 0;
@@ -333,13 +333,13 @@ elseif liner == 1
     [voigt,ptt,gies] = deal(0);
 elseif oldb == 1
     [voigt,liner,ptt,gies] = deal(0);
-    Ca = 1;
+    Ca = -1;
 elseif ptt == 1
     [voigt,liner,gies,LAM] = deal(0);
-    Ca = 1; spectral = 1;
+    Ca = -1; spectral = 1;
 elseif gies ~= 0
     [voigt,liner,ptt,LAM] = deal(0);
-    Ca = 1; spectral = 1;
+    Ca = -1; spectral = 1;
 end
 
 if voigt == 1 || neoHook == 1 || linelas == 1
