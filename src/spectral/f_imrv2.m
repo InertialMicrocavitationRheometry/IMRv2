@@ -250,7 +250,6 @@ end
 % solver function %
 %%%%%%%%%%%%%%%%%%%
 function dXdt = SVBDODE(t,X)
-    cgrad = 1;
     stepcount = stepcount + 1;
     if progdisplay == 1, disp(t/tfin); end
     
