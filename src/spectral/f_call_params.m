@@ -131,7 +131,7 @@ function [vecout]  = f_call_params(varargin)
             case 'voigt',   voigt = varargin{n+1} ~= 0;
             case 'linelas', linelas = varargin{n+1} ~= 0;
             case 'liner',   liner = varargin{n+1} ~= 0;
-            case 'oldb',    oldb = varargin{n+1} ~= 0;
+            case 'oldb',    oldb = varargin{n+1};% ~= 0;
             case 'ptt',     ptt = varargin{n+1} ~= 0;
             case 'gies',    gies = varargin{n+1};
             % display options
@@ -333,13 +333,13 @@ elseif liner == 1
     [voigt,ptt,gies] = deal(0);
 elseif oldb == 1
     [voigt,liner,ptt,gies] = deal(0);
-    Ca = Inf;
+    Ca = 1;
 elseif ptt == 1
     [voigt,liner,gies,LAM] = deal(0);
-    Ca = Inf; spectral = 1;
+    Ca = 1; spectral = 1;
 elseif gies ~= 0
     [voigt,liner,ptt,LAM] = deal(0);
-    Ca = Inf; spectral = 1;
+    Ca = 1; spectral = 1;
 end
 
 if voigt == 1 || neoHook == 1 || linelas == 1
@@ -372,6 +372,7 @@ vecout = {...
       Foh C0 Rv_star Ra_star L_heat_star mv0 ma0 ... % dimensionaless mass transfer 
       Rzero Uzero pzero P8 T8 Pv_star... % dimensionless initial conditions
       };  
+  vecout
 end
 
 function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)
