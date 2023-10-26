@@ -2,7 +2,7 @@
 
 ### Developer(s): 
 * Mauro Rodriguez, mauro_rodriguez@brown.edu
-* Mirelys Carcana-Barbosa, mirelys_carcana-barbosa@brown.edu
+* Mirelys Carcana Barbosa, mirelys_carcana-barbosa@brown.edu
 * Victor Sanchez, victor_sanchez@brown.edu
 * Original Authors: Matthew Warnez & Carlos Barajas
 
