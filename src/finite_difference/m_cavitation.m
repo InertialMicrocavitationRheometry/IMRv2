@@ -42,31 +42,6 @@ function [ t , R ,U ,P, T,C, Tm,tdel,Tdel,Cdel] =...
 % Comp - 0 (ignores compressibility effects) or 1 (uses Keller- Miksis)
 % Reduced - 0 utilizes full model or 1 uses Preston's reduced order model
 
-%********************************************************************
-% Citations for code: 
-%M.T. Warnez and E. Johnsen, "Numerical modeling of bubble dynamics in
-%viscoelastic media with relaxation," Phys. Fluids 27, (2015).
-
-%R. Gaudron, M.T. Warnez, and E. Johnsen, "Bubble dynamics in a
-%viscoelastic medium with nonlinear elasticity,"
-%J. Fluid Mech. 766, 54-75 (2015).
-
-%X. Yang and C.C. Church, "A model for the dynamics of gas bubbles 
-%in soft tissue," J.Acoust. Soc. Am. 118, 3595-3606 (2005).
-
-%A. Prosperetti, L. A. Crum, and K.W. Commander, "Nonlinear bubble 
-%dynamics," J.Acoust. Soc. Am. 83, 502-514 (1988).
-
-%A.T. Preston, "Modeling heat and mass transfer in bubbly cavitating 
-%flows and shockwaves in cavitating nozzles," Ph.D. thesis, 
-%California Institute of Technology (2004).
-
-%R.I. Nigmatulin, N.S. Khabeev, and F.B. Nagiev, "Dynamics, heat and mass
-%transfer of vapour-gas plobubbles in a liquid," Int. J. 
-%Heat Mass Transfer, 24, 1033-1044 (1981).
-%*************************************************************************
-
-
 %***************************************
 % Load Parameters : 
 Pmt = f_call_parameters(R0,vmaterial); % Calls parameters script 
