@@ -22,7 +22,7 @@ function [vecout]  = f_call_params(varargin)
     cold            = 0;        % cold fluid assumption
     vapor           = 1;        % 0 : ignore vapor pressure, 1 : have it
     % mass transfer, default is no mass transfer
-    cgrad           = 1;
+    cgrad           = 0;
     % constitutive model, default is UCM with linear elasticity
     neoHook         = 1;        % neo-Hookean
     voigt           = 0;        % Voigt model
@@ -372,7 +372,6 @@ vecout = {...
       Foh C0 Rv_star Ra_star L_heat_star mv0 ma0 ... % dimensionaless mass transfer 
       Rzero Uzero pzero P8 T8 Pv_star... % dimensionless initial conditions
       };  
-  vecout
 end
 
 function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)
