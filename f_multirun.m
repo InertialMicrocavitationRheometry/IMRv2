@@ -5,7 +5,7 @@ close all; clear all; clc;
 %viscosity will range from zero to 10^1
 %shear modulus will range from zero to 10^3
 
-addpath('spectral');
+%addpath('spectral');
 
 %starting with linear elasticity
 %linear elasticity = 1 ; neoHook = 0
@@ -29,10 +29,13 @@ for i=1:length(muvec)
     for j = 1:length(Gvec)
         mu = muvec(i);
         G = Gvec(j);
-        foldername = '../bdata/neoHookean';
+        %foldername = '../bdata/neoHookean';
+        foldername = '../3dasm_data/sim_data/neoHookean';
         mkdir(foldername);
         filename = strcat(foldername,'/data_',num2str(mu),'_',num2str(G),'.csv');
-        [t,R,p,Rdot,trr,t00,~,T,C,TL] = f_imrv2('linelas',0,'neoHook',1,...
+        %[t,R,p,Rdot,trr,t00,~,T,C,TL] = f_imrv2('linelas',0,'neoHook',1,...
+        %[t,T_Bubble,T_Medium,R,U,P,C,Tm,Dim,1,0]=f_imrv2('linelas',0,'neoHook',1,...
+        [t,T_Bubble,T_Medium,R,U,P,C,Tm,Dim,~,~]=f_imrv2('linelas',0,'neoHook',1,...
         'mu',mu,'g',G);
         a = [t,R];
         writematrix(a, filename);
@@ -40,7 +43,7 @@ for i=1:length(muvec)
 end
 %%
 forlegend = [];
-addpath("../IMR_v2_matlab")
+addpath("../IMRv2")
 filenames = dir("../PolyAcry*.mat");
 %initialize the variables inside for loop?
 % t = zeros(size(filenames))';
@@ -81,7 +84,7 @@ for k = 1:size(filenames)
     plot(t,R2,'.')
     legend(forlegend,'Location','best')
 end
-rmpath("../IMR_v2_matlab")
-rmpath('spectral');
+rmpath("../IMRv2")
+%rmpath('spectral');
 end 
 
