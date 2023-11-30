@@ -1,3 +1,5 @@
 *.asv
 *.mat
-bdata/*
+*.txt
+
+*/.ipynb_checkpoints
