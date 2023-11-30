@@ -318,6 +318,8 @@ function dXdt = SVBDODE(t,X)
                 two = dC.*(dSI./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*dC );
                 three =  (U_mix-U.*y)/R.*dC; 
                 Cdot = Fom/R^2*(one - two) - three;
+            else
+                Cdot = zeros(size(ddC));
             end                
             % solving for the system of equations with the BCs
             Cw =  CW(T(1),p); % concentration at the bubble wall
