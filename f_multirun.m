@@ -75,23 +75,10 @@ R0_avg = mean(R0_all,2);
 writematrix(c,"Experimental_Data_10PA_.06BIS.csv")
 R_std = std(R_all,1,2);
 
-%fill([t_avg,flip(t_avg)],[R_avg+R_std,flip(R_avg-R_std)],'g')
-%patch(t_avg,[R_avg+R_std,flip(R_avg-R_std)],'g')
 figure(1)
 hold on
-%plot(t_avg,R_avg,'b')
 patch([t_avg; flip(t_avg)], [R_avg + R_std; flipud(R_avg-R_std)],'c','EdgeColor','b')
 plot(t_avg,R_avg,'k')
-%plot(t_avg,R_avg-R_std,'k')
-%plot(t_avg,R_avg+R_std,'b')
-% vertices = [t_avg; [R_avg + R_std; flipud(R_avg-R_std)]]';
-%vertices = [t_avg flip(t_avg); [R_avg - R_std, flipud(R_avg+R_std)], [-1,1]];
-%patch('XData',vertices(:,1),'YData',vertices(:,2))
-
-%patch(vertices)
-%vertices = [t_avg, flip(t_avg); R_avg+R_std, flip(R_avg+R_std); R_avg-R_std, flip(R_avg-R_std)];
-%patch(vertices(:,1),vertices(:,2),'c')
-% patch([t_avg; flip(t_avg)], [R_avg + R_std; flipud(R_avg-R_std)],'r','FalseAlpha',0.2,'EdgeColor','None')
 hold off
 saveas(gcf,'exp_data_std_cloud.png')
 %% This is for one simulated data with the best fit G and mu
