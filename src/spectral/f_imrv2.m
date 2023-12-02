@@ -26,11 +26,11 @@ function varargout =  f_imrv2(varargin)
 
 % Outputs: 
 % t - time vector
-% T_Bubble - Temperature inside the bubble  
-% T_Medium - Temperature outside the bubble  
 % R - Bubble Radius 
 % U - Bubble velocity 
 % P - Internal bubble pressure
+% T_Bubble - Temperature inside the bubble  
+% T_Medium - Temperature outside the bubble  
 % C - Vapor Concentration in the bubble
 % Tm - Temperature in the medium 
 % Dim - outputs variables in dimensional form
@@ -164,8 +164,8 @@ init = [Rzero; Uzero; pzero; % radius, velocity, pressure
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% SOLVER CALL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-tspan = linspace(0,tfin,detail);
-% tspan = [0 tfin];
+% tspan = linspace(0,tfin,detail);
+tspan = [0 tfin];
 stepcount = 0;
 
 if method == 15
@@ -186,7 +186,7 @@ elseif method == 45
     if divisions == 0
         options = odeset('NonNegative',1);
     else
-        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-4);
+        options = odeset('NonNegative',1,'MaxStep',tfin/divisions);%,'RelTol',1e-4);
     end
     [t,X] = ode45(@SVBDODE,tspan,init,options);
 else
@@ -554,8 +554,8 @@ else
     % standard outputs
     varargout{1} = t;
     varargout{2} = R;
-    varargout{3} = p;
-    varargout{4} = U;
+    varargout{3} = U;
+    varargout{4} = p;
     varargout{5} = trr;
     varargout{6} = t00;
     varargout{7} = I;

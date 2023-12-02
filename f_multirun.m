@@ -5,7 +5,7 @@ close all; clear all; clc;
 %viscosity will range from zero to 10^1
 %shear modulus will range from zero to 10^3
 
-%addpath('spectral');
+addpath('src/spectral');
 
 %starting with linear elasticity
 %linear elasticity = 1 ; neoHook = 0
@@ -31,60 +31,73 @@ for i=1:length(muvec)
     for j = 1:length(Gvec)
         mu = muvec(i);
         G = Gvec(j);
-        %foldername = '../bdata/neoHookean';
         filename = strcat(foldername,'/data_',num2str(mu),'_',num2str(G),'.csv');
-        %[t,R,p,Rdot,trr,t00,~,T,C,TL] = f_imrv2('linelas',0,'neoHook',1,...
-        %[t,T_Bubble,T_Medium,R,U,P,C,Tm,Dim,1,0]=f_imrv2('linelas',0,'neoHook',1,...
-        [t,T_Bubble,T_Medium,R,U,P,~,Tm,Dim,~]=f_imrv2('linelas',0,'neoHook',1,...
-        'mu',mu,'g',G);
-        a = [t,R];
+        [t,R,U,P]=f_imrv2('linelas',0,'neoHook',1,'mu',mu,'g',G);
+        
+        x = 2*(t./(t(end)-t(1)))- (t(end)+t(1))/(t(end)-t(1));
+        y = 2*(R./(max(R)-min(R)))-(max(R)+min(R))/(max(R)-min(R));
+        a = [x,y];
         writematrix(a, filename);
+        plot(x,y,'s')
     end
 end
-%%
-forlegend = [];
-addpath("../IMRv2")
-filenames = dir("../PolyAcry*.mat");
-%initialize the variables inside for loop?
-% t = zeros(size(filenames))';
-% R1 = zeros(size(filenames))';
-% R2 = zeros(size(filenames))';
-%extract bubble radius and time for each file
-for k = 1:size(filenames)
-    filename = filenames(k).name;
-    %alldata = importdata(filename);
-    alldata = load(filename);
-    data = alldata.BubblePlotSet;
-    t = data.time';
-    R1 = data.radius(1,:)';
-    R2 = data.radius(2,:)';
-    a = [t,R1,R2];
-    %save necessary data as csv
-    filename = filename(1:end-4);
-    csvwrite(filename,a)
-    %writematrix(a,filename)
-    %writematrix(a, [filename '.csv'])
+%% This is for 10% PA/0.06% BIS experimental data
+clear all; close all; clc;
+%addpath("../3dasm_data/exp_data")
+load("PA_10%_0.06%_completed.mat");
+%extract quantities of interest only for the first file
+a = []; b=[];
+for kk = 1:37
+    file = expts(kk);
+    t = file.t_norm;
+    R = file.R_norm;
+    x = 2*(t./(t(end)-t(1)))- (t(end)+t(1))/(t(end)-t(1));
+    y = 2*(R./(max(R)-min(R)))-(max(R)+min(R))/(max(R)-min(R));
+    a = [a;x;y];
     
-    %for legend
-    forlegend{k} = [filename];
-    
-    
-    %if value is NaN, remove?
-    %should also be saving dimensionless numbers: ReB, De, CA
-    %problems: t, R1, R2 should be saving data for EACH filename, but is getting overwritten
-    
-    %Plot time and radius for each camera
-    figure(1)
-    hold on
-    plot(t,R1,'.')
-    legend(forlegend,'Location','best')
-    
-    figure(2)
-    hold on
-    plot(t,R2,'.')
-    legend(forlegend,'Location','best')
+    t0 = file.t0;
+    R0 = file.R0;
+    b = [b;t0;R0];
 end
-rmpath("../IMRv2")
-%rmpath('spectral');
-end 
+a = a';
+t_all = a(:,1:2:end-1);
+t_avg = mean(t_all,2);
+R_all = a(:,2:2:end);
+R_avg = mean(R_all,2);
+c = [t_avg,R_avg];
 
+d = d';
+t0_all = b(:,1:2:end-1);
+R0_all = b(:,2:2:end);
+t0_avg = mean(t0_all,2);
+R0_avg = mean(R0_all,2);
+
+%filename = strcat('file_,num2str(kk),'.csv');
+writematrix(c,"Experimental_Data_10PA_.06BIS.csv")
+R_std = std(R_all,1,2);
+
+%fill([t_avg,flip(t_avg)],[R_avg+R_std,flip(R_avg-R_std)],'g')
+%patch(t_avg,[R_avg+R_std,flip(R_avg-R_std)],'g')
+figure(1)
+hold on
+plot(t_avg,R_avg,'b')
+plot(t_avg,R_avg-R_std,'k')
+plot(t_avg,R_avg+R_std,'r')
+%fill([t_avg,flip(t_avg)],[R_avg+R_std,flip(R_avg-R_std)],'g')
+
+
+%% This is for one simulated data with the best fit G and mu
+G_best = 1.39e+04;
+mu_best = 0.1070;
+
+[t,R,U,P]=f_imrv2('linelas',0,'neoHook',1,'mu',mu_best,'g',G_best,'t0',t0_avg,'R0',R0_avg);
+x = 2*(t./(t(end)-t(1)))- (t(end)+t(1))/(t(end)-t(1));
+y = 2*(R./(max(R)-min(R)))-(max(R)+min(R))/(max(R)-min(R));
+a = [x,y];
+
+filename = strcat('../',num2str(mu_best),num2str(G_best),'.csv');
+writematrix(a, filename);
+plot(x,y,'s')
+%%
+rmpath('src/spectral')
+end
