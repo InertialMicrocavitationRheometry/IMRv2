@@ -50,7 +50,7 @@ function [vecout]  = f_call_params(varargin)
     %%%%%%%%%%%%%%%%%%%%%%%%%
     % waveform parameters   %
     %%%%%%%%%%%%%%%%%%%%%%%%% 
-    TFin            = 5e-5;     % final time (s)
+    TFin            = 2e-4;     % final time (s)
     pA              = 2e6;    % pressure amplitude (Pa)
     omega           = 4e6*2*pi; % frequency (rad/s)
     TW              = 0;        % gaussian width (s)

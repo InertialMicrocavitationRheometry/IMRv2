@@ -24,7 +24,7 @@ Gvec = [0,logspace(-3,3,10)];
 %         save(filename);
 %     end
 % end
-%neoHook = 1; linear elasticity =0
+%neoHook = 1; linear elasticity = 0
 foldername = '../3dasm_data/sim_data/neoHookean';
 mkdir(foldername);
 for i=1:length(muvec)
@@ -42,9 +42,8 @@ for i=1:length(muvec)
     end
 end
 %% This is for 10% PA/0.06% BIS experimental data
-clear all; close all; clc;
-%addpath("../3dasm_data/exp_data")
-load("PA_10%_0.06%_completed.mat");
+addpath("../3dasm_data")
+load("exp_data/PA_10%_0.06%_completed.mat");
 %extract quantities of interest only for the first file
 a = []; b=[];
 for kk = 1:37
@@ -66,10 +65,10 @@ R_all = a(:,2:2:end);
 R_avg = mean(R_all,2);
 c = [t_avg,R_avg];
 
-d = d';
-t0_all = b(:,1:2:end-1);
+b = b';
+%t0_all = b(:,1:2:end-1);
+%t0_avg = mean(t0_all,2);
 R0_all = b(:,2:2:end);
-t0_avg = mean(t0_all,2);
 R0_avg = mean(R0_all,2);
 
 %filename = strcat('file_,num2str(kk),'.csv');
@@ -83,21 +82,30 @@ hold on
 plot(t_avg,R_avg,'b')
 plot(t_avg,R_avg-R_std,'k')
 plot(t_avg,R_avg+R_std,'r')
-%fill([t_avg,flip(t_avg)],[R_avg+R_std,flip(R_avg-R_std)],'g')
+vertices = [t_avg; R_avg + R_std; flipud(R_avg-R_std)]';
+%patch('XData',vertices(:,1),'YData',vertices(:,2))
 
+%patch(vertices)
+%vertices = [t_avg, flip(t_avg); R_avg+R_std, flip(R_avg+R_std); R_avg-R_std, flip(R_avg-R_std)];
+patch(vertices(:,1),vertices(:,2),'c')
+hold off
 
 %% This is for one simulated data with the best fit G and mu
 G_best = 1.39e+04;
 mu_best = 0.1070;
+%in f_call_params, changed TFin to 2E-4 in accordance to observations from
+%experimental end times 
 
-[t,R,U,P]=f_imrv2('linelas',0,'neoHook',1,'mu',mu_best,'g',G_best,'t0',t0_avg,'R0',R0_avg);
+[t,R,U,P]=f_imrv2('linelas',0,'neoHook',1,'mu',mu_best,'g',G_best,'R0',R0_avg)
 x = 2*(t./(t(end)-t(1)))- (t(end)+t(1))/(t(end)-t(1));
 y = 2*(R./(max(R)-min(R)))-(max(R)+min(R))/(max(R)-min(R));
 a = [x,y];
 
-filename = strcat('../',num2str(mu_best),num2str(G_best),'.csv');
+filename = strcat('../../Simulation_Data_',num2str(mu_best),'_',num2str(G_best),'.csv');
 writematrix(a, filename);
+figure(2)
 plot(x,y,'s')
 %%
+rmpath('../3dasm_data/')
 rmpath('src/spectral')
 end
