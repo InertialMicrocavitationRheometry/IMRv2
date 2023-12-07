@@ -45,7 +45,8 @@ addpath("../3dasm_data/exp_data/")
 load("../3dasm_data/exp_data/PA_10%_0.06%_completed.mat");
 %extract quantities of interest only for the first file
 a = []; b=[];
-for kk = 1:37
+test = [];
+for kk = 1:1
     file = expts(kk);
     t = file.t_norm;
     R = file.R_norm;
@@ -63,6 +64,10 @@ for kk = 1:37
     t0 = file.t0;
     R0 = file.R0;
     b = [b;t0;R0];
+    
+    tnon = file.t;
+    Rnon = file.Roft;
+    test = [test;tnon;Rnon];
 end
 a = a';
 t_all = a(:,1:2:end-1);
@@ -79,9 +84,19 @@ R0_avg = mean(R0_all,2);
 
 %filename = strcat('file_,num2str(kk),'.csv');
 %writematrix(c,"Experimental_Data_10PA_.06BIS.csv")
-writematrix(c,"normalized_unscaled_Experimental_Data_10PA_.06BIS.csv")
+%writematrix(c,"normalized_unscaled_Experimental_Data_10PA_.06BIS.csv")
 R_std = std(R_all,1,2);
 
+
+test = test';
+tnon = test(:,1:2:end-1);
+Rnon = test(:,2:2:end);
+figure(1)
+plot(tnon,Rnon,'rs')
+
+figure(2)
+plot(t_all,R_all,'bs')
+%%
 figure(1)
 hold on
 patch([t_avg; flip(t_avg)], [R_avg + R_std; flipud(R_avg-R_std)],'c','EdgeColor','b')
@@ -90,7 +105,7 @@ hold off
 %saveas(gcf,'exp_data_std_cloud.png')
 saveas(gcf,'normized_unscaled_exp_data_std_cloud.png')
 %% This is for one simulated data with the best fit G and mu
-% addpath('src/spectral');
+addpath('src/spectral');
 clc
 G_best = 1.39e+04;
 mu_best = 0.1070;
