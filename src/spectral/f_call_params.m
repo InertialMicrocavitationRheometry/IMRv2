@@ -19,7 +19,7 @@ function [vecout]  = f_call_params(varargin)
     gil             = 0;        % Gilmore equation
     % thermal assumptions, default is no thermal assumptions
     polytropic      = 0;        % polytropic assumption
-    cold            = 0;        % cold fluid assumption
+    cold            = 1;        % cold fluid assumption
     vapor           = 1;        % 0 : ignore vapor pressure, 1 : have it
     % mass transfer, default is no mass transfer
     cgrad           = 0;
@@ -34,12 +34,12 @@ function [vecout]  = f_call_params(varargin)
     vmaterial       = 'water';
     % solver options
     method          = 45;       % ode45
-    spectral        = 1;        % force spectral collocation solution
+    spectral        = 0;        % force spectral collocation solution
     divisions       = 1;        % minimum number of timesteps
     % numerical parameters
-    Nt              = 4; 
-    Mt              = 4; 
-    Nv              = 40;           
+    Nt              = 15; 
+    Mt              = 10; 
+    Nv              = 150;           
     Lv              = 3; 
     Lt              = 3;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -50,8 +50,8 @@ function [vecout]  = f_call_params(varargin)
     %%%%%%%%%%%%%%%%%%%%%%%%%
     % waveform parameters   %
     %%%%%%%%%%%%%%%%%%%%%%%%% 
-    TFin            = 2e-4;     % final time (s)
-    pA              = 2e6;    % pressure amplitude (Pa)
+    TFin            = 3e-4; %1.82e-4;     % final time (s)
+    pA              = 0;    % pressure amplitude (Pa)
     omega           = 4e6*2*pi; % frequency (rad/s)
     TW              = 0;        % gaussian width (s)
     DT              = 0;        % delay (s)
@@ -96,7 +96,7 @@ function [vecout]  = f_call_params(varargin)
     lambda1 = 0.5e-6;             % relaxation time (s)
     lambda2 = lambda1;            % retardation time (s)
     Pv      = f_pvsat(T8);    
-	P0      = P8 + 2*S/R0 - Pv*vapor;   % need to add Pv_sat at room temp         
+	P0      = P8 + 2*S/R0 - Pv*vapor; % need to add Pv_sat at room temp  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % overwrite defaults with options and dimensional inputs %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -194,7 +194,7 @@ function [vecout]  = f_call_params(varargin)
             end
         end
         if p0set == 0
-            P0 = P8 + 2*S/R0 - Pv*vapor; 
+            P0 = P8 + 2*S/R0 - Pv*vapor;
         end
         if c8set == 0 
             C8 = sqrt(nstate*(P8 + GAM)/rho8); 
@@ -223,6 +223,7 @@ function [vecout]  = f_call_params(varargin)
 	% dimensionless vapor and infinity pressure
     Pv_star = vapor*Pv/P8;
 	P0_star = P0/P8;                    % 
+    P0_star
     % dimensionless waveform parameters
     tfin    = TFin/t0;                  % simulation time
     om      = omega*t0;                 % non-dimensional frequency

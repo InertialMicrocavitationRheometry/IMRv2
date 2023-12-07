@@ -41,8 +41,8 @@ for i=1:length(muvec)
         plot(x,y,'s')
     end
 %% This is for 10% PA/0.06% BIS experimental data
-addpath("../3dasm_data")
-load("exp_data/PA_10%_0.06%_completed.mat");
+addpath("../3dasm_data/exp_data/")
+load("../3dasm_data/exp_data/PA_10%_0.06%_completed.mat");
 %extract quantities of interest only for the first file
 a = []; b=[];
 for kk = 1:37
@@ -90,23 +90,29 @@ hold off
 %saveas(gcf,'exp_data_std_cloud.png')
 saveas(gcf,'normized_unscaled_exp_data_std_cloud.png')
 %% This is for one simulated data with the best fit G and mu
+% addpath('src/spectral');
+clc
 G_best = 1.39e+04;
 mu_best = 0.1070;
 %in f_call_params, changed TFin to 2E-4 in accordance to observations from
 %experimental end times 
+patm = 101325;
+S = 0.072;
+pinit = patm - 2*S /R0_avg;
 
-[t,R,~,~]=f_imrv2('linelas',0,'neoHook',1,'mu',mu_best,'g',G_best,'R0',R0_avg);
-t = t./t(end);
-R = R./R(1);
+[t,R,~,~]=f_imrv2('linelas',0,'neoHook',1,'mu',mu_best,'g',G_best,'R0',R0_avg,'p0',1500);
+%t = t./t(end);
+%R = R./R(1);
 %x = 2*(t./(t(end)-t(1)))- (t(end)+t(1))/(t(end)-t(1));
 %y = 2*(R./(max(R)-min(R)))-(max(R)+min(R))/(max(R)-min(R));
 %a = [x,y];
+
 a = [t,R];
 
-filename = strcat('../../Simulation_Data_',num2str(mu_best),'_',num2str(G_best),'.csv');
-writematrix(a, filename);
+%filename = strcat('../../Simulation_Data_',num2str(mu_best),'_',num2str(G_best),'.csv');
+%writematrix(a, filename);
 figure(2)
-plot(x,y,'s')
+plot(t,R,'s')
 %%
 rmpath('../3dasm_data/')
 rmpath('src/spectral')
