@@ -91,13 +91,14 @@ yk2 = ((2./(xk+1)-1)*L+1);
 %******************************************
 % Initial Conditions
 tspan_star = tspan/t0;
+tspan_star = 5; % forcing this for 3dasm project
 R0_star = 1; 
 U0_star = 0;  % Change as needed 
 Tau0 = zeros(1,NT);
 C0 = C0*ones(1,NT);
 Tm0 = ones(1,NTM);
 
-% Need to modify intial conditions for the Out-of-Equilibrium Rayleigh
+% Need to modify initial conditions for the Out-of-Equilibrium Rayleigh
 % Collapse:  
 if  (Pext_type == 'IC') 
     Pv = f_pvsat(1*T_inf)/P_inf;
@@ -108,10 +109,10 @@ if  (Pext_type == 'IC')
     Ma0 = (P0_star-Pv)/Ra_star;  
     % Need to calculate the equilibrium radii for initial 
     % stress state: 
-    %[REq P_eq C_eq] = f_calc_Req(R0, Tgrad ,Cgrad,Pext_Amp_Freq(1) );
-    REq = 1;
+    [REq] = f_calc_Req(R0, Tgrad ,Cgrad,Pext_Amp_Freq(1),vmaterial);
+    %REq = 1;
     C0 = C0*ones(1,NT);
-    U0_star = -1*(1-P0_star)/(C_star); % Initial velocity 
+    U0_star = -(1-P0_star)/(C_star); % Initial velocity 
     %Plesset & Prosperetti, ARFM 1977, p166
     else
     U0_star = 0;
@@ -127,18 +128,23 @@ tdel=[];
 Tdel = []; 
 Cdel = []; 
 
-in = load('./data/workspace.mat','pp_HN');
-pp_HN = in.pp_HN;
-in = load('./data/workspace.mat','dp_HN');
-dp_HN = in.dp_HN;
-in = load('./data/workspace.mat','pp_MN');
-pp_MN = in.pp_MN;
-in = load('./data/workspace.mat','dp_MN');
-dp_MN = in.dp_MN;
-in = load('./data/workspace.mat','pp_ML');
-pp_ML = in.pp_ML;
-in = load('./data/workspace.mat','dp_ML');
-dp_ML = in.dp_ML;
+if (Pext_type == 'HN')
+    in = load('./data/workspace.mat','pp_HN');
+    pp_HN = in.pp_HN;
+    in = load('./data/workspace.mat','dp_HN');
+    dp_HN = in.dp_HN;
+elseif (Pext_type == 'MN')
+    in = load('./data/workspace.mat','pp_MN');
+    pp_MN = in.pp_MN;
+    in = load('./data/workspace.mat','dp_MN');
+    dp_MN = in.dp_MN;
+elseif (Pext_type == 'ML')
+    in = load('./data/workspace.mat','pp_ML');
+    pp_ML = in.pp_ML;
+    in = load('./data/workspace.mat','dp_ML');
+    dp_ML = in.dp_ML;
+else
+end
 
 %************************************************
 % March equations in time 

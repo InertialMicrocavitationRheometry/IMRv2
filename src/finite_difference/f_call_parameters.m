@@ -6,7 +6,7 @@ function [P]  = f_call_parameters(R0,vmaterial)
     D0    = 24.2e-6;            % Diffusion Coeff m^2/s
     k     = 1.47;               % Ratio of Specific Heats 
     S     = 0.056;              % (N/m) Liquid Surface Tension 
-    G     = 0*(1000)*1E3;       % (Pa) Medium Shear Modulus 
+    G     = 1.39E4;             % (Pa) Medium Shear Modulus 
     T_inf = 300;                % (K) Far field temp. 
     [mu8,Dmu,v_a,v_nc,v_lambda] = f_nonNewtonian_Re(vmaterial);
     P_inf = 101325;             % (Pa) Atmospheric Pressure 
@@ -70,8 +70,10 @@ function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)
 % seconds.
     a = 0; nc = 0; lambda = 0;
     if strcmp('water',vmaterial)==1
-        mu8 = 8.3283e-4;
-        muo = 8.3283e-4;
+        %mu8 = 8.3283e-4;
+        %muo = 8.3283e-4;
+        mu8 = 0.05;
+        muo = 0.05;
     elseif strcmp('blood_infinity', vmaterial) == 1
         mu8 = 0.00345; 
         muo = mu8; 

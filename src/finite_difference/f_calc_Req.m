@@ -1,4 +1,4 @@
-function [ R_eq ,P_eq ,C_eq ] = f_calc_Req(R0, Tgrad ,Cgrad,Pa )
+function [ R_eq ,P_eq ,C_eq ] = f_calc_Req(R0, Tgrad ,Cgrad,Pa,vmaterial )
 
 %***********************************************************************
 % NOTE: 
@@ -9,7 +9,7 @@ function [ R_eq ,P_eq ,C_eq ] = f_calc_Req(R0, Tgrad ,Cgrad,Pa )
 
 %***************************************
 % Load Parameters : 
-Pmt = call_parameters(R0); % Calls parameters script 
+Pmt = f_call_parameters(R0,vmaterial); % Calls parameters script 
 k = Pmt(1); chi = Pmt(2);  fom = Pmt(3); foh = Pmt(4);  Ca = Pmt(5);  
 Re = Pmt(6); We = Pmt(7);  Br = Pmt(8);  A_star = Pmt(9); B_star = Pmt(10);
 Rv_star = Pmt(11);  Ra_star = Pmt(12); P0_star = Pmt(13); t0 = Pmt(14);
@@ -20,7 +20,7 @@ Mv0 = Pmt(22);   Ma0 = Pmt(23);
 
 %***************************************
 
-Pv = Pvsat(1*T_inf)/P_inf; Pa = Pa/P_inf; ma0 = Pa/Ra_star;
+Pv = f_pvsat(1*T_inf)/P_inf; Pa = Pa/P_inf; ma0 = Pa/Ra_star;
 MTotal0 = Pa/Ra_star + Pv/Rv_star;
 
 
