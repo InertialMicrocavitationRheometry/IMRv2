@@ -157,9 +157,10 @@ id = (7+2*Nt+Mt+Nv):(6+2*Nt+Mt+2*Nv);   % second stress spectrum
 init = [Rzero; Uzero; pzero; % radius, velocity, pressure
     zeros(Nt+1,1); % auxiliary temperature spectrum
     ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
-    gAI*C0*ones(Nt+1,1); % initial non-dimensional vapor concentration
+    gAI*C0*zeros(Nt+1,1); % initial non-dimensional vapor concentration
     zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
     0]; % initial stress integral
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% SOLVER CALL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -272,10 +273,12 @@ function dXdt = SVBDODE(t,X)
         T = (alpha - 1 + sqrt(1+2*alpha*SI))/alpha;
         D = kapover*(alpha*T.^2 + (1-alpha)*T)/p;
         % Vapor concentration gradients
-        C = gA*X(ie);
-        dC = gAPd*C;
-        ddC = gAPdd*C;
-        Rmix = C*Rv_star + (1-C)*Ra_star; 
+        if cgrad ~= 0
+            C = gA*X(ie);
+            dC = gAPd*C;
+            ddC = gAPdd*C;
+            Rmix = C*Rv_star + (1-C)*Ra_star;
+        end
         pVap = (f_pvsat(T(1)*T8)/P8);
         K_star = alpha*T+beta;
         % new pressure and auxiliary temperature derivative
@@ -293,6 +296,7 @@ function dXdt = SVBDODE(t,X)
         if cold == 1 % cold-liquid approximation
             % solve auxiliary temperature with boundary condition
             qCdot = gAI*[0; SIdot(2:end)];
+            qCdot = [qCdot;zeros(Nt+1,1)];
         else
             % extract medium temperature
             TL = mA*X(ib);
@@ -393,12 +397,12 @@ function dXdt = SVBDODE(t,X)
     % bubble wall acceleration
     % Rayleigh-Plesset        
     if rayleighplesset == 1
-        Udot = (p - 1 + pVap - pf8 - iWe/R + J - 1.5*U^2)/R;
+        Udot = (p + pVap - 1 - pf8 - iWe/R + J - 1.5*U^2)/R;
     % Keller-Miksis in enthalpy
     elseif enthalpy == 1    
         hB = sam/no*(((p - iWe/R + GAMa + J)/sam)^no - 1);
         hH = (sam/(p + pVap - iWe/R + GAMa + J))^(1/nstate);
-        Udot = ((1 + U/Cstar)*(hB - pf8) - R/Cstar*pf8dot ...
+        Udot = ((1 + U/Cstar)*(hB - 1 - pf8) - R/Cstar*pf8dot ...
             + R/Cstar*hH*(pdot + iWe*U/R^2 + JdotX) ...
             - 1.5*(1 - U/(3*Cstar))*U^2)/((1 - U/Cstar)*R + JdotA*hH/Cstar);
     % Gilmore equation
@@ -409,8 +413,8 @@ function dXdt = SVBDODE(t,X)
             + R/Cstar*hH*(pdot + iWe*U/R^2 + JdotX) ...
             - 1.5*(1 - U/(3*Cstar))*U^2)/((1 - U/Cstar)*R + JdotA*hH/Cstar);
     % Keller-Miksis in pressure        
-    else    
-        Udot = ((1+U./Cstar)*(p - 1 + pVap - pf8 - iWe./R + J) ...
+    else  
+        Udot = ((1+U./Cstar)*(p + pVap - 1 - pf8 - iWe./R + J) ...
             + R./Cstar.*(pdot + iWe.*U./R.^2 + JdotX - pf8dot) ...
             - 1.5.*(1-U./(3.*Cstar)).*U.^2)./((1-U./Cstar).*R + JdotA./Cstar);
     end
@@ -435,7 +439,13 @@ end
 
 % extract result
 R = X(:,1); U = X(:,2); p = X(:,3);
-a = X(:,ia)'; b = X(:,ib)'; c = X(:,ic)'; d = X(:,id)'; e = X(:,ie)';
+a = X(:,ia)'; 
+b = X(:,ib)'; 
+c = X(:,ic)'; 
+d = X(:,id)'; 
+if cgrad == 1
+    e = X(:,ie)';
+end
 I = X(:,end);
 pA = zeros(size(t));
 % Udot = R2dot(t,X);
@@ -457,7 +467,9 @@ if polytropic == 0
 else
     T = R.^(-3*kappa);
 end
-C = gA*e;
+if cgrad == 1
+    C = gA*e;
+end
 
 if dimensionalout == 1
     
@@ -560,7 +572,9 @@ else
     varargout{6} = t00;
     varargout{7} = I;
     varargout{8} = T;    
-    varargout{9} = C;
+    if cgrad == 1
+        varargout{9} = C;
+    end
     if polytropic == 0 && cold == 0
         varargout{10} = TL;
     else
