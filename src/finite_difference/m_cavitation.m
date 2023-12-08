@@ -153,6 +153,7 @@ end
     opts = odeset('RelTol',1e-8,'AbsTol',1E-8);
     X0 = [R0_star U0_star P0_star Tau0 C0 Tm0 ]; 
     [t , X] = ode23tb(@bubble, [0 tspan_star] , X0, opts);
+    %[t , X] = ode23tb(@bubble, [0 tspan_star] , X0);
     R = X(:,1); % Bubble wall Radius 
     U = X(:,2); % Bubble wall velocity
     P = X(:,3); % Internal pressure
