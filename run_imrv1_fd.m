@@ -44,9 +44,14 @@ vmodel = 'newtonian';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% OUTPUT %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+skip = 50;
+t = t(1:skip:end);
+R = R(1:skip:end);
 a = [t,R];
-%filename = strcat('../../Simulation_Data_',num2str(mu_best),'_',num2str(G_best),'.csv');
-%writematrix(a, filename);
+mu = 0.05;
+G = 1.39E4;
+filename = strcat(pwd,'/less_points_Simulation_Data_',num2str(mu),'_',num2str(G),'.csv');
+writematrix(a, filename);
 
 figure(1);
 plot(t,R,'k')
