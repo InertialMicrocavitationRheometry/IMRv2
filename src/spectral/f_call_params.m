@@ -47,6 +47,7 @@ function [vecout]  = f_call_params(varargin)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     R0              = 2E-4;     % initial bubble radius
     U0              = 0;        % initial velocity (m/s)
+    Req             = 0;
     %%%%%%%%%%%%%%%%%%%%%%%%%
     % waveform parameters   %
     %%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -188,6 +189,7 @@ function [vecout]  = f_call_params(varargin)
             %case 'rref',    Rref = varargin{n+1};
             case 'u0',      U0 = varargin{n+1};
             case 'p0',      P0 = varargin{n+1};
+            case 'req',     Req = varargin{n+1};
             %case 'a0', a0 = varargin{n+1};
             %case 'b0', b0 = varargin{n+1};
             otherwise, misscount = misscount + 1;
@@ -238,7 +240,7 @@ function [vecout]  = f_call_params(varargin)
     iota    = Km/(K8*Lt);
     Foh     = Dm/(Uc*R0); 
     alpha   = AT*T8/K8;              % we do not need beta = BT/K8, we do for diffusion
-    beta  = BT/K8;
+    beta    = BT/K8;
     Br      = Uc^2/(Cp*T8);      
     % mass diffusion
 	Fom     = D0/(Uc*R0);
@@ -261,6 +263,7 @@ function [vecout]  = f_call_params(varargin)
     De      = lambda1*Uc/R0;            % Deborah number
     % dimensionless initial conditions
     Rzero   = 1;
+    Req_zero= Req/R0;
     Uzero   = U0/Uc;
     pzero   = P0_star;
 
@@ -371,7 +374,7 @@ vecout = {...
       We Re8 DRe v_a v_nc Ca LAM De JdotA v_lambda_star ... % dimensionless viscoelastic
       Fom Br alpha beta chi iota ... % dimensionless thermal 
       Foh C0 Rv_star Ra_star L_heat_star mv0 ma0 ... % dimensionaless mass transfer 
-      Rzero Uzero pzero P8 T8 Pv_star... % dimensionless initial conditions
+      Rzero Uzero pzero P8 T8 Pv_star Req_zero... % dimensionless initial conditions
       };  
 end
 

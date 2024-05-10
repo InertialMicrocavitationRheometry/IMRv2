@@ -84,6 +84,7 @@ ma0             = params(63);
 % dimensionless initial conditions
 Rzero           = params(64); Uzero = params(65); pzero = params(66);
 P8              = params(67); T8 = params(68); Pv_star = params(69);
+Req             = params(70);
 p0star          = pzero;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numerical setup and precomputations %
@@ -154,10 +155,16 @@ ic = (7+2*Nt+Mt):(6+2*Nt+Mt+Nv);        % stress spectrum
 id = (7+2*Nt+Mt+Nv):(6+2*Nt+Mt+2*Nv);   % second stress spectrum
 
 % initial condition assembly
+if cgrad == 1
+    Cvec = C0*gAI*zeros(Nt+1,1); 
+else 
+    Cvec = zeros(Nt+1); 
+end
+
 init = [Rzero; Uzero; pzero; % radius, velocity, pressure
     zeros(Nt+1,1); % auxiliary temperature spectrum
     ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
-    gAI*C0*zeros(Nt+1,1); % initial non-dimensional vapor concentration
+    Cvec; % initial non-dimensional vapor concentration
     zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
     0]; % initial stress integral
 
