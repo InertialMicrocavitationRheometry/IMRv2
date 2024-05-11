@@ -96,11 +96,14 @@ ze = cos(pi*(1:Nv)'/Nv);
 % collocation matrix construction
 [gA,gAI,~,~,gAPd,gAPdd] = dcdmtxe(Nt);
 [mA,~,~,~,mAPd,mAPdd] = dcdmtx(Mt);
+% VICTOR, HERE IS THE START OF CHANGES TO FIX
 Q = [gA(2:end,:) zeros(Nt,Mt+1) zeros(Nt,Nt+1);
     zeros(Mt,Nt+1) mA(2:end,:)  zeros(Mt,Nt+1);
     zeros(Nt,Nt+1) zeros(Nt,Mt+1)  gA(2:end,:)];
 Q = sparse(Q);
 
+
+% VICTOR, HERE IS THE START OF CHANGES TO FIX
 [sCA,sCI,sCAd,~,~,~] = dcdmtx(Nv);
 sCA = sCA(2:end,2:end) - 1;
 sCA = sparse(sCA);
@@ -150,6 +153,7 @@ if polytropic == 1, Nt = -1; Mt = -1; qCdot = []; end
 if cold == 1, Mt = -1; end
 ia = 4:(4+Nt);                          % auxiliary (internal) temperature spectrum
 ib = (5+Nt):(5+Nt+Mt);                  % medium temperature spectrum
+% VICTOR, HERE IS THE START OF CHANGES TO FIX
 ie = (6+Nt+Mt):(6+2*Nt+Mt);             % water vapor spectrum
 ic = (7+2*Nt+Mt):(6+2*Nt+Mt+Nv);        % stress spectrum
 id = (7+2*Nt+Mt+Nv):(6+2*Nt+Mt+2*Nv);   % second stress spectrum
@@ -161,6 +165,8 @@ else
     Cvec = zeros(Nt+1); 
 end
 
+
+% VICTOR, HERE IS THE START OF CHANGES TO FIX
 init = [Rzero; Uzero; pzero; % radius, velocity, pressure
     zeros(Nt+1,1); % auxiliary temperature spectrum
     ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
@@ -264,6 +270,7 @@ function dXdt = SVBDODE(t,X)
     % extract standard inputs
     R = X(1); U = X(2); p = X(3);
 
+    % VICTOR, HERE IS THE START OF CHANGES TO FIX
     % non-condensible gas pressure and temperature
     if polytropic == 1
         % polytropic approximation
