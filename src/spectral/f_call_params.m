@@ -15,12 +15,12 @@ function [vecout]  = f_call_params(varargin)
     technical       = 0;        % output technical data
     % model for radial bubble dynamics, default is KME in pressure
     rayleighplesset = 0;        % Rayleigh-Plesset equation
-    enthalpy        = 1;        % Keller-Miksis enthalpy equations
-    gil             = 0;        % Gilmore equation
+    enthalpy        = 0;        % Keller-Miksis enthalpy equations
+    gil             = 1;        % Gilmore equation
     % thermal assumptions, default is no thermal assumptions
     polytropic      = 0;        % polytropic assumption
     cold            = 1;        % cold fluid assumption
-    vapor           = 1;        % 0 : ignore vapor pressure, 1 : have it
+    vapor           = 0;        % 0 : ignore vapor pressure, 1 : have it
     % mass transfer, default is no mass transfer
     cgrad           = 0;
     % constitutive model, default is UCM with linear elasticity
@@ -35,9 +35,9 @@ function [vecout]  = f_call_params(varargin)
     % solver options
     method          = 45;       % ode45
     spectral        = 0;        % force spectral collocation solution
-    divisions       = 1;        % minimum number of timesteps
+    divisions       = 100;        % minimum number of timesteps
     % numerical parameters
-    Nt              = 15; 
+    Nt              = 10; 
     Mt              = 10; 
     Nv              = 150;           
     Lv              = 3; 
@@ -51,7 +51,7 @@ function [vecout]  = f_call_params(varargin)
     %%%%%%%%%%%%%%%%%%%%%%%%%
     % waveform parameters   %
     %%%%%%%%%%%%%%%%%%%%%%%%% 
-    TFin            = 3e-4; %1.82e-4;     % final time (s)
+    TFin            = 1e-5; %1.82e-4;     % final time (s)
     pA              = 0;    % pressure amplitude (Pa)
     omega           = 4e6*2*pi; % frequency (rad/s)
     TW              = 0;        % gaussian width (s)
@@ -97,7 +97,7 @@ function [vecout]  = f_call_params(varargin)
     lambda1 = 0.5e-6;             % relaxation time (s)
     lambda2 = lambda1;            % retardation time (s)
     Pv      = f_pvsat(T8);    
-	P0      = P8 + 2*S/R0 - Pv*vapor; % need to add Pv_sat at room temp  
+	P0      = P8; %+ 2*S/R0 - Pv*vapor; % need to add Pv_sat at room temp  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % overwrite defaults with options and dimensional inputs %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -225,7 +225,6 @@ function [vecout]  = f_call_params(varargin)
 	% dimensionless vapor and infinity pressure
     Pv_star = vapor*Pv/P8;
 	P0_star = P0/P8;                    % 
-    P0_star
     % dimensionless waveform parameters
     tfin    = TFin/t0;                  % simulation time
     om      = omega*t0;                 % non-dimensional frequency
@@ -251,7 +250,7 @@ function [vecout]  = f_call_params(varargin)
     L_heat_star = L_heat/(Uc)^2;
     % viscoelastic properties
     Ca      = P8/G; 
-    Re8     = P8*R0/(mu8*Uc);
+    Re8     = P8*R0/(mu8*Uc);        % this is the Reynolds number
     if Dmu ~= 0
         DRe = P8*R0/(Dmu*Uc);
     else 
@@ -319,8 +318,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%% final setting adjustments %%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if rayleighplesset == 1, enthalpy = 0; end
-if enthalpy == 1, rayleighplesset = 0; end
+if rayleighplesset == 1, enthalpy = 0; gil = 0; end
+if enthalpy == 1, rayleighplesset = 0; gil = 0; end
+if gil == 1, rayleighplesset = 0; enthalpy = 0; end
 if polytropic == 1, cold = 0; end
 if cold == 1, polytropic = 0; cgrad = 0; end
 

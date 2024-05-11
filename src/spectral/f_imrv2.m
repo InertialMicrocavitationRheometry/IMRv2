@@ -86,6 +86,7 @@ Rzero           = params(64); Uzero = params(65); pzero = params(66);
 P8              = params(67); T8 = params(68); Pv_star = params(69);
 Req             = params(70);
 p0star          = pzero;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numerical setup and precomputations %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -96,24 +97,17 @@ ze = cos(pi*(1:Nv)'/Nv);
 % collocation matrix construction
 [gA,gAI,~,~,gAPd,gAPdd] = dcdmtxe(Nt);
 [mA,~,~,~,mAPd,mAPdd] = dcdmtx(Mt);
-% VICTOR, HERE IS THE START OF CHANGES TO FIX
-Q = [gA(2:end,:) zeros(Nt,Mt+1) zeros(Nt,Nt+1);
-    zeros(Mt,Nt+1) mA(2:end,:)  zeros(Mt,Nt+1);
-    zeros(Nt,Nt+1) zeros(Nt,Mt+1)  gA(2:end,:)];
+Q = [gA(2:end,:) zeros(Nt,Mt+1);
+    zeros(Mt,Nt+1) mA(2:end,:);
+    2*(0:Nt).^2 iota*(0:Mt).^2];
 Q = sparse(Q);
-
-
-% VICTOR, HERE IS THE START OF CHANGES TO FIX
 [sCA,sCI,sCAd,~,~,~] = dcdmtx(Nv);
 sCA = sCA(2:end,2:end) - 1;
-sCA = sparse(sCA);
 sCI = sCI(2:end,2:end);
-sCI = sparse(sCI);
 sCAd = sCAd(2:end,2:end);
-sCAd = sparse(sCAd);
 % precomputations
 LDR = LAM*De/Re8;
-sam = pzero - iWe + GAMa;
+sam = p0star - We + GAMa;
 no = (nstate-1)/nstate;
 kapover = (kappa-1)/kappa;
 yT = 2*Lt./(1+xi) - Lt + 1;
@@ -149,32 +143,20 @@ else
     zeNO = 0; 
 end
 if spectral == 0, Nv = 1; end
-if polytropic == 1, Nt = -1; Mt = -1; qCdot = []; end
+if polytropic == 1, Nt = -1; Mt = -1; qdot = []; end
 if cold == 1, Mt = -1; end
-ia = 4:(4+Nt);                          % auxiliary (internal) temperature spectrum
-ib = (5+Nt):(5+Nt+Mt);                  % medium temperature spectrum
-% VICTOR, HERE IS THE START OF CHANGES TO FIX
-ie = (6+Nt+Mt):(6+2*Nt+Mt);             % water vapor spectrum
-ic = (7+2*Nt+Mt):(6+2*Nt+Mt+Nv);        % stress spectrum
-id = (7+2*Nt+Mt+Nv):(6+2*Nt+Mt+2*Nv);   % second stress spectrum
+ia = 4:(4+Nt);
+ib = (5+Nt):(5+Nt+Mt);
+ic = (6+Nt+Mt):(5+Nt+Mt+Nv);
+id = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
 
 % initial condition assembly
-if cgrad == 1
-    Cvec = C0*gAI*zeros(Nt+1,1); 
-else 
-    Cvec = zeros(Nt+1); 
-end
-
-
-% VICTOR, HERE IS THE START OF CHANGES TO FIX
 init = [Rzero; Uzero; pzero; % radius, velocity, pressure
     zeros(Nt+1,1); % auxiliary temperature spectrum
     ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
-    Cvec; % initial non-dimensional vapor concentration
     zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
     0]; % initial stress integral
-
-
+init
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% SOLVER CALL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -270,7 +252,6 @@ function dXdt = SVBDODE(t,X)
     % extract standard inputs
     R = X(1); U = X(2); p = X(3);
 
-    % VICTOR, HERE IS THE START OF CHANGES TO FIX
     % non-condensible gas pressure and temperature
     if polytropic == 1
         % polytropic approximation
@@ -286,71 +267,37 @@ function dXdt = SVBDODE(t,X)
         % temperature and thermal diffusivity fields
         T = (alpha - 1 + sqrt(1+2*alpha*SI))/alpha;
         D = kapover*(alpha*T.^2 + (1-alpha)*T)/p;
-        % Vapor concentration gradients
-        if cgrad ~= 0
-            C = gA*X(ie);
-            dC = gAPd*C;
-            ddC = gAPdd*C;
-            Rmix = C*Rv_star + (1-C)*Ra_star;
-        end
         pVap = (f_pvsat(T(1)*T8)/P8);
-        K_star = alpha*T+beta;
         % new pressure and auxiliary temperature derivative
-        if cgrad == 0
-            pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U) ;   
-        else
-            pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U) + ... 
-                kappa*p*Fom*Rv_star*dC(1)/( T(1)*R*Rmix(1)*(1-C(1)));
-        end
-        % SIdot is correct but simplified (not using U_vel)
+        pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U);
+        
         SIdot = pdot*D + chi/R^2*(2*D./y - kapover/p*(dSI - dSI(1)*y)).*dSI ...
             + chi*D/R^2.*ddSI;
         SIdot(end) = pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
-            + kapover/p*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);               
+            + kapover/p*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);
+        
         if cold == 1 % cold-liquid approximation
             % solve auxiliary temperature with boundary condition
-            qCdot = gAI*[0; SIdot(2:end)];
-            qCdot = [qCdot;zeros(Nt+1,1)];
+            qdot = gAI*[0; SIdot(2:end)];
         else
             % extract medium temperature
             TL = mA*X(ib);
             % new derivative of medium temperature
-            first_term = (1+xi).^2/(Lt*R).*(Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
+            first_term = (1+xi).^2/(Lt*R).*...
+                (Fo/R*((1+xi)/(2*Lt) - 1./yT) + ...
                 U/2*(1./yT.^2 - yT)).*(mAPd*TL);
-            second_term = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
+            second_term = Fo/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
             TLdot =  first_term + second_term;
             % include viscous heating
             if spectral == 1
                 TLdot = TLdot - 2*Br*U./(R*yT.^3).*(ZZT*(X(ic) - X(id)));    
             elseif voigt == 1 || neoHook == 1 || linelas == 1
-                TLdot = TLdot + 4*Br./yT.^6*(U/R*(1-1/R^3)/Ca + 3/Re8*(U/R)^2);      
+                TLdot = TLdot + 4*Br./yT.^6*(U/R*(1-1/R^3)/Ca + 3/Re*(U/R)^2);      
             end
             % enforce boundary condition and solve
             TLdot(end) = 0;
-            % vapor concentration equation 
-            if cgrad == 1
-                % U_vel could be used in definition of SIdot, to do, not priority
-                U_vel = (chi/R*(kappa-1).*dSI-y*R*pdot/3)/(kappa*p);
-                U_mix = U_vel + Fom/R*((Rv_star - Ra_star)./Rmix).*dC ;
-                one = ddC;
-                two = dC.*(dSI./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*dC );
-                three =  (U_mix-U.*y)/R.*dC; 
-                Cdot = Fom/R^2*(one - two) - three;
-            else
-                Cdot = zeros(size(ddC));
-            end                
-            % solving for the system of equations with the BCs
-            Cw =  CW(T(1),p); % concentration at the bubble wall
-            alphaTw = (alpha*(T(1)-1)+1);
-            walltempBC = [ones(1,Nt+1) -alphaTw*ones(1,Mt+1) zeros(1,Nt+1)];        
-            mdd = Fom*L_heat_star/(1-Cw)*(p/((Cw*(Rv_star-Ra_star)+Ra_star)*T(1)));
-            wallheatfluxBC = [(1/alphaTw)*(0:Nt).^2 0.5*iota*(0:Mt).^2 mdd*(0:Nt).^2];
-            %dPvdT = f_dpvsatdT(T(1)*T8)/P8;
-            %dadtFactor = -Cw * ((1/pVap)*dPvdT + 1/T(1));
-            %wallvaporBC = [dadtFactor*ones(1,Nt+1) zeros(1,Mt+1) ones(1,Nt+1)];
-            AA = [Q;walltempBC;wallheatfluxBC];
-            bb = [SIdot(2:end); TLdot(2:end); Cdot(2:end); 0; 0];
-            qCdot = AA\bb;
+            qdot = [ones(1,Nt+1) -(alpha*(T(1)-1)+1)*ones(1,Mt+1); Q]...
+                \[0; SIdot(2:end); TLdot(2:end); 0];       
         end
     end
     J = 0; JdotX = 0; Z1dot = 0; Z2dot = 0;
@@ -417,8 +364,8 @@ function dXdt = SVBDODE(t,X)
         hB = sam/no*(((p - iWe/R + GAMa + J)/sam)^no - 1);
         hH = (sam/(p + pVap - iWe/R + GAMa + J))^(1/nstate);
         Udot = ((1 + U/Cstar)*(hB - 1 - pf8) - R/Cstar*pf8dot ...
-            + R/Cstar*hH*(pdot + iWe*U/R^2 + JdotX) ...
-            - 1.5*(1 - U/(3*Cstar))*U^2)/((1 - U/Cstar)*R + JdotA*hH/Cstar);
+            + R/Cstar*hH*(pdot + iWe*U./R.^2 + JdotX) ...
+            - 1.5*(1 - U./(3*Cstar)).*U.^2)/((1 - U./Cstar).*R + JdotA*hH./Cstar);
     % Gilmore equation
 	elseif gil == 1
         hB = sam/no*(((p - iWe/R + GAMa + J)/sam)^no - 1);
@@ -434,7 +381,7 @@ function dXdt = SVBDODE(t,X)
     end
     % output assembly
     Jdot = JdotX - JdotA*Udot/R;
-    dXdt = [U; Udot; pdot; qCdot; Z1dot; Z2dot; Jdot];
+    dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot];
 end
 
 function Cw= CW(Tw,P)
@@ -507,8 +454,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%
 
 % display figure
-%%% NOTE: WE ARE NOT PLOTTING RESULTS AT THIS TIME
-if plotresult == -1 
+if plotresult == 1 
     if vitalsreport == 0
         if radiusonly == 1
             plot(t,R); 
@@ -561,7 +507,6 @@ if plotresult == -1
             box on;
             semilogy(t,abs(a(end,:)),'k-','LineWidth',2);
             semilogy(t,abs(b(end,:)),'b-','LineWidth',2); 
-            semilogy(t,abs(e(end,:)),'r-','LineWidth',2);
             ylabel('$a_N$, $b_M$, $e_N$','Interpreter','Latex','FontSize',12);
             set(gca, 'YScale', 'log');
             axis([0 t(end) 1e-20 1]);
