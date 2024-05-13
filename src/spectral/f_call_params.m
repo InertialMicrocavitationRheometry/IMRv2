@@ -7,97 +7,97 @@ function [vecout]  = f_call_params(varargin)
     dimensionalout  = 0;        % output result in dimensional variables
     progdisplay     = 0;        % display progress while code running
     detail          = 2000;    	% number of points in time to store result
-    plotresult      = 1;        % generate figure containing results
+    plotresult      = 0;        % generate figure containing results
     radiusonly      = 1;        % only produce R(t) curve
     vitalsreport    = 1;        % display accuracy data
     % output options
     displayonly     = 0;        % do not generate output
     technical       = 0;        % output technical data
     % model for radial bubble dynamics, default is KME in pressure
+    % if all values below are zero, Keller-Miksis w/ pressure is used
     rayleighplesset = 0;        % Rayleigh-Plesset equation
     enthalpy        = 0;        % Keller-Miksis enthalpy equations
-    gil             = 1;        % Gilmore equation
+    gil             = 0;        % Gilmore equation
     % thermal assumptions, default is no thermal assumptions
-    polytropic      = 0;        % polytropic assumption
-    cold            = 1;        % cold fluid assumption
-    vapor           = 0;        % 0 : ignore vapor pressure, 1 : have it
-    % mass transfer, default is no mass transfer
-    cgrad           = 0;
+    polytropic      = 0;        % 0: polytropic assumption, 1: thermal PDE in bubble
+    cold            = 0;        % 0: warm fluid, 1: cold fluid assumption
+    vapor           = 1;        % 0 : ignore vapor pressure, 1 : vapor pressure
+    % mass transfer, default is no mass transfer 
+    cgrad           = 0;        % not yet operation leave zero
     % constitutive model, default is UCM with linear elasticity
     neoHook         = 1;        % neo-Hookean
     voigt           = 0;        % Voigt model
     linelas         = 0;        % linear elastic model
-    liner           = 0;        % linear model
-    oldb            = 0;        % Oldroyd-B
-    ptt             = 0;        % Phan-Thien-Tanner
-    gies            = 0;        % Giesekus fluid
+    liner           = 0;        % linear Maxwell, Jeffreys, Zener depending on material parameters
+    oldb            = 0;        % upper-convected Maxwell, OldRoyd-B depending on material parameters
+    ptt             = 0;        % Phan-Thien-Tanner, check material properties
+    gies            = 0;        % Giesekus fluid, check material properties
     vmaterial       = 'water';
     % solver options
-    method          = 45;       % ode45
-    spectral        = 0;        % force spectral collocation solution
-    divisions       = 100;        % minimum number of timesteps
+    method          = 45;       % ode45 setting for the time stepper
+    spectral        = 1;        % force spectral collocation solution
+    divisions       = 0;        % minimum number of timesteps
     % numerical parameters
-    Nt              = 10; 
-    Mt              = 10; 
-    Nv              = 150;           
-    Lv              = 3; 
-    Lt              = 3;
+    Nt              = 12;       % number of points in bubble, thermal PDE
+    Mt              = 12;       % number of points outside of bubble, thermal PDE
+    Nv              = 180;      % number of points outside of bubble, viscoelastic stress PDE     
+    Lv              = 3;        % characteristic length for grid stretching, leave at 3
+    Lt              = 3;        % characteristic length for grid stretching, leave at 3
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % default physical parameters %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    R0              = 2E-4;     % initial bubble radius
+    R0              = 2E-6;     % initial bubble radius
     U0              = 0;        % initial velocity (m/s)
-    Req             = 0;
+    Req             = 1E-6;     % Equilibrium radius for pre-stress bubble, see Estrada JMPS 2017
     %%%%%%%%%%%%%%%%%%%%%%%%%
     % waveform parameters   %
     %%%%%%%%%%%%%%%%%%%%%%%%% 
-    TFin            = 1e-5; %1.82e-4;     % final time (s)
-    pA              = 0;    % pressure amplitude (Pa)
+    TFin            = 1e-6;     % final time (s)
+    pA              = 2e6;      % pressure amplitude (Pa)
     omega           = 4e6*2*pi; % frequency (rad/s)
     TW              = 0;        % gaussian width (s)
     DT              = 0;        % delay (s)
     mn              = 0;        % power shift for waveform
-    wavetype        = 2;
-    %%%%%%%%%%%%%%%%%%%%%%%%%
-    % acoustic parameters %
-    %%%%%%%%%%%%%%%%%%%%%%%%% 
-    rho8    = 1060;             % far-field density (kg/m^3)   
-    GAM     = 3049.13*1e5;      % state equation parameter (Pa)
-    nstate  = 7.15;             % state equation parameter
-    P8      = 101325;           % far-field pressure (Pa)
-    C8      = sqrt(nstate*(P8 + GAM)/rho8); % far-field sound speed (m/s)
+    wavetype        = 2;        % wave type oscillating bubble, see f_pinfinity
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % acoustic parameters, enthalpy values %
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    rho8            = 1060;             % far-field density (kg/m^3)   
+    GAM             = 3049.13*1e5;      % state equation parameter (Pa)
+    nstate          = 7.15;             % state equation parameter
+    P8              = 101325;           % far-field pressure (Pa)
+    C8              = sqrt(nstate*(P8 + GAM)/rho8); % far-field sound speed (m/s)
     %%%%%%%%%%%%%%%%%%%%%%
     % thermal parameters %
     %%%%%%%%%%%%%%%%%%%%%%
     % gas properties
-	kappa   = 1.47;               % Ratio of Specific Heats 
+	kappa           = 1.47;               % Ratio of Specific Heats 
     % medium properties 
-    AT      = 5.28e-5;            % (W/m-K^2)Thermal Conductivity coeff
-    BT      = 1.165e-2;           % (W/m-K)Thermal Conductivity coeff
-	T8      = 300;                % (K) Far field temp. 
-    Km      = 0.615;              % (W/m-K)Thermal Conductivity Medium
-    Cp      = 4181;               % Specific Heat Medium J/Kg K;
-    Dm      = Km / (rho8*Cp) ;    % Thermal Diffusivity m^2/s 
+    AT              = 5.28e-5;            % (W/m-K^2)Thermal Conductivity coeff
+    BT              = 1.165e-2;           % (W/m-K)Thermal Conductivity coeff
+	T8              = 300;                % (K) Far field temp. 
+    Km              = 0.615;              % (W/m-K)Thermal Conductivity Medium
+    Cp              = 4181;               % Specific Heat Medium J/Kg K;
+    Dm              = Km / (rho8*Cp) ;    % Thermal Diffusivity m^2/s 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % mass diffusion parameters %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    D0      = 24.2e-6;            % Diffusion Coeff m^2/s
-	L_heat  = 2264.76e3;          % (J/Kg) Latent heat of evaporation
-	Ru      = 8.3144598;          % (J/mol-K) Universal Gas Constant
-    % Ru/(18.01528e-3);%Ru/(28.966e-3);     
-    Rv      = Ru/(18.01528e-3);   % (J/Kg-K) Gas constant vapor
-    Ra      = 438.275;            % (J/Kg-K)Gas constant air    
+    D0              = 24.2e-6;            % Diffusion Coeff m^2/s
+	L_heat          = 2264.76e3;          % (J/Kg) Latent heat of evaporation
+	Ru              = 8.3144598;          % (J/mol-K) Universal Gas Constant % Ru/(18.01528e-3);%Ru/(28.966e-3);     
+    Rv              = Ru/(18.01528e-3);   % (J/Kg-K) Gas constant vapor
+    Ra              = 438.275;            % (J/Kg-K)Gas constant air    
     %%%%%%%%%%%%%%%%%%%%%%%%%
     % constitutive params   %
     %%%%%%%%%%%%%%%%%%%%%%%%%    
-    S       = 0.072;              % (N/m) Liquid Surface Tension 
+    S               = 0.072;              % (N/m) Liquid Surface Tension 
     % non-Newtonian viscosity
     [mu8,Dmu,v_a,v_nc,v_lambda] = f_nonNewtonian_Re(vmaterial); % viscosity
-	G       = 1E1;                % (Pa) Medium Shear Modulus 
-    lambda1 = 0.5e-6;             % relaxation time (s)
-    lambda2 = lambda1;            % retardation time (s)
-    Pv      = f_pvsat(T8);    
-	P0      = P8; %+ 2*S/R0 - Pv*vapor; % need to add Pv_sat at room temp  
+	G               = 1E1;                % (Pa) Medium Shear Modulus 
+    lambda1         = 0.5e-6;             % relaxation time (s)
+    lambda2         = lambda1;            % retardation time (s)
+    Pv              = f_pvsat(T8);    
+	P0              = P8 + 2*S/R0 - Pv*vapor; % need to add Pv_sat at room temp  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % overwrite defaults with options and dimensional inputs %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -120,20 +120,20 @@ function [vecout]  = f_call_params(varargin)
             end
             switch lower(varargin{n})
             % thermal options
-            case 'poly',    polytropic = varargin{n+1}; %~= 0;
-            case 'cold',    cold = varargin{n+1}; %~= 0;
-            case 'vapor',   vapor = varargin{n+1}; %~= 0;
+            case 'poly',    polytropic = varargin{n+1} ~= 0;
+            case 'cold',    cold = varargin{n+1} ~= 0;
+            case 'vapor',   vapor = varargin{n+1} ~= 0;
             % equation for radial dynamics
-            case 'rpe',     rayleighplesset = varargin{n+1}; %~= 0;
-            case 'enth',    enthalpy = varargin{n+1}; %~= 0;
-            case 'gil',     gil = varargin{n+1}; %~= 0;
+            case 'rpe',     rayleighplesset = varargin{n+1} ~= 0;
+            case 'enth',    enthalpy = varargin{n+1} ~= 0;
+            case 'gil',     gil = varargin{n+1} ~= 0;
             % constitutive model
-            case 'neohook', neoHook = varargin{n+1}; %~= 0;
-            case 'voigt',   voigt = varargin{n+1}; %~= 0;
-            case 'linelas', linelas = varargin{n+1}; %~= 0;
-            case 'liner',   liner = varargin{n+1}; %~= 0;
-            case 'oldb',    oldb = varargin{n+1}; %~= 0;
-            case 'ptt',     ptt = varargin{n+1}; %~= 0;
+            case 'neohook', neoHook = varargin{n+1} ~= 0;
+            case 'voigt',   voigt = varargin{n+1} ~= 0;
+            case 'linelas', linelas = varargin{n+1} ~= 0;
+            case 'liner',   liner = varargin{n+1} ~= 0;
+            case 'oldb',    oldb = varargin{n+1} ~= 0;
+            case 'ptt',     ptt = varargin{n+1} ~= 0;
             case 'gies',    gies = varargin{n+1};
             % display options
             case 'dimout',  dimensionalout = varargin{n+1} ~= 0;

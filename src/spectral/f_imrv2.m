@@ -73,7 +73,7 @@ v_a             = params(44); v_nc = params(45); Ca = params(46);
 LAM             = params(47); De = params(48); JdotA = params(49); 
 v_lambda_star   = params(50); 
 iWe             = 1/We;
-if Ca==-1;Ca=Inf;end
+if Ca==-1; Ca=Inf; end
 % dimensionless thermal 
 Foh             = params(51); Br = params(52); alpha = params(53); 
 beta            = params(54); chi = params(55); iota = params(56);
@@ -107,7 +107,7 @@ sCI = sCI(2:end,2:end);
 sCAd = sCAd(2:end,2:end);
 % precomputations
 LDR = LAM*De/Re8;
-sam = p0star - We + GAMa;
+sam = p0star - iWe + GAMa;
 no = (nstate-1)/nstate;
 kapover = (kappa-1)/kappa;
 yT = 2*Lt./(1+xi) - Lt + 1;
@@ -156,7 +156,7 @@ init = [Rzero; Uzero; pzero; % radius, velocity, pressure
     ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
     zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
     0]; % initial stress integral
-init
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% SOLVER CALL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -284,15 +284,15 @@ function dXdt = SVBDODE(t,X)
             TL = mA*X(ib);
             % new derivative of medium temperature
             first_term = (1+xi).^2/(Lt*R).*...
-                (Fo/R*((1+xi)/(2*Lt) - 1./yT) + ...
+                (Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
                 U/2*(1./yT.^2 - yT)).*(mAPd*TL);
-            second_term = Fo/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
+            second_term = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
             TLdot =  first_term + second_term;
             % include viscous heating
             if spectral == 1
                 TLdot = TLdot - 2*Br*U./(R*yT.^3).*(ZZT*(X(ic) - X(id)));    
             elseif voigt == 1 || neoHook == 1 || linelas == 1
-                TLdot = TLdot + 4*Br./yT.^6*(U/R*(1-1/R^3)/Ca + 3/Re*(U/R)^2);      
+                TLdot = TLdot + 4*Br./yT.^6*(U/R*(1-1/R^3)/Ca + 3/Re8*(U/R)^2);      
             end
             % enforce boundary condition and solve
             TLdot(end) = 0;
@@ -361,9 +361,9 @@ function dXdt = SVBDODE(t,X)
         Udot = (p + pVap - 1 - pf8 - iWe/R + J - 1.5*U^2)/R;
     % Keller-Miksis in enthalpy
     elseif enthalpy == 1    
-        hB = sam/no*(((p - iWe/R + GAMa + J)/sam)^no - 1);
+        hB = (sam/no)*(((p - iWe/R + GAMa + J)/sam)^no - 1);
         hH = (sam/(p + pVap - iWe/R + GAMa + J))^(1/nstate);
-        Udot = ((1 + U/Cstar)*(hB - 1 - pf8) - R/Cstar*pf8dot ...
+        Udot = ((1 + U/Cstar)*(hB - pf8) - R/Cstar*pf8dot ...
             + R/Cstar*hH*(pdot + iWe*U./R.^2 + JdotX) ...
             - 1.5*(1 - U./(3*Cstar)).*U.^2)/((1 - U./Cstar).*R + JdotA*hH./Cstar);
     % Gilmore equation
@@ -371,8 +371,8 @@ function dXdt = SVBDODE(t,X)
         hB = sam/no*(((p - iWe/R + GAMa + J)/sam)^no - 1);
         hH = (sam/(p + pVap - iWe/R + GAMa + J))^(1/nstate);
         Udot = ((1 + U/Cstar)*(hB - pf8) - R/Cstar*pf8dot ...
-            + R/Cstar*hH*(pdot + iWe*U/R^2 + JdotX) ...
-            - 1.5*(1 - U/(3*Cstar))*U^2)/((1 - U/Cstar)*R + JdotA*hH/Cstar);
+            + R/Cstar*(hB + hH*(pdot + iWe*U/R^2 + JdotX)) ...
+            - 1.5*(1 - U/(3*Cstar))*U^2) / ((1 - U/Cstar)*R + JdotA*hH/Cstar);
     % Keller-Miksis in pressure        
     else  
         Udot = ((1+U./Cstar)*(p + pVap - 1 - pf8 - iWe./R + J) ...
