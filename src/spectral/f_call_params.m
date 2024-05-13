@@ -120,34 +120,34 @@ function [vecout]  = f_call_params(varargin)
             end
             switch lower(varargin{n})
             % thermal options
-            case 'poly',    polytropic = varargin{n+1} ~= 0;
-            case 'cold',    cold = varargin{n+1} ~= 0;
-            case 'vapor',   vapor = varargin{n+1} ~= 0;
+            case 'poly',    polytropic = varargin{n+1};% ~= 0;
+            case 'cold',    cold = varargin{n+1};% ~= 0;
+            case 'vapor',   vapor = varargin{n+1};% ~= 0;
             % equation for radial dynamics
-            case 'rpe',     rayleighplesset = varargin{n+1} ~= 0;
-            case 'enth',    enthalpy = varargin{n+1} ~= 0;
-            case 'gil',     gil = varargin{n+1} ~= 0;
+            case 'rpe',     rayleighplesset = varargin{n+1};% ~= 0;
+            case 'enth',    enthalpy = varargin{n+1};% ~= 0;
+            case 'gil',     gil = varargin{n+1};% ~= 0;
             % constitutive model
-            case 'neohook', neoHook = varargin{n+1} ~= 0;
-            case 'voigt',   voigt = varargin{n+1} ~= 0;
-            case 'linelas', linelas = varargin{n+1} ~= 0;
-            case 'liner',   liner = varargin{n+1} ~= 0;
-            case 'oldb',    oldb = varargin{n+1} ~= 0;
-            case 'ptt',     ptt = varargin{n+1} ~= 0;
+            case 'neohook', neoHook = varargin{n+1};% ~= 0;
+            case 'voigt',   voigt = varargin{n+1};% ~= 0;
+            case 'linelas', linelas = varargin{n+1};% ~= 0;
+            case 'liner',   liner = varargin{n+1};% ~= 0;
+            case 'oldb',    oldb = varargin{n+1};% ~= 0;
+            case 'ptt',     ptt = varargin{n+1};% ~= 0;
             case 'gies',    gies = varargin{n+1};
             % display options
-            case 'dimout',  dimensionalout = varargin{n+1} ~= 0;
-            case 'pdisp',   progdisplay = varargin{n+1} ~= 0;
+            case 'dimout',  dimensionalout = varargin{n+1};% ~= 0;
+            case 'pdisp',   progdisplay = varargin{n+1};% ~= 0;
             case 'detail',  detail = varargin{n+1};
-            case 'plot',    plotresult = varargin{n+1} ~= 0;
-            case 'ronly',   radiusonly = varargin{n+1} ~= 0;
-            case 'vitals',  vitalsreport = varargin{n+1} ~= 0;
+            case 'plot',    plotresult = varargin{n+1};% ~= 0;
+            case 'ronly',   radiusonly = varargin{n+1};% ~= 0;
+            case 'vitals',  vitalsreport = varargin{n+1};% ~= 0;
             % output options
-            case 'donly',   displayonly = varargin{n+1} ~= 0;
-            case 'tech',    technical = varargin{n+1} ~= 0;
+            case 'donly',   displayonly = varargin{n+1};% ~= 0;
+            case 'tech',    technical = varargin{n+1};% ~= 0;
             % solver options
             case 'method',  method = varargin{n+1};
-            case 'spectral',spectral = varargin{n+1} ~= 0;
+            case 'spectral',spectral = varargin{n+1};% ~= 0;
             case 'divisions', divisions = varargin{n+1};
             % numerical parameters
             case 'nv',      Nv = varargin{n+1};
