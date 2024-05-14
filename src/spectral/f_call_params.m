@@ -25,7 +25,7 @@ function [vecout]  = f_call_params(varargin)
     % mass transfer, default is no mass transfer 
     cgrad           = 0;        % not yet operation leave zero
     % constitutive model, default is UCM with linear elasticity
-    neoHook         = 1;        % neo-Hookean
+    neoHook         = 0;        % neo-Hookean
     voigt           = 0;        % Voigt model
     linelas         = 0;        % linear elastic model
     liner           = 0;        % linear Maxwell, Jeffreys, Zener depending on material parameters
