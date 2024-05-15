@@ -162,8 +162,8 @@ init = [Rzero; Uzero; pzero; % radius, velocity, pressure
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %tspan = linspace(0,tfin,detail);
 %tspan = [0 tfin];                                                          % Use this to run IMRv2 without Bayesian Inference
-addpath('../../../Bayesian_Inference')                                      % loading tspan from Bayesian Inference
-load('tspan.mat','time_vector')
+addpath('../../../Bayesian_Inference/Data/UTAustin_data/Gelatin')           % loading tspan from Bayesian Inference
+load('Gelatin_6percent_data.mat','time_vector')
 tspan = time_vector;
 stepcount = 0;
 
