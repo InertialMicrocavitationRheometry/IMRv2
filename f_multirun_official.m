@@ -1,8 +1,10 @@
+function [] = f_multirun_official()
+
 %% Clear everything 
 close all; clear all; clc;
 %%
 N = 8^4;
-addpath('/oscar/home/vsanch15/IMRv2/src/spectral/')
+addpath('./src/spectral/')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % One parameter cases
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -15,6 +17,7 @@ end
 % Neo-Hookean model
 G_range1 = logspace(-6,-1,N);
 parfor i = 1:N
+    disp(i/N)
     [t,R] = f_imrv2('neohook',1,'g',G_range1(i))
     neohook{i} = [t,R];
 end
@@ -38,6 +41,7 @@ for i = 1:length(mu_range2)
 end
 cell2param = reshape(gridPoints2,[1,numel(gridPoints2)]);
 parfor i = 1:N
+    percent = i/N
     [t,R] = f_imrv2('voigt',1,'mu',cell2param{i}(1),'g',cell2param{i}(2));
     voigt{i} = [t,R];
 end
@@ -62,6 +66,7 @@ for i = 1:length(mu_range3)
 end
 cell3param = reshape(gridPoints3,[1,numel(gridPoints3)]);
 parfor i = 1:N
+    percent = i/N
     [t,R] = f_imrv2('oldb',1,'mu',cell3param{i}(1),'g',cell3param{i}(2),...
         'lambda1',cell3param{i}(3)*cell3param{i}(1)/cell3param{i}(2),'lambda2',0);
     ucm{i} = [t,R];
@@ -93,6 +98,7 @@ for i = 1:length(mu_range4)
 end
 cell4param = reshape(gridPoints4,[1,numel(gridPoints4)]);
 parfor i = 1:N
+    percent = i/N
     [t,R] = f_imrv2('oldb',1,'mu',cell4param{i}(1),'g',cell4param{i}(2),...
         'lambda1',cell4param{i}(3)*cell4param{i}(1)/cell4param{i}(2),...
         'lambda2',cell4param{i}(4)*cell4param{i}(1)/cell4param{i}(2));
@@ -103,5 +109,6 @@ oldb = reshape(oldb,[length(mu_range4), length(G_range4), ...
 
 
 
+end
 
 

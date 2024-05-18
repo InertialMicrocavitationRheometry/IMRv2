@@ -94,7 +94,7 @@ function [vecout]  = f_call_params(varargin)
     % non-Newtonian viscosity
     [mu8,Dmu,v_a,v_nc,v_lambda] = f_nonNewtonian_Re(vmaterial); % viscosity
 	G               = 1E1;                % (Pa) Medium Shear Modulus 
-    lambda1         = 0.5e-6;             % relaxation time (s)
+    lambda1         = 0;  % 0.5e-6;             % relaxation time (s)
     lambda2         = lambda1;            % retardation time (s)
     Pv              = f_pvsat(T8);    
 	P0              = P8 + 2*S/R0 - Pv*vapor; % need to add Pv_sat at room temp  

@@ -161,10 +161,10 @@ init = [Rzero; Uzero; pzero; % radius, velocity, pressure
 %%%%%%%%%%%%%%%%%%%% SOLVER CALL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %tspan = linspace(0,tfin,detail);
-%tspan = [0 tfin];                                                          % Use this to run IMRv2 without Bayesian Inference
-addpath('/oscar/home/vsanch15/Bayesian_Inference/Data/UTAustin_data/Gelatin') % loading tspan from Bayesian Inference
-load('Gelatin_6percent_data.mat','time_vector')
-tspan = time_vector;
+tspan = [0 tfin];                                                          % Use this to run IMRv2 without Bayesian Inference
+%addpath('/oscar/home/vsanch15/Bayesian_Inference/Data/UTAustin_data/Gelatin') % loading tspan from Bayesian Inference
+%load('Gelatin_6percent_data.mat','time_vector')
+%tspan = time_vector;
 stepcount = 0;
 
 if method == 15
