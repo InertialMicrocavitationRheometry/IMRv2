@@ -45,7 +45,7 @@ params = cell2mat(par);
 % numerical settings 
 polytropic      = params(1); cold = params(2); cgrad = params(3); 
 rayleighplesset = params(4); enthalpy = params(5); gil = params(6); 
-neoHook = params(7); voigt = params(8); linelas = params(9); liner = params(10);
+kelvinVoigt = params(7); yangChurch = params(8); linelas = params(9); liner = params(10);
 oldb            = params(11); ptt = params(12); gies = params(13);
 % output options
 dimensionalout  = params(14); progdisplay = params(15); detail = params(16);
@@ -82,10 +82,9 @@ Fom             = params(57); C0 = params(58); Rv_star = params(59);
 Ra_star         = params(60); L_heat_star = params(61); mv0 = params(62); 
 ma0             = params(63); 
 % dimensionless initial conditions
-Rzero           = params(64); Uzero = params(65); pzero = params(66);
+Rzero           = params(64); Uzero = params(65); p0star = params(66);
 P8              = params(67); T8 = params(68); Pv_star = params(69);
 Req             = params(70);
-p0star          = pzero;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numerical setup and precomputations %
@@ -151,7 +150,7 @@ ic = (6+Nt+Mt):(5+Nt+Mt+Nv);
 id = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
 
 % initial condition assembly
-init = [Rzero; Uzero; pzero; % radius, velocity, pressure
+init = [Rzero; Uzero; p0star; % radius, velocity, pressure
     zeros(Nt+1,1); % auxiliary temperature spectrum
     ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
     zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
@@ -185,7 +184,7 @@ elseif method == 45
     if divisions == 0
         options = odeset('NonNegative',1);
     else
-        options = odeset('NonNegative',1,'MaxStep',tfin/divisions);%,'RelTol',1e-4);
+        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-8);
     end
     [t,X] = ode45(@SVBDODE,tspan,init,options);
 else
@@ -294,7 +293,7 @@ function dXdt = SVBDODE(t,X)
             % include viscous heating
             if spectral == 1
                 TLdot = TLdot - 2*Br*U./(R*yT.^3).*(ZZT*(X(ic) - X(id)));    
-            elseif voigt == 1 || neoHook == 1 || linelas == 1
+            elseif yangChurch == 1 || kelvinVoigt == 1 || linelas == 1
                 TLdot = TLdot + 4*Br./yT.^6*(U/R*(1-1/R^3)/Ca + 3/Re8*(U/R)^2);      
             end
             % enforce boundary condition and solve
@@ -305,11 +304,11 @@ function dXdt = SVBDODE(t,X)
     end
     J = 0; JdotX = 0; Z1dot = 0; Z2dot = 0;
     % stress equation
-    if neoHook == 1 % Kelvin-Voigt with neo-Hookean elasticity
+    if kelvinVoigt == 1 % Kelvin-yangChurch with neo-Hookean elasticity
         % compute stress integral
-        J = (4/R + 1/R^4 - 5)/(2*Ca) - 4/Re8*U/R;
-        JdotX = -2*U*(1/R^2 + 1/R^5)/Ca + 4/Re8*U^2/R^2;
-    elseif voigt == 1 % Kelvin-Voigt (Yang-Church)
+        J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
+        JdotX = -2*U*(Req*(1/R)^2 + Req^4*(1/R)^5)/Ca + 4/Re8*U^2/R^2;
+    elseif yangChurch == 1 % Kelvin-yangChurch (Yang-Church)
         % compute stress integral
         J = -4/(3*Ca)*(1 - 1/R^3) - 4/Re8*U/R;
         JdotX = -4/Ca*U/R^4 + 4/Re8*U^2/R^2;
@@ -564,18 +563,18 @@ else
     eqn = 'Keller-Miksis in pressure';
 end
 const = 'none';
-if voigt == 0
-    if neoHook == 1
+if yangChurch == 0
+    if kelvinVoigt == 1
         if Ca == Inf
             const = 'Newtonian fluid';
         else
-            const = 'neo-Hookean Voigt';
+            const = 'neo-Hookean yangChurch';
         end
     elseif linelas == 1
         if Ca == Inf
             const = 'Newtonian fluid';
         else
-            const = 'linear elastic Voigt';
+            const = 'linear elastic yangChurch';
         end
     elseif liner == 1
         if Ca ~= Inf && LAM == 0
@@ -585,7 +584,7 @@ if voigt == 0
         elseif Ca == Inf && LAM ~= 0
             const = 'linear Jeffreys';
         else
-            const = 'Kelvin-Voigt series';
+            const = 'Kelvin-yangChurch series';
         end
     elseif liner == 0
         if ptt == 0 && gies == 0
@@ -604,7 +603,7 @@ if voigt == 0
             end
         end
     end
-elseif liner == 0 && gies == 0 && ptt == 0 && LAM == 0, const = 'Yang-Church Voigt';
+elseif liner == 0 && gies == 0 && ptt == 0 && LAM == 0, const = 'Yang-Church yangChurch';
 end
 
 if polytropic == 0

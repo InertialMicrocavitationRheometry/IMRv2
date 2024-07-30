@@ -7,7 +7,7 @@ function [vecout]  = f_call_params(varargin)
     dimensionalout  = 0;        % output result in dimensional variables
     progdisplay     = 0;        % display progress while code running
     detail          = 2000;    	% number of points in time to store result
-    plotresult      = 0;        % generate figure containing results
+    plotresult      = 1;        % generate figure containing results
     radiusonly      = 1;        % only produce R(t) curve
     vitalsreport    = 1;        % display accuracy data
     % output options
@@ -15,18 +15,18 @@ function [vecout]  = f_call_params(varargin)
     technical       = 0;        % output technical data
     % model for radial bubble dynamics, default is KME in pressure
     % if all values below are zero, Keller-Miksis w/ pressure is used
-    rayleighplesset = 0;        % Rayleigh-Plesset equation
+    rayleighplesset = 1;        % Rayleigh-Plesset equation
     enthalpy        = 0;        % Keller-Miksis enthalpy equations
     gil             = 0;        % Gilmore equation
     % thermal assumptions, default is no thermal assumptions
-    polytropic      = 0;        % 0: polytropic assumption, 1: thermal PDE in bubble
-    cold            = 0;        % 0: warm fluid, 1: cold fluid assumption
-    vapor           = 1;        % 0 : ignore vapor pressure, 1 : vapor pressure
+    polytropic      = 1;        % 0: polytropic assumption, 1: thermal PDE in bubble
+    cold            = 1;        % 0: warm fluid, 1: cold fluid assumption
+    vapor           = 0;        % 0 : ignore vapor pressure, 1 : vapor pressure
     % mass transfer, default is no mass transfer 
     cgrad           = 0;        % not yet operation leave zero
-    % constitutive model, default is UCM with linear elasticity
-    neoHook         = 0;        % neo-Hookean
-    voigt           = 0;        % Voigt model
+    % constitutive model
+    kelvinVoigt         = 1;        % neo-Hookean
+    yangChurch           = 0;        % yangChurch model
     linelas         = 0;        % linear elastic model
     liner           = 0;        % linear Maxwell, Jeffreys, Zener depending on material parameters
     oldb            = 0;        % upper-convected Maxwell, OldRoyd-B depending on material parameters
@@ -35,7 +35,7 @@ function [vecout]  = f_call_params(varargin)
     vmaterial       = 'water';
     % solver options
     method          = 45;       % ode45 setting for the time stepper
-    spectral        = 1;        % force spectral collocation solution
+    spectral        = 0;        % force spectral collocation solution
     divisions       = 0;        % minimum number of timesteps
     % numerical parameters
     Nt              = 12;       % number of points in bubble, thermal PDE
@@ -48,13 +48,13 @@ function [vecout]  = f_call_params(varargin)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     R0              = 2E-6;     % initial bubble radius
     U0              = 0;        % initial velocity (m/s)
-    Req             = 1E-6;     % Equilibrium radius for pre-stress bubble, see Estrada JMPS 2017
+    Req             = 0.5E-6;     % Equilibrium radius for pre-stress bubble, see Estrada JMPS 2017
     %%%%%%%%%%%%%%%%%%%%%%%%%
     % waveform parameters   %
     %%%%%%%%%%%%%%%%%%%%%%%%% 
-    TFin            = 1e-6;     % final time (s)
-    pA              = 2e6;      % pressure amplitude (Pa)
-    omega           = 4e6*2*pi; % frequency (rad/s)
+    TFin            = 10e-6;     % final time (s)
+    pA              = 0*1e5;      % pressure amplitude (Pa)
+    omega           = 0*4e6*2*pi; % frequency (rad/s)
     TW              = 0;        % gaussian width (s)
     DT              = 0;        % delay (s)
     mn              = 0;        % power shift for waveform
@@ -96,8 +96,9 @@ function [vecout]  = f_call_params(varargin)
 	G               = 1E1;                % (Pa) Medium Shear Modulus 
     lambda1         = 0;  % 0.5e-6;             % relaxation time (s)
     lambda2         = lambda1;            % retardation time (s)
-    Pv              = f_pvsat(T8);    
-	P0              = P8 + 2*S/R0 - Pv*vapor; % need to add Pv_sat at room temp  
+    Pv              = f_pvsat(T8);  
+	P0              = Pv*vapor + ...
+        (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3*kappa); % need to add Pv_sat at room temp  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % overwrite defaults with options and dimensional inputs %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -128,8 +129,8 @@ function [vecout]  = f_call_params(varargin)
             case 'enth',    enthalpy = varargin{n+1};% ~= 0;
             case 'gil',     gil = varargin{n+1};% ~= 0;
             % constitutive model
-            case 'neohook', neoHook = varargin{n+1};% ~= 0;
-            case 'voigt',   voigt = varargin{n+1};% ~= 0;
+            case 'kelvinvoigt', kelvinVoigt = varargin{n+1};% ~= 0;
+            case 'yangchurch',   yangChurch = varargin{n+1};% ~= 0;
             case 'linelas', linelas = varargin{n+1};% ~= 0;
             case 'liner',   liner = varargin{n+1};% ~= 0;
             case 'oldb',    oldb = varargin{n+1};% ~= 0;
@@ -196,14 +197,14 @@ function [vecout]  = f_call_params(varargin)
             end
         end
         if p0set == 0
-            P0 = P8 + 2*S/R0 - Pv*vapor;
+            P0 = P8 + 2*S/Req - Pv*vapor;
         end
         if c8set == 0 
             C8 = sqrt(nstate*(P8 + GAM)/rho8); 
         end
     end
     % check for physical viscoelastic parameters
-    if (lambda1 > mu8/G && (voigt == 0 && neoHook == 0 && ...
+    if (lambda1 > mu8/G && (yangChurch == 0 && kelvinVoigt == 0 && ...
             linelas == 0)) || abs(gies - 0.25) > 0.25
         disp('Error: nonphysical viscoelastic parameters');
         return;
@@ -310,7 +311,7 @@ if misscount ~= nargin/2
     return;
 end
 % check dimensionless viscoelastic parameters
-if De > Ca/Re8 && (voigt == 0 && neoHook == 0 && linelas == 0)
+if De > Ca/Re8 && (yangChurch == 0 && kelvinVoigt == 0 && linelas == 0)
     disp('Error: nonphysical viscoelastic parameters');
     return;
 end
@@ -324,29 +325,29 @@ if gil == 1, rayleighplesset = 0; enthalpy = 0; end
 if polytropic == 1, cold = 0; end
 if cold == 1, polytropic = 0; cgrad = 0; end
 
-if neoHook == 1
-    [voigt,linelas,liner,ptt,gies,LAM] = deal(0);
+if kelvinVoigt == 1
+    [yangChurch,linelas,liner,ptt,gies,LAM] = deal(0);
     spectral = 0;
-elseif voigt == 1
+elseif yangChurch == 1
     [linelas,liner,ptt,gies,LAM] = deal(0);
     spectral = 0;
 elseif linelas == 1
     [liner,ptt,gies,LAM] = deal(0);
     spectral = 0;
 elseif liner == 1
-    [voigt,ptt,gies] = deal(0);
+    [yangChurch,ptt,gies] = deal(0);
 elseif oldb == 1
-    [voigt,liner,ptt,gies] = deal(0);
+    [yangChurch,liner,ptt,gies] = deal(0);
     Ca = -1;
 elseif ptt == 1
-    [voigt,liner,gies,LAM] = deal(0);
+    [yangChurch,liner,gies,LAM] = deal(0);
     Ca = -1; spectral = 1;
 elseif gies ~= 0
-    [voigt,liner,ptt,LAM] = deal(0);
+    [yangChurch,liner,ptt,LAM] = deal(0);
     Ca = -1; spectral = 1;
 end
 
-if voigt == 1 || neoHook == 1 || linelas == 1
+if yangChurch == 1 || kelvinVoigt == 1 || linelas == 1
     JdotA = 4/Re8;
 elseif liner == 1 || oldb == 1
     JdotA = 4*LAM/Re8;
@@ -360,7 +361,7 @@ end
 vecout = {...
       ... % numerical settings 
       polytropic cold cgrad rayleighplesset enthalpy gil ...
-      neoHook voigt linelas liner oldb ptt gies ...
+      kelvinVoigt yangChurch linelas liner oldb ptt gies ...
       ...% output options
       dimensionalout progdisplay detail plotresult ...
       radiusonly vitalsreport displayonly technical ... 
