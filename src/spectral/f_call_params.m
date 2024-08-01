@@ -25,8 +25,8 @@ function [vecout]  = f_call_params(varargin)
     % mass transfer, default is no mass transfer 
     cgrad           = 0;        % not yet operation leave zero
     % constitutive model
-    kelvinVoigt         = 1;        % neo-Hookean
-    yangChurch           = 0;        % yangChurch model
+    kelvinVoigt     = 1;        % neo-Hookean
+    yangChurch      = 0;        % yangChurch model
     linelas         = 0;        % linear elastic model
     liner           = 0;        % linear Maxwell, Jeffreys, Zener depending on material parameters
     oldb            = 0;        % upper-convected Maxwell, OldRoyd-B depending on material parameters
@@ -48,11 +48,12 @@ function [vecout]  = f_call_params(varargin)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     R0              = 2E-6;     % initial bubble radius
     U0              = 0;        % initial velocity (m/s)
-    Req             = 0.5E-6;     % Equilibrium radius for pre-stress bubble, see Estrada JMPS 2017
+    Req             = 0.5E-6;   % Equilibrium radius for pre-stress bubble, see Estrada JMPS 2017
     %%%%%%%%%%%%%%%%%%%%%%%%%
     % waveform parameters   %
     %%%%%%%%%%%%%%%%%%%%%%%%% 
-    TFin            = 10e-6;     % final time (s)
+    TFin            = 10e-6;      % final time (s)
+    TVector         = [0 TFin];   % vector of the time, default to be tspan
     pA              = 0*1e5;      % pressure amplitude (Pa)
     omega           = 0*4e6*2*pi; % frequency (rad/s)
     TW              = 0;        % gaussian width (s)
@@ -191,6 +192,7 @@ function [vecout]  = f_call_params(varargin)
             case 'u0',      U0 = varargin{n+1};
             case 'p0',      P0 = varargin{n+1};
             case 'req',     Req = varargin{n+1};
+            case 'tvector', TVector = varargin{n+1}; 
             %case 'a0', a0 = varargin{n+1};
             %case 'b0', b0 = varargin{n+1};
             otherwise, misscount = misscount + 1;
@@ -227,7 +229,8 @@ function [vecout]  = f_call_params(varargin)
     Pv_star = vapor*Pv/P8;
 	P0_star = P0/P8;                    % 
     % dimensionless waveform parameters
-    tfin    = TFin/t0;                  % simulation time
+    tfin    = TVector(length(TVector))./t0;                  % simulation time
+    tvector = TVector./t0;
     om      = omega*t0;                 % non-dimensional frequency
     ee      = pA/P8;                    
     tw      = TW*t0;
@@ -376,7 +379,7 @@ vecout = {...
       Fom Br alpha beta chi iota ... % dimensionless thermal 
       Foh C0 Rv_star Ra_star L_heat_star mv0 ma0 ... % dimensionaless mass transfer 
       Rzero Uzero pzero P8 T8 Pv_star Req_zero... % dimensionless initial conditions
-      };  
+      tvector};  
 end
 
 function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)

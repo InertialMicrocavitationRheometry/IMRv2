@@ -41,7 +41,8 @@ function varargout =  f_imrv2(varargin)
 %   The various options can be found below.  Code may also run without any
 %   inputs.
 par = f_call_params(varargin{:});
-params = cell2mat(par);
+params = cell2mat({par{1:end-1}});
+tspan = cell2mat({par{end}});
 % numerical settings 
 polytropic      = params(1); cold = params(2); cgrad = params(3); 
 rayleighplesset = params(4); enthalpy = params(5); gil = params(6); 
@@ -160,10 +161,6 @@ init = [Rzero; Uzero; p0star; % radius, velocity, pressure
 %%%%%%%%%%%%%%%%%%%% SOLVER CALL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %tspan = linspace(0,tfin,detail);
-tspan = [0 tfin];                                                          % Use this to run IMRv2 without Bayesian Inference
-%addpath('/oscar/home/vsanch15/Bayesian_Inference/Data/UTAustin_data/Gelatin') % loading tspan from Bayesian Inference
-%load('Gelatin_6percent_data.mat','time_vector')
-%tspan = time_vector;
 stepcount = 0;
 
 if method == 15
@@ -182,7 +179,7 @@ elseif method == 23
     [t,X] = ode23tb(@SVBDODE,tspan,init,options);
 elseif method == 45
     if divisions == 0
-        options = odeset('NonNegative',1);
+        options = odeset('NonNegative',1,'AbsTol',1e-8,'RelTol',1e-8);
     else
         options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-8);
     end
