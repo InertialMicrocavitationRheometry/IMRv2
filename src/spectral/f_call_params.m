@@ -198,9 +198,9 @@ function [vecout]  = f_call_params(varargin)
             otherwise, misscount = misscount + 1;
             end
         end
-        if p0set == 0
-            P0 = P8 + 2*S/Req - Pv*vapor;
-        end
+        % if p0set == 0
+        %     P0 = P8 + 2*S/Req - Pv*vapor;
+        % end
         if c8set == 0 
             C8 = sqrt(nstate*(P8 + GAM)/rho8); 
         end
@@ -229,7 +229,7 @@ function [vecout]  = f_call_params(varargin)
     Pv_star = vapor*Pv/P8;
 	P0_star = P0/P8;                    % 
     % dimensionless waveform parameters
-    tfin    = TVector(length(TVector))./t0;                  % simulation time
+    tfin    = TVector(length(TVector))./t0;                 % simulation time
     tvector = TVector./t0;
     om      = omega*t0;                 % non-dimensional frequency
     ee      = pA/P8;                    
@@ -378,8 +378,9 @@ vecout = {...
       We Re8 DRe v_a v_nc Ca LAM De JdotA v_lambda_star ... % dimensionless viscoelastic
       Fom Br alpha beta chi iota ... % dimensionless thermal 
       Foh C0 Rv_star Ra_star L_heat_star mv0 ma0 ... % dimensionaless mass transfer 
-      Rzero Uzero pzero P8 T8 Pv_star Req_zero... % dimensionless initial conditions
-      tvector};  
+      Rzero Uzero pzero P8 T8 Pv_star Req_zero ... % dimensionless initial conditions
+      tvector};
+%vecout'
 end
 
 function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)
