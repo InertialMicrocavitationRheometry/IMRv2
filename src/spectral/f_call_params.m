@@ -199,7 +199,8 @@ function [vecout]  = f_call_params(varargin)
             end
         end
         if p0set == 0
-            P0 = P8 + 2*S/Req - Pv*vapor;
+          % need to add Pv_sat at room temp  
+          P0 = Pv*vapor + (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3*kappa); 
         end
         if c8set == 0 
             C8 = sqrt(nstate*(P8 + GAM)/rho8); 
@@ -265,8 +266,8 @@ function [vecout]  = f_call_params(varargin)
     LAM     = lambda2/lambda1;
     De      = lambda1*Uc/R0;            % Deborah number
     % dimensionless initial conditions
-    Rzero   = 1;
-    Req_zero= Req/R0;
+    Rzero   = 1
+    Req_zero= Req/R0
     Uzero   = U0/Uc;
     pzero   = P0_star;
 
