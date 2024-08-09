@@ -43,49 +43,84 @@ function varargout =  f_imrv2(varargin)
 par = f_call_params(varargin{:});
 params = cell2mat({par{1:end-1}});
 tspan = cell2mat({par{end}});
+i = 1;
 % numerical settings 
-polytropic      = params(1); cold = params(2); cgrad = params(3); 
-rayleighplesset = params(4); enthalpy = params(5); gil = params(6); 
-kelvinVoigt = params(7); yangChurch = params(8); linelas = params(9); liner = params(10);
-oldb            = params(11); ptt = params(12); gies = params(13);
+radial          = params(i); i = i + 1;
+bubtherm        = params(i); i = i + 1;
+medtherm        = params(i); i = i + 1;
+stress          = params(i); i = i + 1;
+eps3            = params(i); i = i + 1;
+masstrans       = params(i); i = i + 1;
 % output options
-dimensionalout  = params(14); progdisplay = params(15); detail = params(16);
-plotresult      = params(17); radiusonly = params(18); vitalsreport = params(19);
-displayonly     = params(20); technical = params(21);
+dimensionalout  = params(i); i = i + 1;
+progdisplay     = params(i); i = i + 1;
+detail          = params(i); i = i + 1;
+plotresult      = params(i); i = i + 1;
+radiusonly      = params(i); i = i + 1;
+vitalsreport    = params(i); i = i + 1;
+displayonly     = params(i); i = i + 1;
+technical       = params(i); i = i + 1;
 % solver options
-method          = params(22);
-spectral        = params(23);
-divisions       = params(24);
+method          = params(i); i = i + 1;
+spectral        = params(i); i = i + 1;
+divisions       = params(i); i = i + 1;
 % numerical parameters 
-Nv              = params(25); Nt = params(26); Mt = params(27);
-Lv              = params(28); Lt = params(29);
+Nv              = params(i); i = i + 1;
+Nt              = params(i); i = i + 1;
+Mt              = params(i); i = i + 1;
+Lv              = params(i); i = i + 1;
+Lt              = params(i); i = i + 1;
 % physical parameters%
 % acoustic parameters
-Cstar           = params(30); GAMa = params(31); kappa = params(32);
-nstate          = params(33);
+Cstar           = params(i); i = i + 1;
+GAMa            = params(i); i = i + 1;
+kappa           = params(i); i = i + 1;
+nstate          = params(i); i = i + 1;
 % dimensionless waveform parameters
-tfin            = params(34); om = params(35); ee = params(36); 
-tw              = params(37); dt = params(38); mn = params(39); 
-wavetype        = params(40);
+tfin            = params(i); i = i + 1;
+om              = params(i); i = i + 1;
+ee              = params(i); i = i + 1;
+tw              = params(i); i = i + 1;
+dt              = params(i); i = i + 1;
+mn              = params(i); i = i + 1;
+wavetype        = params(i); i = i + 1;
 pvarargin = {wavetype,om,ee,tw,dt,mn};
 % dimensionless viscoelastic
-We              = params(41); Re8 = params(42); DRe = params(43); 
-v_a             = params(44); v_nc = params(45); Ca = params(46);
-LAM             = params(47); De = params(48); JdotA = params(49); 
-v_lambda_star   = params(50); 
+We              = params(i); i = i + 1;
+Re8             = params(i); i = i + 1;
+DRe             = params(i); i = i + 1;
+v_a             = params(i); i = i + 1;
+v_nc            = params(i); i = i + 1;
+Ca              = params(i); i = i + 1;
+LAM             = params(i); i = i + 1;
+De              = params(i); i = i + 1;
+JdotA           = params(i); i = i + 1;
+v_lambda_star   = params(i); i = i + 1;
 iWe             = 1/We;
 if Ca==-1; Ca=Inf; end
 % dimensionless thermal 
-Foh             = params(51); Br = params(52); alpha = params(53); 
-beta            = params(54); chi = params(55); iota = params(56);
+Foh             = params(i); i = i + 1;
+Br              = params(i); i = i + 1;
+alpha           = params(i); i = i + 1;
+beta            = params(i); i = i + 1;
+chi             = params(i); i = i + 1;
+iota            = params(i); i = i + 1;
 % dimensionaless mass transfer 
-Fom             = params(57); C0 = params(58); Rv_star = params(59);
-Ra_star         = params(60); L_heat_star = params(61); mv0 = params(62); 
-ma0             = params(63); 
+Fom             = params(i); i = i + 1;
+C0              = params(i); i = i + 1;
+Rv_star         = params(i); i = i + 1;
+Ra_star         = params(i); i = i + 1;
+L_heat_star     = params(i); i = i + 1;
+mv0             = params(i); i = i + 1;
+ma0             = params(i); i = i + 1;
 % dimensionless initial conditions
-Rzero           = params(64); Uzero = params(65); p0star = params(66);
-P8              = params(67); T8 = params(68); Pv_star = params(69);
-Req             = params(70);
+Rzero           = params(i); i = i + 1;
+Uzero           = params(i); i = i + 1;
+p0star          = params(i); i = i + 1;
+P8              = params(i); i = i + 1;
+T8              = params(i); i = i + 1;
+Pv_star         = params(i); i = i + 1;
+Req             = params(i);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % numerical setup and precomputations %
@@ -137,14 +172,14 @@ switch Lv
 end
 
 % index management
-if liner == 0
+if stress == 1
     zeNO = 1; 
 else 
     zeNO = 0; 
 end
 if spectral == 0, Nv = 1; end
-if polytropic == 1, Nt = -1; Mt = -1; qdot = []; end
-if cold == 1, Mt = -1; end
+if bubtherm == 0, Nt = -1; Mt = -1; qdot = []; end
+if medtherm == 0, Mt = -1; end
 ia = 4:(4+Nt);
 ib = (5+Nt):(5+Nt+Mt);
 ic = (6+Nt+Mt):(5+Nt+Mt+Nv);
@@ -193,54 +228,6 @@ else
     [t,X] = ode45(@SVBDODE,tspan,init,options);
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%% functions called by solver %%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% stress differentiator
-function [trr,dtrr,t00,dt00] = stressdiff(c,d)
-    if Nv < 650
-        trr = sCA*c;
-        dtrr = sCAd*c;
-        t00 = sCA*d;
-        dt00 = sCAd*d;
-    else
-        [trr,dtrr] = fctdShift(c);
-        [t00,dt00] = fctdShift(d);
-    end
-end
-
-% stress solver
-function s = stresssolve(x)
-    if Nv < 650
-        s = sCI*x;
-    else
-        s = fctShift(x);
-    end
-end
-
-% fast Chebyshev transform
-function a = fctShift(v)
-    v = v(:);
-    v = [0; v; flipud(v(1:Nv-1))];
-    a = real(fft(v))/Nv;
-    a = [a(2:Nv); a(Nv+1)/2];
-end
-
-% fast Chebyshev transform and differentiate
-function [v,w] = fctdShift(a)
-    M = Nv + 1;
-    a = a(:)';
-    dd = Nv*[0 a(1:Nv-1) a(Nv)*2 fliplr(a(1:Nv-1))];
-    v = ifft(dd);
-    v = v(2:M)' - sum(a);
-    n2b = (0:M-2).^2.*dd(1:Nv);
-    cc = imag(ifft([0:M-2 0 2-M:-1].*dd));
-    w = zeros(Nv,1);
-    w(1:Nv-1) = csc(pi/Nv*(1:M-2)).*cc(2:Nv);
-    w(Nv) = sum((-1).^(1:Nv).*n2b)/Nv + 0.5*(-1)^M*Nv*dd(M);
-end
-
 %%%%%%%%%%%%%%%%%%%
 % solver function %
 %%%%%%%%%%%%%%%%%%%
@@ -252,12 +239,7 @@ function dXdt = SVBDODE(t,X)
     R = X(1); U = X(2); p = X(3);
 
     % non-condensible gas pressure and temperature
-    if polytropic == 1
-        % polytropic approximation
-        p = p0star*R^(-3*kappa);
-        pdot = -3*kappa*U/R*p;
-        pVap = Pv_star;
-    else
+    if bubtherm
         % extract auxiliary temperature
         SI = gA*X(ia);
         % auxiliary temperature derivatives
@@ -274,11 +256,8 @@ function dXdt = SVBDODE(t,X)
             + chi*D/R^2.*ddSI;
         SIdot(end) = pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
             + kapover/p*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);
-        
-        if cold == 1 % cold-liquid approximation
-            % solve auxiliary temperature with boundary condition
-            qdot = gAI*[0; SIdot(2:end)];
-        else
+
+        if medtherm % warm-liquid
             % extract medium temperature
             TL = mA*X(ib);
             % new derivative of medium temperature
@@ -290,50 +269,31 @@ function dXdt = SVBDODE(t,X)
             % include viscous heating
             if spectral == 1
                 TLdot = TLdot - 2*Br*U./(R*yT.^3).*(ZZT*(X(ic) - X(id)));    
-            elseif yangChurch == 1 || kelvinVoigt == 1 || linelas == 1
+            elseif stress == 1
                 TLdot = TLdot + 4*Br./yT.^6*(U/R*(1-1/R^3)/Ca + 3/Re8*(U/R)^2);      
             end
             % enforce boundary condition and solve
             TLdot(end) = 0;
             qdot = [ones(1,Nt+1) -(alpha*(T(1)-1)+1)*ones(1,Mt+1); Q]...
                 \[0; SIdot(2:end); TLdot(2:end); 0];       
+        else % cold-liquid approximation
+            % solve auxiliary temperature with boundary condition
+            qdot = gAI*[0; SIdot(2:end)];            
         end
+    else 
+        % polytropic approximation
+        p = p0star*R^(-3*kappa);
+        pdot = -3*kappa*U/R*p;
+        pVap = Pv_star;        
     end
+
     J = 0; JdotX = 0; Z1dot = 0; Z2dot = 0;
     % stress equation
-    if kelvinVoigt == 1 % Kelvin-yangChurch with neo-Hookean elasticity
+    if stress == 1 % Kelvin-Voigt with neo-Hookean elasticity
         % compute stress integral
         J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
         JdotX = -2*U*(Req*(1/R)^2 + Req^4*(1/R)^5)/Ca + 4/Re8*U^2/R^2;
-    elseif yangChurch == 1 % Kelvin-yangChurch (Yang-Church)
-        % compute stress integral
-        J = -4/(3*Ca)*(1 - 1/R^3) - 4/Re8*U/R;
-        JdotX = -4/Ca*U/R^4 + 4/Re8*U^2/R^2;
-    elseif linelas == 1 % Linear elastic
-        % compute stress integral
-        J = -2/Ca*(1 - 1/R^2) - 4/Re8*U/R;
-        JdotX = -4/Ca*U/R^3 + 4/Re8*U^2/R^2;
-    elseif spectral == 1 % Giesekus, PTT, or forced spectral         
-        % extract stress spectrum
-        c = X(ic); d = X(id);
-        % inverse Chebyshev transforms and derivatives
-        [trr,dtrr,t00,dt00] = stressdiff(c,d);
-        % new spectral coefficient derivatives
-        exptau = exp(ptt*Re8*De*(trr + 2*t00));            
-        Z1dot = stresssolve(-(exptau/De + zeNO*4*U./(yV.^3*R) ...
-            + gies*Re8*trr).*trr ...
-            + (1-ze).^2*U/(2*Lv*R).*(yV - zeNO./yV.^2).*dtrr ...
-            - 4./yV.^3*((1-1/R^3)/(3*Ca) + U/(Re8*R) ...
-            + LDR*(2*U^2/R^2 + Udot/R))/De - zeNO*4*LAM/Re8*(U/R)^2./yV.^6);
-        Z2dot = stresssolve(-(exptau/De - zeNO*2*U./(yV.^3*R) ...
-            + gies*Re8*t00).*t00 ...
-            + (1-ze).^2*U/(2*Lv*R).*(yV - zeNO./yV.^2).*dt00 ...
-            + 2./yV.^3*((1-1/R^3)/(3*Ca) + U/(Re8*R) ...
-            + LDR*(2*U^2/R^2 + Udot/R))/De - zeNO*10*LAM/Re8*(U/R)^2./yV.^6);
-        % compute stress integral
-        J = 2*sum(cdd.*(c-d));
-        JdotX = 2*sum(cdd.*(Z1dot - Z2dot));   
-    elseif liner == 1 % linear Maxwell, linear Jeffreys, linear Zener
+    elseif stress == 2 % linear Maxwell, linear Jeffreys, linear Zener
         % extract
         Z1 = X(ic);
         J = Z1/R^3 - 4*LAM/Re8*U/R;
@@ -341,7 +301,7 @@ function dXdt = SVBDODE(t,X)
         Z1dot = -Z1/De + 4*(LAM-1)/(Re8*De)*R^2*U - 4*(R^3-1)/(3*Ca*De);
         Z2dot = 0;
         JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re8*U^2/R^2;     
-    elseif oldb == 1 % upper-convected Maxwell, OldRoyd-B
+    elseif stress == 3 % upper-convected Maxwell, OldRoyd-B
         % extract stress sub-integrals
         Z1 = X(ic); Z2 = X(id);
         % compute new derivatives
@@ -349,48 +309,61 @@ function dXdt = SVBDODE(t,X)
         Z2dot = -(1/De + 1*U/R)*Z2 + 2*(LAM-1)/(Re8*De)*R^2*U;
         J = (Z1 + Z2)/R^3 - 4*LAM/Re8*U/R;
         JdotX = (Z1dot+Z2dot)/R^3 - 3*U/R^4*(Z1+Z2) + 4*LAM/Re8*U^2/R^2;
+    elseif stress > 3 % Giesekus, PTT, or forced spectral         
+        % extract stress spectrum
+        c = X(ic); d = X(id);
+        % inverse Chebyshev transforms and derivatives
+        [trr,dtrr,t00,dt00] = stressdiff(c,d);
+        % new spectral coefficient derivatives
+        exptau = exp(ptt*Re8*De*(trr + 2*t00));            
+        Z1dot = stresssolve(-(exptau/De + zeNO*4*U./(yV.^3*R) ...
+            + eps3*Re8*trr).*trr ...
+            + (1-ze).^2*U/(2*Lv*R).*(yV - zeNO./yV.^2).*dtrr ...
+            - 4./yV.^3*((1-1/R^3)/(3*Ca) + U/(Re8*R) ...
+            + LDR*(2*U^2/R^2 + Udot/R))/De - zeNO*4*LAM/Re8*(U/R)^2./yV.^6);
+        Z2dot = stresssolve(-(exptau/De - zeNO*2*U./(yV.^3*R) ...
+            + eps3*Re8*t00).*t00 ...
+            + (1-ze).^2*U/(2*Lv*R).*(yV - zeNO./yV.^2).*dt00 ...
+            + 2./yV.^3*((1-1/R^3)/(3*Ca) + U/(Re8*R) ...
+            + LDR*(2*U^2/R^2 + Udot/R))/De - zeNO*10*LAM/Re8*(U/R)^2./yV.^6);
+        % compute stress integral
+        J = 2*sum(cdd.*(c-d));
+        JdotX = 2*sum(cdd.*(Z1dot - Z2dot));           
     end
     
     % pressure waveform
     [pf8,pf8dot] = f_pinfinity(t,pvarargin{:});
-    
+  
     % bubble wall acceleration
     % Rayleigh-Plesset        
-    if rayleighplesset == 1
+    if radial == 1
         Udot = (p + pVap - 1 - pf8 - iWe/R + J - 1.5*U^2)/R;
     % Keller-Miksis in enthalpy
-    elseif enthalpy == 1    
+    elseif radial == 2    
         hB = (sam/no)*(((p - iWe/R + GAMa + J)/sam)^no - 1);
         hH = (sam/(p + pVap - iWe/R + GAMa + J))^(1/nstate);
         Udot = ((1 + U/Cstar)*(hB - pf8) - R/Cstar*pf8dot ...
             + R/Cstar*hH*(pdot + iWe*U./R.^2 + JdotX) ...
             - 1.5*(1 - U./(3*Cstar)).*U.^2)/((1 - U./Cstar).*R + JdotA*hH./Cstar);
     % Gilmore equation
-	elseif gil == 1
+	elseif radial == 3
         hB = sam/no*(((p - iWe/R + GAMa + J)/sam)^no - 1);
         hH = (sam/(p + pVap - iWe/R + GAMa + J))^(1/nstate);
         Udot = ((1 + U/Cstar)*(hB - pf8) - R/Cstar*pf8dot ...
             + R/Cstar*(hB + hH*(pdot + iWe*U/R^2 + JdotX)) ...
             - 1.5*(1 - U/(3*Cstar))*U^2) / ((1 - U/Cstar)*R + JdotA*hH/Cstar);
     % Keller-Miksis in pressure        
-    else  
+    elseif radial == 4  
         Udot = ((1+U./Cstar)*(p + pVap - 1 - pf8 - iWe./R + J) ...
             + R./Cstar.*(pdot + iWe.*U./R.^2 + JdotX - pf8dot) ...
             - 1.5.*(1-U./(3.*Cstar)).*U.^2)./((1-U./Cstar).*R + JdotA./Cstar);
+    else 
+        
     end
+
     % output assembly
     Jdot = JdotX - JdotA*Udot/R;
     dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot];
-end
-
-function Cw= CW(Tw,P)
-    
-  % Calculates the concentration at the bubble wall 
-  %Function of P and temp at the wall 
- 
-  thetha = Rv_star/Ra_star*(P./(f_pvsat(Tw*T8)/P8) -1);
-  Cw = 1./(1+thetha); 
-  
 end
 
 %%%%%%%%%%%%%%%%%%%
@@ -403,7 +376,7 @@ a = X(:,ia)';
 b = X(:,ib)'; 
 c = X(:,ic)'; 
 d = X(:,id)'; 
-if cgrad == 1
+if masstrans == 1
     e = X(:,ie)';
 end
 I = X(:,end);
@@ -419,15 +392,15 @@ if spectral == 1
 else
     trr = c; t00 = d;
 end
-if polytropic == 0
+if bubtherm == 1
     T = (alpha-1+sqrt(1+2*alpha*gA*a))/alpha;
-    if cold == 0
+    if medtherm == 1
         TL = mA*b; 
     end
 else
     T = R.^(-3*kappa);
 end
-if cgrad == 1
+if masstrans == 1
     C = gA*e;
 end
 
@@ -440,8 +413,8 @@ if dimensionalout == 1
         trr = trr*p0; 
         t00 = t00*p0; 
     end
-    if polytropic == 0
-        if cold == 0
+    if bubtherm == 1
+        if medtherm == 1
             TL = TL*T8; 
         end
     end
@@ -499,8 +472,8 @@ if plotresult == 1
         set(leg1,'Interpreter','latex');
         set(gca,'TickLabelInterpreter','latex','FontSize',16)
         set(gcf,'color','w');
-        if polytropic == 0
-            if cold == 1, b = zeros(size(a)); end
+        if bubtherm == 1
+            if medtherm == 0, b = zeros(size(a)); end
             subplot(3,1,2);
             hold on;
             box on;
@@ -530,10 +503,10 @@ else
     varargout{6} = t00;
     varargout{7} = I;
     varargout{8} = T;    
-    if cgrad == 1
+    if masstrans == 1
         varargout{9} = C;
     end
-    if polytropic == 0 && cold == 0
+    if bubtherm == 1 && medtherm == 1
         varargout{10} = TL;
     else
         varargout{10} = ((T8 - 1)*dimensionalout + 1)*ones(divisions,1);
@@ -552,7 +525,7 @@ else
 end
 
 % convert run settings to strings
-if rayleighplesset == 1
+if radial == 1
     eqn = 'Rayleigh Plesset equation';
 elseif enthalpy == 1
     eqn = 'Keller-Miksis in enthalpy';
@@ -560,51 +533,38 @@ else
     eqn = 'Keller-Miksis in pressure';
 end
 const = 'none';
-if yangChurch == 0
-    if kelvinVoigt == 1
-        if Ca == Inf
-            const = 'Newtonian fluid';
-        else
-            const = 'neo-Hookean yangChurch';
-        end
-    elseif linelas == 1
-        if Ca == Inf
-            const = 'Newtonian fluid';
-        else
-            const = 'linear elastic yangChurch';
-        end
-    elseif liner == 1
-        if Ca ~= Inf && LAM == 0
-            const = 'linear Zener';
-        elseif Ca == Inf && LAM == 0
-            const = 'linear Maxwell';
-        elseif Ca == Inf && LAM ~= 0
-            const = 'linear Jeffreys';
-        else
-            const = 'Kelvin-yangChurch series';
-        end
-    elseif liner == 0
-        if ptt == 0 && gies == 0
-            if Ca ~= Inf && LAM == 0
-                const = 'upper-convective Zener';
-            elseif Ca == Inf && LAM == 0
-                const = 'upper-convective Maxwell';
-            elseif Ca == Inf && LAM ~= 0
-                const = 'Oldroyd-B';
-            end
-        elseif Ca == Inf && LAM == 0
-            if ptt == 1 && gies == 0
-                const = 'Phan-Thien-Tanner';
-            elseif ptt == 0 && gies ~= 0
-                const = ['Giesekus(' num2str(gies) ')'];
-            end
-        end
+if stress == 1
+    if Ca == Inf
+        const = 'Newtonian fluid';
+    else
+        const = 'neo-Hookean Kelvin-Voigt';
     end
-elseif liner == 0 && gies == 0 && ptt == 0 && LAM == 0, const = 'Yang-Church yangChurch';
+elseif stress == 2
+    if Ca ~= Inf && LAM == 0
+        const = 'linear Zener';
+    elseif Ca == Inf && LAM == 0
+        const = 'linear Maxwell';
+    elseif Ca == Inf && LAM ~= 0
+        const = 'linear Jeffreys';
+    else
+        const = 'Kelvin-yangChurch series';
+    end
+elseif stress == 3
+    if Ca ~= Inf && LAM == 0
+        const = 'upper-convective Zener';
+    elseif Ca == Inf && LAM == 0
+        const = 'upper-convective Maxwell';
+    elseif Ca == Inf && LAM ~= 0
+        const = 'Oldroyd-B';
+    end
+elseif stress == 4 
+    const = 'Phan-Thien-Tanner';
+else 
+    const = ['Giesekus(' num2str(eps3) ')'];
 end
 
-if polytropic == 0
-    if cold == 0, therm = 'full';
+if bubtherm == 1
+    if medtherm == 1, therm = 'full';
     else
         therm = 'cold-medium approximation';
     end
@@ -633,7 +593,60 @@ disp('--- Match ---');
 
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%% functions called by solver %%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% stress differentiator
+function [trr,dtrr,t00,dt00] = stressdiff(c,d)
+    if Nv < 650
+        trr = sCA*c;
+        dtrr = sCAd*c;
+        t00 = sCA*d;
+        dt00 = sCAd*d;
+    else
+        [trr,dtrr] = fctdShift(c);
+        [t00,dt00] = fctdShift(d);
+    end
+end
+
+% stress solver
+function s = stresssolve(x)
+    if Nv < 650
+        s = sCI*x;
+    else
+        s = fctShift(x);
+    end
+end
+
+% fast Chebyshev transform
+function a = fctShift(v)
+    v = v(:);
+    v = [0; v; flipud(v(1:Nv-1))];
+    a = real(fft(v))/Nv;
+    a = [a(2:Nv); a(Nv+1)/2];
+end
+
+% fast Chebyshev transform and differentiate
+function [v,w] = fctdShift(a)
+    M = Nv + 1;
+    a = a(:)';
+    dd = Nv*[0 a(1:Nv-1) a(Nv)*2 fliplr(a(1:Nv-1))];
+    v = ifft(dd);
+    v = v(2:M)' - sum(a);
+    n2b = (0:M-2).^2.*dd(1:Nv);
+    cc = imag(ifft([0:M-2 0 2-M:-1].*dd));
+    w = zeros(Nv,1);
+    w(1:Nv-1) = csc(pi/Nv*(1:M-2)).*cc(2:Nv);
+    w(Nv) = sum((-1).^(1:Nv).*n2b)/Nv + 0.5*(-1)^M*Nv*dd(M);
+end
+
+% function Cw= CW(Tw,P)
+%   % Calculates the concentration at the bubble wall 
+%   %Function of P and temp at the wall 
+%   thetha = Rv_star/Ra_star*(P./(f_pvsat(Tw*T8)/P8) -1);
+%   Cw = 1./(1+thetha); 
+% end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % precomputation functions %

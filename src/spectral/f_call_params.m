@@ -15,23 +15,29 @@ function [vecout]  = f_call_params(varargin)
     technical       = 0;        % output technical data
     % model for radial bubble dynamics, default is KME in pressure
     % if all values below are zero, Keller-Miksis w/ pressure is used
-    rayleighplesset = 1;        % Rayleigh-Plesset equation
-    enthalpy        = 0;        % Keller-Miksis enthalpy equations
-    gil             = 0;        % Gilmore equation
+    % 0 : RP, 1 : K-M P, 2 : K-M E, 3 : Gil
+    radial          = 1;        
+    %rayleighplesset = 1;        % Rayleigh-Plesset equation
+    %enthalpy        = 0;        % Keller-Miksis enthalpy equations
+    %gil             = 0;        % Gilmore equation
     % thermal assumptions, default is no thermal assumptions
-    polytropic      = 1;        % 0: polytropic assumption, 1: thermal PDE in bubble
-    cold            = 1;        % 0: warm fluid, 1: cold fluid assumption
+    bubtherm        = 0;        % 0: polytropic assumption, 1: thermal PDE in bubble
+    medtherm        = 0;        % 0: warm fluid, 1: cold fluid assumption
     vapor           = 0;        % 0 : ignore vapor pressure, 1 : vapor pressure
     % mass transfer, default is no mass transfer 
-    cgrad           = 0;        % not yet operation leave zero
+    masstrans       = 0;        % not yet operation leave zero
     % constitutive model
-    kelvinVoigt     = 1;        % neo-Hookean
-    yangChurch      = 0;        % yangChurch model
-    linelas         = 0;        % linear elastic model
-    liner           = 0;        % linear Maxwell, Jeffreys, Zener depending on material parameters
-    oldb            = 0;        % upper-convected Maxwell, OldRoyd-B depending on material parameters
-    ptt             = 0;        % Phan-Thien-Tanner, check material properties
-    gies            = 0;        % Giesekus fluid, check material properties
+    % 1 : N-H, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT,
+    % 5: Giesekus
+    stress          = 1;
+    eps3            = 0;
+    % kelvinVoigt     = 1;        % neo-Hookean
+    % yangChurch      = 0;        % yangChurch model
+    % linelas         = 0;        % linear elastic model
+    % liner           = 0;        % linear Maxwell, Jeffreys, Zener depending on material parameters
+    % oldb            = 0;        % upper-convected Maxwell, OldRoyd-B depending on material parameters
+    % ptt             = 0;        % Phan-Thien-Tanner, check material properties
+    % gies            = 0;        % Giesekus fluid, check material properties
     vmaterial       = 'water';
     % solver options
     method          = 45;       % ode45 setting for the time stepper
@@ -121,22 +127,25 @@ function [vecout]  = f_call_params(varargin)
                 c8set = 1; 
             end
             switch lower(varargin{n})
-            % thermal options
-            case 'poly',    polytropic = varargin{n+1};% ~= 0;
-            case 'cold',    cold = varargin{n+1};% ~= 0;
-            case 'vapor',   vapor = varargin{n+1};% ~= 0;
             % equation for radial dynamics
-            case 'rpe',     rayleighplesset = varargin{n+1};% ~= 0;
-            case 'enth',    enthalpy = varargin{n+1};% ~= 0;
-            case 'gil',     gil = varargin{n+1};% ~= 0;
+            case 'radial',  radial = varargin{n+1};% ~= 0;
+            % case 'radial',  rayleighplesset = varargin{n+1};% ~= 0;
+            % case 'enth',    enthalpy = varargin{n+1};% ~= 0;
+            % case 'gil',     gil = varargin{n+1};% ~= 0;                
+            % thermal options
+            case 'bubtherm',bubtherm = varargin{n+1};% ~= 0;
+            case 'medtherm',medtherm = varargin{n+1};% ~= 0;
+            case 'vapor',   vapor = varargin{n+1};% ~= 0;
             % constitutive model
-            case 'kelvinvoigt', kelvinVoigt = varargin{n+1};% ~= 0;
-            case 'yangchurch',   yangChurch = varargin{n+1};% ~= 0;
-            case 'linelas', linelas = varargin{n+1};% ~= 0;
-            case 'liner',   liner = varargin{n+1};% ~= 0;
-            case 'oldb',    oldb = varargin{n+1};% ~= 0;
-            case 'ptt',     ptt = varargin{n+1};% ~= 0;
-            case 'gies',    gies = varargin{n+1};
+            case 'stress',  stress = varargin{n+1};% ~= 0;
+            case 'eps3',    eps3 = varargin{n+1};% ~= 0;
+            % case 'kelvinvoigt', kelvinVoigt = varargin{n+1};% ~= 0;
+            % case 'yangchurch',   yangChurch = varargin{n+1};% ~= 0;
+            % case 'linelas', linelas = varargin{n+1};% ~= 0;
+            % case 'liner',   liner = varargin{n+1};% ~= 0;
+            % case 'oldb',    oldb = varargin{n+1};% ~= 0;
+            % case 'ptt',     ptt = varargin{n+1};% ~= 0;
+            % case 'gies',    gies = varargin{n+1};
             % display options
             case 'dimout',  dimensionalout = varargin{n+1};% ~= 0;
             case 'pdisp',   progdisplay = varargin{n+1};% ~= 0;
@@ -158,7 +167,7 @@ function [vecout]  = f_call_params(varargin)
             case 'lv',      Lv = varargin{n+1};
             case 'lt',      Lt = varargin{n+1};  
             % waveform parameters
-            case 'tfin',    TFin = varargin{n+1};
+            % case 'tfin',    TFin = varargin{n+1};
             case 'pa',      pA = varargin{n+1};
             case 'omega',   omega = varargin{n+1};
             case 'tw',      TW = varargin{n+1};
@@ -207,8 +216,7 @@ function [vecout]  = f_call_params(varargin)
         end
     end
     % check for physical viscoelastic parameters
-    if (lambda1 > mu8/G && (yangChurch == 0 && kelvinVoigt == 0 && ...
-            linelas == 0)) || abs(gies - 0.25) > 0.25
+    if (lambda1 > mu8/G && (stress == 1)) || abs(eps3 - 0.25) > 0.25
         disp('Error: nonphysical viscoelastic parameters');
         return;
     end
@@ -266,8 +274,8 @@ function [vecout]  = f_call_params(varargin)
     LAM     = lambda2/lambda1;
     De      = lambda1*Uc/R0;            % Deborah number
     % dimensionless initial conditions
-    Rzero   = 1
-    Req_zero= Req/R0
+    Rzero   = 1;
+    Req_zero= Req/R0;
     Uzero   = U0/Uc;
     pzero   = P0_star;
 
@@ -323,37 +331,38 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%% final setting adjustments %%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if rayleighplesset == 1, enthalpy = 0; gil = 0; end
-if enthalpy == 1, rayleighplesset = 0; gil = 0; end
-if gil == 1, rayleighplesset = 0; enthalpy = 0; end
-if polytropic == 1, cold = 0; end
-if cold == 1, polytropic = 0; cgrad = 0; end
+% if rayleighplesset == 1, enthalpy = 0; gil = 0; end
+% if enthalpy == 1, rayleighplesset = 0; gil = 0; end
+% if gil == 1, rayleighplesset = 0; enthalpy = 0; end
+if bubtherm == 0, medtherm = 0; end
+if medtherm == 1, bubtherm = 1; masstrans = 0; end
 
-if kelvinVoigt == 1
-    [yangChurch,linelas,liner,ptt,gies,LAM] = deal(0);
+% 1 : N-H, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
+if stress == 1
+    % [yangChurch,linelas,liner,ptt,gies,LAM] = deal(0);
     spectral = 0;
-elseif yangChurch == 1
-    [linelas,liner,ptt,gies,LAM] = deal(0);
-    spectral = 0;
-elseif linelas == 1
-    [liner,ptt,gies,LAM] = deal(0);
-    spectral = 0;
-elseif liner == 1
-    [yangChurch,ptt,gies] = deal(0);
-elseif oldb == 1
-    [yangChurch,liner,ptt,gies] = deal(0);
+% elseif yangChurch == 1
+%     [linelas,liner,ptt,gies,LAM] = deal(0);
+%     spectral = 0;
+% elseif linelas == 1
+%     [liner,ptt,gies,LAM] = deal(0);
+%     spectral = 0;
+elseif stress == 2
+    % [yangChurch,ptt,gies] = deal(0);
+elseif stress == 3
+    % [yangChurch,liner,ptt,gies] = deal(0);
     Ca = -1;
-elseif ptt == 1
-    [yangChurch,liner,gies,LAM] = deal(0);
+elseif stress == 4
+    % [yangChurch,liner,gies,LAM] = deal(0);
     Ca = -1; spectral = 1;
-elseif gies ~= 0
-    [yangChurch,liner,ptt,LAM] = deal(0);
+elseif stress == 5
+    % [yangChurch,liner,ptt,LAM] = deal(0);
     Ca = -1; spectral = 1;
 end
 
-if yangChurch == 1 || kelvinVoigt == 1 || linelas == 1
+if stress == 1 % yangChurch == 1 || kelvinVoigt == 1 || linelas == 1
     JdotA = 4/Re8;
-elseif liner == 1 || oldb == 1
+elseif stress == 2 || stress == 3 %liner == 1 || oldb == 1
     JdotA = 4*LAM/Re8;
 else
     JdotA = 0;
@@ -363,9 +372,8 @@ if spectral == 1
 end
 
 vecout = {...
-      ... % numerical settings 
-      polytropic cold cgrad rayleighplesset enthalpy gil ...
-      kelvinVoigt yangChurch linelas liner oldb ptt gies ...
+      ... % model settings 
+      radial bubtherm medtherm stress eps3 masstrans ...
       ...% output options
       dimensionalout progdisplay detail plotresult ...
       radiusonly vitalsreport displayonly technical ... 
