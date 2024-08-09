@@ -1,6 +1,6 @@
 function varargout =  f_imrv2(varargin)
-% IMR V2
 
+%*************************************************************************
 % Description: This code is a reduced version of the IMR code taken from
 % Estrada et al. (2018) JMPS. Additional physics have been added including
 % the Keller-Miksis with enthalpy and non-Newtonian viscosity. 
@@ -38,93 +38,62 @@ function varargout =  f_imrv2(varargin)
 % Reduced - 0 utilizes full model or 1 uses Preston's reduced order model
 
 %*************************************************************************
-%   The various options can be found below.  Code may also run without any
-%   inputs.
-par = f_call_params(varargin{:});
-params = cell2mat({par{1:end-1}});
-tspan = cell2mat({par{end}});
-i = 1;
-% numerical settings 
-radial          = params(i); i = i + 1;
-bubtherm        = params(i); i = i + 1;
-medtherm        = params(i); i = i + 1;
-stress          = params(i); i = i + 1;
-eps3            = params(i); i = i + 1;
-masstrans       = params(i); i = i + 1;
-% output options
-dimensionalout  = params(i); i = i + 1;
-progdisplay     = params(i); i = i + 1;
-detail          = params(i); i = i + 1;
-plotresult      = params(i); i = i + 1;
-radiusonly      = params(i); i = i + 1;
-vitalsreport    = params(i); i = i + 1;
-displayonly     = params(i); i = i + 1;
-technical       = params(i); i = i + 1;
+
+%*************************************************************************
+% Problem Initialization
+[eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts, wave_opts, ...
+    sigma_opts, thermal_opts, mass_opts]  = f_call_params(varargin{:});
+
+% equations settings 
+radial          = eqns_opts(1);  bubtherm        = eqns_opts(2); 
+medtherm        = eqns_opts(3);  stress          = eqns_opts(4); 
+eps3            = eqns_opts(5);  masstrans       = eqns_opts(6); 
 % solver options
-method          = params(i); i = i + 1;
-spectral        = params(i); i = i + 1;
-divisions       = params(i); i = i + 1;
-% numerical parameters 
-Nv              = params(i); i = i + 1;
-Nt              = params(i); i = i + 1;
-Mt              = params(i); i = i + 1;
-Lv              = params(i); i = i + 1;
-Lt              = params(i); i = i + 1;
+method          = solve_opts(1); spectral        = solve_opts(2); 
+divisions       = solve_opts(3); Nv              = solve_opts(4); 
+Nt              = solve_opts(5); Mt              = solve_opts(6); 
+Lv              = solve_opts(7); Lt              = solve_opts(8); 
+% dimensionless initial conditions
+Rzero           = init_opts(1);  Uzero           = init_opts(2); 
+p0star          = init_opts(3);  P8              = init_opts(4); 
+T8              = init_opts(5);  Pv_star         = init_opts(6); 
+Req             = init_opts(7);
+% time span options
+tspan = tspan_opts;
+% output options
+dimensionalout  = out_opts(1);  progdisplay     = out_opts(2); 
+detail          = out_opts(3);  plotresult      = out_opts(4); 
+displayonly     = out_opts(5);  technical       = out_opts(6); 
 % physical parameters%
 % acoustic parameters
-Cstar           = params(i); i = i + 1;
-GAMa            = params(i); i = i + 1;
-kappa           = params(i); i = i + 1;
-nstate          = params(i); i = i + 1;
+Cstar           = acos_opts(1); GAMa            = acos_opts(2); 
+kappa           = acos_opts(3); nstate          = acos_opts(4); 
 % dimensionless waveform parameters
-tfin            = params(i); i = i + 1;
-om              = params(i); i = i + 1;
-ee              = params(i); i = i + 1;
-tw              = params(i); i = i + 1;
-dt              = params(i); i = i + 1;
-mn              = params(i); i = i + 1;
-wavetype        = params(i); i = i + 1;
-pvarargin = {wavetype,om,ee,tw,dt,mn};
+om              = wave_opts(1); ee              = wave_opts(2); 
+tw              = wave_opts(3); dt              = wave_opts(4); 
+mn              = wave_opts(5); wavetype        = wave_opts(6); 
+pvarargin = [om,ee,tw,dt,mn,wavetype];
 % dimensionless viscoelastic
-We              = params(i); i = i + 1;
-Re8             = params(i); i = i + 1;
-DRe             = params(i); i = i + 1;
-v_a             = params(i); i = i + 1;
-v_nc            = params(i); i = i + 1;
-Ca              = params(i); i = i + 1;
-LAM             = params(i); i = i + 1;
-De              = params(i); i = i + 1;
-JdotA           = params(i); i = i + 1;
-v_lambda_star   = params(i); i = i + 1;
+We              = sigma_opts(1); Re8             = sigma_opts(2); 
+DRe             = sigma_opts(3); v_a             = sigma_opts(4); 
+v_nc            = sigma_opts(5); Ca              = sigma_opts(6); 
+LAM             = sigma_opts(7); De              = sigma_opts(8); 
+JdotA           = sigma_opts(9); v_lambda_star   = sigma_opts(10); 
 iWe             = 1/We;
 if Ca==-1; Ca=Inf; end
 % dimensionless thermal 
-Foh             = params(i); i = i + 1;
-Br              = params(i); i = i + 1;
-alpha           = params(i); i = i + 1;
-beta            = params(i); i = i + 1;
-chi             = params(i); i = i + 1;
-iota            = params(i); i = i + 1;
+Foh             = thermal_opts(1); Br              = thermal_opts(2); 
+alpha           = thermal_opts(3); beta            = thermal_opts(4); 
+chi             = thermal_opts(5); iota            = thermal_opts(6); 
 % dimensionaless mass transfer 
-Fom             = params(i); i = i + 1;
-C0              = params(i); i = i + 1;
-Rv_star         = params(i); i = i + 1;
-Ra_star         = params(i); i = i + 1;
-L_heat_star     = params(i); i = i + 1;
-mv0             = params(i); i = i + 1;
-ma0             = params(i); i = i + 1;
-% dimensionless initial conditions
-Rzero           = params(i); i = i + 1;
-Uzero           = params(i); i = i + 1;
-p0star          = params(i); i = i + 1;
-P8              = params(i); i = i + 1;
-T8              = params(i); i = i + 1;
-Pv_star         = params(i); i = i + 1;
-Req             = params(i);
+Fom             = mass_opts(1); C0              = mass_opts(2);
+Rv_star         = mass_opts(3); Ra_star         = mass_opts(4);
+L_heat_star     = mass_opts(5); mv0             = mass_opts(6);
+ma0             = mass_opts(7);
+%*************************************************************************
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%*************************************************************************
 % numerical setup and precomputations %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % collocation point construction
 y = cos(pi*(0:Nt)'/(2*Nt));
 xi = cos(pi*(0:Mt)'/Mt);
@@ -150,8 +119,9 @@ yV = 2*Lv./(1-ze) - Lv + 1;
 nn = ((-1).^(0:Nt).*(0:Nt).^2)';
 nn = sparse(nn);
 Udot = 0; 
+%*************************************************************************
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%*************************************************************************
 % precomputations for viscous dissipation
 zT = 1 - 2./(1 + (yT - 1)/Lv);
 ZZT = cos(acos(zT)*(1:Nv)) - 1;
@@ -170,7 +140,9 @@ switch Lv
     case 0.5, load('eNstorep5','eNNp5'); cdd = eNNp5(1:Nv)';
     otherwise, cdd = preStressInt(Lv,Nv);
 end
+%*************************************************************************
 
+%*************************************************************************
 % index management
 if stress == 1
     zeNO = 1; 
@@ -184,20 +156,20 @@ ia = 4:(4+Nt);
 ib = (5+Nt):(5+Nt+Mt);
 ic = (6+Nt+Mt):(5+Nt+Mt+Nv);
 id = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
+%*************************************************************************
 
+%*************************************************************************
 % initial condition assembly
 init = [Rzero; Uzero; p0star; % radius, velocity, pressure
     zeros(Nt+1,1); % auxiliary temperature spectrum
     ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
     zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
     0]; % initial stress integral
+%*************************************************************************
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%% SOLVER CALL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%tspan = linspace(0,tfin,detail);
+%*************************************************************************
+% SOLVER CALL 
 stepcount = 0;
-
 if method == 15
     if divisions == 0
         options = odeset();
@@ -227,17 +199,18 @@ else
     end
     [t,X] = ode45(@SVBDODE,tspan,init,options);
 end
+%*************************************************************************
 
-%%%%%%%%%%%%%%%%%%%
-% solver function %
-%%%%%%%%%%%%%%%%%%%
+%*************************************************************************
+% SOLVER FUNCTION
 function dXdt = SVBDODE(t,X)
     stepcount = stepcount + 1;
     if progdisplay == 1, disp(t/tfin); end
     
     % extract standard inputs
-    R = X(1); U = X(2); p = X(3);
+    R = X(1); U = X(2); p = X(3); qdot = [];
 
+    %*************************************************************************
     % non-condensible gas pressure and temperature
     if bubtherm
         % extract auxiliary temperature
@@ -256,7 +229,6 @@ function dXdt = SVBDODE(t,X)
             + chi*D/R^2.*ddSI;
         SIdot(end) = pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
             + kapover/p*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);
-
         if medtherm % warm-liquid
             % extract medium temperature
             TL = mA*X(ib);
@@ -286,9 +258,11 @@ function dXdt = SVBDODE(t,X)
         pdot = -3*kappa*U/R*p;
         pVap = Pv_star;        
     end
+    %*************************************************************************
 
-    J = 0; JdotX = 0; Z1dot = 0; Z2dot = 0;
+    %*************************************************************************
     % stress equation
+    J = 0; JdotX = 0; Z1dot = 0; Z2dot = 0;
     if stress == 1 % Kelvin-Voigt with neo-Hookean elasticity
         % compute stress integral
         J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
@@ -309,7 +283,7 @@ function dXdt = SVBDODE(t,X)
         Z2dot = -(1/De + 1*U/R)*Z2 + 2*(LAM-1)/(Re8*De)*R^2*U;
         J = (Z1 + Z2)/R^3 - 4*LAM/Re8*U/R;
         JdotX = (Z1dot+Z2dot)/R^3 - 3*U/R^4*(Z1+Z2) + 4*LAM/Re8*U^2/R^2;
-    elseif stress > 3 % Giesekus, PTT, or forced spectral         
+    elseif stress == 3 || stress == 4 % Giesekus, PTT, or forced spectral         
         % extract stress spectrum
         c = X(ic); d = X(id);
         % inverse Chebyshev transforms and derivatives
@@ -329,11 +303,17 @@ function dXdt = SVBDODE(t,X)
         % compute stress integral
         J = 2*sum(cdd.*(c-d));
         JdotX = 2*sum(cdd.*(Z1dot - Z2dot));           
+    else
+        error('stress setting is not available');
     end
-    
+    %*************************************************************************
+
+    %*************************************************************************
     % pressure waveform
-    [pf8,pf8dot] = f_pinfinity(t,pvarargin{:});
-  
+    [pf8,pf8dot] = f_pinfinity(t,pvarargin);
+    %*************************************************************************
+
+    %*************************************************************************
     % bubble wall acceleration
     % Rayleigh-Plesset        
     if radial == 1
@@ -358,18 +338,19 @@ function dXdt = SVBDODE(t,X)
             + R./Cstar.*(pdot + iWe.*U./R.^2 + JdotX - pf8dot) ...
             - 1.5.*(1-U./(3.*Cstar)).*U.^2)./((1-U./Cstar).*R + JdotA./Cstar);
     else 
-        
+       error('radial dynamics setting is not available');
     end
+    %*************************************************************************
 
+    %*************************************************************************
     % output assembly
     Jdot = JdotX - JdotA*Udot/R;
     dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot];
+    %*************************************************************************
 end
 
-%%%%%%%%%%%%%%%%%%%
-% post-processing %
-%%%%%%%%%%%%%%%%%%%
-
+%*************************************************************************
+% POST PROCESSING
 % extract result
 R = X(:,1); U = X(:,2); p = X(:,3);
 a = X(:,ia)'; 
@@ -383,7 +364,7 @@ I = X(:,end);
 pA = zeros(size(t));
 % Udot = R2dot(t,X);
 for n = 1:length(t)
-    pA(n) = f_pinfinity(t(n),pvarargin{:}); 
+    pA(n) = f_pinfinity(t(n),pvarargin); 
 end 
 
 % transform to real space
@@ -403,9 +384,11 @@ end
 if masstrans == 1
     C = gA*e;
 end
+%*************************************************************************
 
+%*************************************************************************
+% DIMENSIONALIZATION
 if dimensionalout == 1
-    
     % re-dimensionalize problem
     t = t*tc; R = R*Rref; U = U*uc; p = p*p0; pA = pA*p0; I = I*p0; T = T*T8;
     c = c*p0; d = d*p0; e = e*C0; C = C*C0; Udot = Udot*uc/tc;
@@ -418,79 +401,11 @@ if dimensionalout == 1
             TL = TL*T8; 
         end
     end
-    
 end
+%*************************************************************************
 
-%%%%%%%%%%%%%%%%%%%%%%
-% output and display %
-%%%%%%%%%%%%%%%%%%%%%%
-
-% display figure
-if plotresult == 1 
-    if vitalsreport == 0
-        if radiusonly == 1
-            plot(t,R); 
-            hold('on'); 
-            grid('on');
-            axis([0 t(end) 0 (max(R) + min(R))]);
-        else
-            subplot(2 + spectral,1,1);
-            plot(t,R); 
-            grid('on'); 
-            ylabel('R');
-            axis([0 t(end) 0 (max(R) + min(R))]);
-            subplot(2 + spectral,1,2);
-            plot(t,I); 
-            grid('on');
-            ylabel('J');
-            if spectral == 1
-                subplot(3,1,3);
-                plot(t,trr(end,:),t,t00(end,:));
-                ylabel('\tau_{rr}|_R, \tau_{\theta\theta}|_R');
-            end
-            xlabel('t');
-        end
-    else
-        subplot(3,1,1);
-        plot(t,R,'k','LineWidth',2); 
-        hold('on'); 
-        ylabel('$R$','Interpreter','Latex','FontSize',12);
-        box on;
-        axis([0 t(end) 0 (max(R) + min(R))]);
-        set(gca,'TickLabelInterpreter','latex','FontSize',16)
-        set(gcf,'color','w');
-        subplot(3,1,3);
-        hold on;
-        box on;
-        semilogy(t,abs(c(end,:)),'k-','LineWidth',2);
-        semilogy(t,abs(d(end,:)),'b-','LineWidth',2); 
-        xlabel('$t$','Interpreter','Latex','FontSize',12);
-        ylabel('$c_P$, $d_P$','Interpreter','Latex','FontSize',12);
-        set(gca, 'YScale', 'log');
-        axis([0 t(end) 1e-20 1]);
-        leg1 = legend('$c_P$','$d_P$','Location','NorthEast','FontSize',12);
-        set(leg1,'Interpreter','latex');
-        set(gca,'TickLabelInterpreter','latex','FontSize',16)
-        set(gcf,'color','w');
-        if bubtherm == 1
-            if medtherm == 0, b = zeros(size(a)); end
-            subplot(3,1,2);
-            hold on;
-            box on;
-            semilogy(t,abs(a(end,:)),'k-','LineWidth',2);
-            semilogy(t,abs(b(end,:)),'b-','LineWidth',2); 
-            ylabel('$a_N$, $b_M$, $e_N$','Interpreter','Latex','FontSize',12);
-            set(gca, 'YScale', 'log');
-            axis([0 t(end) 1e-20 1]);
-            leg1 = legend('$a_N$','$b_M$','$e_N$','Location','NorthEast','FontSize',12);
-            set(leg1,'Interpreter','latex');
-        	set(gca,'TickLabelInterpreter','latex','FontSize',16)
-            set(gcf,'color','w');
-        end
-    end
-end
-
-% assemble output
+%*************************************************************************
+% FUNCTION OUTPUT 
 if displayonly == 1
     varargout = {};
 else
@@ -523,7 +438,57 @@ else
 %         varargout{17} = Udot;
     end 
 end
+%*************************************************************************
 
+%*************************************************************************
+% DISPLAY
+% display figure
+if plotresult == 1 
+    subplot(3,1,1);
+    plot(t,R,'k','LineWidth',2); 
+    hold('on'); 
+    ylabel('$R$','Interpreter','Latex','FontSize',12);
+    box on;
+    axis([0 t(end) 0 (max(R) + min(R))]);
+    set(gca,'TickLabelInterpreter','latex','FontSize',16)
+    set(gcf,'color','w');
+    if bubtherm == 1
+        if medtherm == 0
+            b = zeros(size(a)); 
+        end
+        subplot(3,1,2);
+        hold on;
+        box on;
+        semilogy(t,abs(a(end,:)),'k-','LineWidth',2);
+        semilogy(t,abs(b(end,:)),'b-','LineWidth',2); 
+        ylabel('$a_N$, $b_M$, $e_N$','Interpreter','Latex','FontSize',12);
+        set(gca, 'YScale', 'log');
+        axis([0 t(end) 1e-20 1]);
+        leg1 = legend('$a_N$','$b_M$','$e_N$','Location','NorthEast','FontSize',12);
+        set(leg1,'Interpreter','latex');
+        set(gca,'TickLabelInterpreter','latex','FontSize',16);
+        set(gcf,'color','w');
+    end
+    if masstrans == 1
+        subplot(3,1,3);
+        hold on;
+        box on;
+        semilogy(t,abs(c(end,:)),'k-','LineWidth',2);
+        semilogy(t,abs(d(end,:)),'b-','LineWidth',2); 
+        xlabel('$t$','Interpreter','Latex','FontSize',12);
+        ylabel('$c_P$, $d_P$','Interpreter','Latex','FontSize',12);
+        set(gca, 'YScale', 'log');
+        axis([0 t(end) 1e-20 1]);
+        leg1 = legend('$c_P$','$d_P$','Location','NorthEast','FontSize',12);
+        set(leg1,'Interpreter','latex');
+        set(gca,'TickLabelInterpreter','latex','FontSize',16);
+        set(gcf,'color','w');
+    end
+end
+%*************************************************************************
+
+
+%*************************************************************************
 % convert run settings to strings
 if radial == 1
     eqn = 'Rayleigh Plesset equation';
@@ -533,6 +498,16 @@ else
     eqn = 'Keller-Miksis in pressure';
 end
 const = 'none';
+
+if bubtherm == 1
+    if medtherm == 1, therm = 'full';
+    else
+        therm = 'cold-medium approximation';
+    end
+else
+    therm = 'polytropic approximation';
+end
+
 if stress == 1
     if Ca == Inf
         const = 'Newtonian fluid';
@@ -563,21 +538,14 @@ else
     const = ['Giesekus(' num2str(eps3) ')'];
 end
 
-if bubtherm == 1
-    if medtherm == 1, therm = 'full';
-    else
-        therm = 'cold-medium approximation';
-    end
-else
-    therm = 'polytropic approximation';
-end
-
 if spectral == 1
     solut = 'spectral method';
 else
     solut = 'ODE formulation';
 end
+%*************************************************************************
 
+%*************************************************************************
 % display run settings
 disp('--- Game settings ---');
 disp(['Radial dynamics: ' eqn]);
@@ -590,13 +558,12 @@ disp(['De = ' num2str(De,'%10.10f')]);
 disp(['Ca = ' num2str(Ca,'%10.10f')]);
 disp(['LM = ' num2str(LAM,'%10.10f')]);
 disp('--- Match ---');
+%*************************************************************************
 
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%% functions called by solver %%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+%*************************************************************************
+% functions called by solver 
 % stress differentiator
 function [trr,dtrr,t00,dt00] = stressdiff(c,d)
     if Nv < 650
@@ -610,6 +577,7 @@ function [trr,dtrr,t00,dt00] = stressdiff(c,d)
     end
 end
 
+%*************************************************************************
 % stress solver
 function s = stresssolve(x)
     if Nv < 650
@@ -619,6 +587,7 @@ function s = stresssolve(x)
     end
 end
 
+%*************************************************************************
 % fast Chebyshev transform
 function a = fctShift(v)
     v = v(:);
@@ -627,6 +596,7 @@ function a = fctShift(v)
     a = [a(2:Nv); a(Nv+1)/2];
 end
 
+%*************************************************************************
 % fast Chebyshev transform and differentiate
 function [v,w] = fctdShift(a)
     M = Nv + 1;
@@ -648,9 +618,8 @@ end
 %   Cw = 1./(1+thetha); 
 % end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% precomputation functions %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%*************************************************************************
+% precomputation functions 
 function [A,B,D,E,C,F] = dcdmtx(N)
 %FCD	Discrete Chebyshev derivative matrices
 
@@ -689,6 +658,7 @@ F = E*B;
 
 end
 
+%*************************************************************************
 function [A,B,D,E,C,F] = dcdmtxe(N)
 %FCD	Even discrete Chebyshev derivative matrices
 
@@ -725,6 +695,7 @@ F = E*B;
 
 end
 
+%*************************************************************************
 function cdd = preStressInt(L,N)
 
 % integral precomputations
@@ -758,6 +729,7 @@ cdd = store.(Lstr)(1:N)';
 
 end
 
+%*************************************************************************
 function cdd = StressInt(L,N,varargin)
 
 if nargin == 2

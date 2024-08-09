@@ -1,12 +1,13 @@
-function [p8,p8dot] = f_pinfinity(t,varargin)
+function [p8,p8dot] = f_pinfinity(t,vararg)
 %F_PINFINITY Summary of this function goes here
 %   Detailed explanation goes here
-wavetype =  varargin{1};
-om =        varargin{2};
-ee =        varargin{3};
-tw =        varargin{4};
-dt =        varargin{5};
-mn =        varargin{6};
+
+om =        vararg(1);
+ee =        vararg(2);
+tw =        vararg(3);
+dt =        vararg(4);
+mn =        vararg(5);
+wavetype =  vararg(6);
 
 switch wavetype
     case 0
