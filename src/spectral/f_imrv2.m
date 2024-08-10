@@ -1,42 +1,9 @@
 function varargout =  f_imrv2(varargin)
 
 %*************************************************************************
-% Description: This code is a reduced version of the IMR code taken from
+% Description: This code the IMRv2 code expanding beyond IMR from
 % Estrada et al. (2018) JMPS. Additional physics have been added including
 % the Keller-Miksis with enthalpy and non-Newtonian viscosity. 
-
-% Inputs: 
-% tspan - time to run simulation
-% R0 - Initial Radii
-% NT - number of nodes for temperature and concentration fields 
-% NTM - number of nodes for temperature in the medium 
-% Pext_type - type of external pressure ('sn' = sine, 'RC' = Rayleigh 
-% collapse, 'RG' = Rayleigh growth, impulse 'ip',...
-% non-equlibrium initial conditions (laser caviation and Flynn(1975) ) 'IC'
-% Pext_Amp_Freq - amplitude and frequency of external pressure [amp w]
-
-% Note: For this code the out-of-equilibrium Rayleigh Collapse the intial
-% mass in the bubble and radii are specified 
-
-% FOR THE FOLLOWING INPUTS 0 = FALSE AND 1 = TRUE 
-% disptime - Displays elapsed time on the command window
-% Tgrad - Models temperature gradients in the buuble
-% Tmgrad- Models temperature gradients outside the buuble
-% Cgrad - Models concentration gradients in the buuble
-
-% Outputs: 
-% t - time vector
-% R - Bubble Radius 
-% U - Bubble velocity 
-% P - Internal bubble pressure
-% T_Bubble - Temperature inside the bubble  
-% T_Medium - Temperature outside the bubble  
-% C - Vapor Concentration in the bubble
-% Tm - Temperature in the medium 
-% Dim - outputs variables in dimensional form
-% Comp - 0 (ignores compressibility effects) or 1 (uses Keller- Miksis)
-% Reduced - 0 utilizes full model or 1 uses Preston's reduced order model
-
 %*************************************************************************
 
 %*************************************************************************
@@ -44,10 +11,12 @@ function varargout =  f_imrv2(varargin)
 [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts, wave_opts, ...
     sigma_opts, thermal_opts, mass_opts]  = f_call_params(varargin{:});
 
+%*************************************************************************
 % equations settings 
 radial          = eqns_opts(1);  bubtherm        = eqns_opts(2); 
 medtherm        = eqns_opts(3);  stress          = eqns_opts(4); 
 eps3            = eqns_opts(5);  masstrans       = eqns_opts(6); 
+if (stress == 4); ptt = 1; else; ptt =0; end
 % solver options
 method          = solve_opts(1); spectral        = solve_opts(2); 
 divisions       = solve_opts(3); Nv              = solve_opts(4); 
@@ -60,6 +29,7 @@ T8              = init_opts(5);  Pv_star         = init_opts(6);
 Req             = init_opts(7);
 % time span options
 tspan = tspan_opts;
+tfin = tspan(end);
 % output options
 dimensionalout  = out_opts(1);  progdisplay     = out_opts(2); 
 detail          = out_opts(3);  plotresult      = out_opts(4); 
@@ -145,9 +115,9 @@ end
 %*************************************************************************
 % index management
 if stress == 1
-    zeNO = 1; 
-else 
     zeNO = 0; 
+else 
+    zeNO = 1; 
 end
 if spectral == 0, Nv = 1; end
 if bubtherm == 0, Nt = -1; Mt = -1; qdot = []; end
@@ -274,7 +244,7 @@ function dXdt = SVBDODE(t,X)
         % stress integral derivative
         Z1dot = -Z1/De + 4*(LAM-1)/(Re8*De)*R^2*U - 4*(R^3-1)/(3*Ca*De);
         Z2dot = 0;
-        JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re8*U^2/R^2;     
+        JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re8*U^2/R^2;
     elseif stress == 3 % upper-convected Maxwell, OldRoyd-B
         % extract stress sub-integrals
         Z1 = X(ic); Z2 = X(id);
@@ -283,7 +253,8 @@ function dXdt = SVBDODE(t,X)
         Z2dot = -(1/De + 1*U/R)*Z2 + 2*(LAM-1)/(Re8*De)*R^2*U;
         J = (Z1 + Z2)/R^3 - 4*LAM/Re8*U/R;
         JdotX = (Z1dot+Z2dot)/R^3 - 3*U/R^4*(Z1+Z2) + 4*LAM/Re8*U^2/R^2;
-    elseif stress == 3 || stress == 4 % Giesekus, PTT, or forced spectral         
+    elseif stress == 3 || stress == 4 || stress == 5 
+        % Giesekus, PTT, or forced spectral         
         % extract stress spectrum
         c = X(ic); d = X(id);
         % inverse Chebyshev transforms and derivatives
@@ -560,8 +531,6 @@ disp(['LM = ' num2str(LAM,'%10.10f')]);
 disp('--- Match ---');
 %*************************************************************************
 
-end
-
 %*************************************************************************
 % functions called by solver 
 % stress differentiator
@@ -617,6 +586,8 @@ end
 %   thetha = Rv_star/Ra_star*(P./(f_pvsat(Tw*T8)/P8) -1);
 %   Cw = 1./(1+thetha); 
 % end
+
+end
 
 %*************************************************************************
 % precomputation functions 

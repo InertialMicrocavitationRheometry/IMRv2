@@ -5,9 +5,11 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
 
     %*************************************************************************
     % EQUATION OPTIONS
-    radial          = 1;        % 0 : RP, 1 : K-M P, 2 : K-M E, 3 : Gil
+    radial          = 1;        % 1 : RP, 2 : K-M P, 3 : K-M E, 4 : Gil
     bubtherm        = 0;        % 0 : polytropic assumption, 1: thermal PDE in bubble
     medtherm        = 0;        % 0 : warm fluid, 1: cold fluid assumption
+    stress          = 5;        % 1 : N-H, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
+    eps3            = 0;        % this value must be (0, 0.5]
     vapor           = 0;        % 0 : ignore vapor pressure, 1 : vapor pressure
     masstrans       = 0;        % mass transfer, default is no mass transfer 
     %*************************************************************************
@@ -17,7 +19,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     divisions       = 0;        % minimum number of timesteps
     Nt              = 12;       % number of points in bubble, thermal PDE
     Mt              = 12;       % number of points outside of bubble, thermal PDE
-    Nv              = 180;      % number of points outside of bubble, viscoelastic stress PDE     
+    Nv              = 80;       % number of points outside of bubble, viscoelastic stress PDE     
     Lv              = 3;        % characteristic length for grid stretching, leave at 3
     Lt              = 3;        % characteristic length for grid stretching, leave at 3
     %*************************************************************************
@@ -28,7 +30,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     %*************************************************************************
     % OUPUT OPTIONS
     dimensionalout  = 0;        % output result in dimensional variables
-    progdisplay     = 0;        % display progress while code running
+    progdisplay     = 1;        % display progress while code running
     detail          = 2000;    	% number of points in time to store result
     plotresult      = 1;        % generate figure containing results
     % output options
@@ -44,7 +46,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     C8              = sqrt(nstate*(P8 + GAM)/rho8); % far-field sound speed (m/s)
     %*************************************************************************
     % PRESSURE WAVEFORM OPTIONS
-    TFin            = 10e-6;      % final time (s)
+    TFin            = 1e-6;      % final time (s)
     pA              = 0*1e5;      % pressure amplitude (Pa)
     omega           = 0*4e6*2*pi; % frequency (rad/s)
     TW              = 0;        % gaussian width (s)
@@ -53,14 +55,11 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     wavetype        = 2;        % wave type oscillating bubble, see f_pinfinity
     %*************************************************************************
     % STRESS OPTIONS
-    % 1 : N-H, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
-    stress          = 1;
-    eps3            = 0;
     vmaterial       = 'water';
     S               = 0.072;              % (N/m) Liquid Surface Tension 
     [mu8,Dmu,v_a,v_nc,v_lambda] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity
 	G               = 1E1;                % (Pa) Medium Shear Modulus 
-    lambda1         = 0;  % 0.5e-6;             % relaxation time (s)
+    lambda1         = 0.5e-6;             % relaxation time (s)
     lambda2         = lambda1;            % retardation time (s)
     %*************************************************************************
     % THERMAL OPTIONS
