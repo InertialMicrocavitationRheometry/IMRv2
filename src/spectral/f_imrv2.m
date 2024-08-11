@@ -16,7 +16,7 @@ function varargout =  f_imrv2(varargin)
 radial          = eqns_opts(1);  bubtherm        = eqns_opts(2); 
 medtherm        = eqns_opts(3);  stress          = eqns_opts(4); 
 eps3            = eqns_opts(5);  masstrans       = eqns_opts(6); 
-if (stress == 4); ptt = 1; else; ptt =0; end
+if (stress == 4); ptt = 1; else; ptt = 0; end
 % solver options
 method          = solve_opts(1); spectral        = solve_opts(2); 
 divisions       = solve_opts(3); Nv              = solve_opts(4); 
@@ -33,7 +33,6 @@ tfin = tspan(end);
 % output options
 dimensionalout  = out_opts(1);  progdisplay     = out_opts(2); 
 detail          = out_opts(3);  plotresult      = out_opts(4); 
-displayonly     = out_opts(5);  technical       = out_opts(6); 
 % physical parameters%
 % acoustic parameters
 Cstar           = acos_opts(1); GAMa            = acos_opts(2); 
@@ -71,6 +70,7 @@ ze = cos(pi*(1:Nv)'/Nv);
 % collocation matrix construction
 [gA,gAI,~,~,gAPd,gAPdd] = dcdmtxe(Nt);
 [mA,~,~,~,mAPd,mAPdd] = dcdmtx(Mt);
+[gC,gCI,~,~,~,~] = dcdmtxe(Nt);
 Q = [gA(2:end,:) zeros(Nt,Mt+1);
     zeros(Mt,Nt+1) mA(2:end,:);
     2*(0:Nt).^2 iota*(0:Mt).^2];
@@ -122,10 +122,12 @@ end
 if spectral == 0, Nv = 1; end
 if bubtherm == 0, Nt = -1; Mt = -1; qdot = []; end
 if medtherm == 0, Mt = -1; end
+if masstrans == 0, Nm = -1; end
 ia = 4:(4+Nt);
 ib = (5+Nt):(5+Nt+Mt);
 ic = (6+Nt+Mt):(5+Nt+Mt+Nv);
 id = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
+ie = (6+Nt+Mt+2*Nv):(5+Nt+Mt+2*Nv+Nm);
 %*************************************************************************
 
 %*************************************************************************
@@ -139,6 +141,7 @@ init = [Rzero; Uzero; p0star; % radius, velocity, pressure
 
 %*************************************************************************
 % SOLVER CALL 
+IMR_start;
 stepcount = 0;
 if method == 15
     if divisions == 0
@@ -156,9 +159,9 @@ elseif method == 23
     [t,X] = ode23tb(@SVBDODE,tspan,init,options);
 elseif method == 45
     if divisions == 0
-        options = odeset('NonNegative',1,'AbsTol',1e-8,'RelTol',1e-8);
+        options = odeset('NonNegative',1,'AbsTol',1e-9,'RelTol',1e-9);
     else
-        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-8);
+        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-6);
     end
     [t,X] = ode45(@SVBDODE,tspan,init,options);
 else
@@ -169,6 +172,7 @@ else
     end
     [t,X] = ode45(@SVBDODE,tspan,init,options);
 end
+
 %*************************************************************************
 
 %*************************************************************************
@@ -232,31 +236,15 @@ function dXdt = SVBDODE(t,X)
 
     %*************************************************************************
     % stress equation
-    J = 0; JdotX = 0; Z1dot = 0; Z2dot = 0;
+    Z1dot = 0; Z2dot = 0;
     if stress == 1 % Kelvin-Voigt with neo-Hookean elasticity
         % compute stress integral
         J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
         JdotX = -2*U*(Req*(1/R)^2 + Req^4*(1/R)^5)/Ca + 4/Re8*U^2/R^2;
-    elseif stress == 2 % linear Maxwell, linear Jeffreys, linear Zener
-        % extract
-        Z1 = X(ic);
-        J = Z1/R^3 - 4*LAM/Re8*U/R;
-        % stress integral derivative
-        Z1dot = -Z1/De + 4*(LAM-1)/(Re8*De)*R^2*U - 4*(R^3-1)/(3*Ca*De);
-        Z2dot = 0;
-        JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re8*U^2/R^2;
-    elseif stress == 3 % upper-convected Maxwell, OldRoyd-B
-        % extract stress sub-integrals
-        Z1 = X(ic); Z2 = X(id);
-        % compute new derivatives
-        Z1dot = -(1/De - 2*U/R)*Z1 + 2*(LAM-1)/(Re8*De)*R^2*U;
-        Z2dot = -(1/De + 1*U/R)*Z2 + 2*(LAM-1)/(Re8*De)*R^2*U;
-        J = (Z1 + Z2)/R^3 - 4*LAM/Re8*U/R;
-        JdotX = (Z1dot+Z2dot)/R^3 - 3*U/R^4*(Z1+Z2) + 4*LAM/Re8*U^2/R^2;
-    elseif stress == 3 || stress == 4 || stress == 5 
+    elseif spectral
         % Giesekus, PTT, or forced spectral         
         % extract stress spectrum
-        c = X(ic); d = X(id);
+        c = X(ic); d = X(id); 
         % inverse Chebyshev transforms and derivatives
         [trr,dtrr,t00,dt00] = stressdiff(c,d);
         % new spectral coefficient derivatives
@@ -273,7 +261,22 @@ function dXdt = SVBDODE(t,X)
             + LDR*(2*U^2/R^2 + Udot/R))/De - zeNO*10*LAM/Re8*(U/R)^2./yV.^6);
         % compute stress integral
         J = 2*sum(cdd.*(c-d));
-        JdotX = 2*sum(cdd.*(Z1dot - Z2dot));           
+        JdotX = 2*sum(cdd.*(Z1dot - Z2dot));   
+    elseif stress == 2 % linear Maxwell, linear Jeffreys, linear Zener
+        % extract
+        Z1 = X(ic);
+        J = Z1/R^3 - 4*LAM/Re8*U/R;
+        % stress integral derivative
+        Z1dot = -Z1/De + 4*(LAM-1)/(Re8*De)*R^2*U - 4*(R^3-1)/(3*Ca*De);
+        JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re8*U^2/R^2;
+    elseif stress == 3 % upper-convected Maxwell, OldRoyd-B
+        % extract stress sub-integrals
+        Z1 = X(ic); Z2 = X(id);
+        % compute new derivatives
+        Z1dot = -(1/De - 2*U/R)*Z1 + 2*(LAM-1)/(Re8*De)*R^2*U;
+        Z2dot = -(1/De + 1*U/R)*Z2 + 2*(LAM-1)/(Re8*De)*R^2*U;
+        J = (Z1 + Z2)/R^3 - 4*LAM/Re8*U/R;
+        JdotX = (Z1dot+Z2dot)/R^3 - 3*U/R^4*(Z1+Z2) + 4*LAM/Re8*U^2/R^2;        
     else
         error('stress setting is not available');
     end
@@ -289,27 +292,25 @@ function dXdt = SVBDODE(t,X)
     % Rayleigh-Plesset        
     if radial == 1
         Udot = (p + pVap - 1 - pf8 - iWe/R + J - 1.5*U^2)/R;
+    % Keller-Miksis in pressure        
+    elseif radial == 2
+        Udot = ((1+U./Cstar)*(p + pVap - 1 - pf8 - iWe./R + J) ...
+            + R./Cstar.*(pdot + iWe.*U./R.^2 + JdotX - pf8dot) ...
+            - 1.5.*(1-U./(3.*Cstar)).*U.^2)./((1-U./Cstar).*R + JdotA./Cstar);        
     % Keller-Miksis in enthalpy
-    elseif radial == 2    
+    elseif radial == 3    
         hB = (sam/no)*(((p - iWe/R + GAMa + J)/sam)^no - 1);
-        hH = (sam/(p + pVap - iWe/R + GAMa + J))^(1/nstate);
+        hH = (sam/(p - iWe/R + GAMa + J))^(1/nstate);
         Udot = ((1 + U/Cstar)*(hB - pf8) - R/Cstar*pf8dot ...
             + R/Cstar*hH*(pdot + iWe*U./R.^2 + JdotX) ...
             - 1.5*(1 - U./(3*Cstar)).*U.^2)/((1 - U./Cstar).*R + JdotA*hH./Cstar);
     % Gilmore equation
-	elseif radial == 3
+	elseif radial == 4
         hB = sam/no*(((p - iWe/R + GAMa + J)/sam)^no - 1);
         hH = (sam/(p + pVap - iWe/R + GAMa + J))^(1/nstate);
         Udot = ((1 + U/Cstar)*(hB - pf8) - R/Cstar*pf8dot ...
             + R/Cstar*(hB + hH*(pdot + iWe*U/R^2 + JdotX)) ...
             - 1.5*(1 - U/(3*Cstar))*U^2) / ((1 - U/Cstar)*R + JdotA*hH/Cstar);
-    % Keller-Miksis in pressure        
-    elseif radial == 4  
-        Udot = ((1+U./Cstar)*(p + pVap - 1 - pf8 - iWe./R + J) ...
-            + R./Cstar.*(pdot + iWe.*U./R.^2 + JdotX - pf8dot) ...
-            - 1.5.*(1-U./(3.*Cstar)).*U.^2)./((1-U./Cstar).*R + JdotA./Cstar);
-    else 
-       error('radial dynamics setting is not available');
     end
     %*************************************************************************
 
@@ -324,16 +325,13 @@ end
 % POST PROCESSING
 % extract result
 R = X(:,1); U = X(:,2); p = X(:,3);
-a = X(:,ia)'; 
+a = X(:,ia)';
 b = X(:,ib)'; 
 c = X(:,ic)'; 
 d = X(:,id)'; 
-if masstrans == 1
-    e = X(:,ie)';
-end
+e = X(:,ie)';
 I = X(:,end);
 pA = zeros(size(t));
-% Udot = R2dot(t,X);
 for n = 1:length(t)
     pA(n) = f_pinfinity(t(n),pvarargin); 
 end 
@@ -353,16 +351,27 @@ else
     T = R.^(-3*kappa);
 end
 if masstrans == 1
-    C = gA*e;
+    C = gC*e;
 end
+
 %*************************************************************************
 
 %*************************************************************************
 % DIMENSIONALIZATION
 if dimensionalout == 1
     % re-dimensionalize problem
-    t = t*tc; R = R*Rref; U = U*uc; p = p*p0; pA = pA*p0; I = I*p0; T = T*T8;
-    c = c*p0; d = d*p0; e = e*C0; C = C*C0; Udot = Udot*uc/tc;
+    t = t*tc; 
+    R = R*Rref; 
+    U = U*uc; 
+    p = p*p0; 
+    %pA = pA*p0; 
+    I = I*p0; 
+    T = T*T8;
+    c = c*p0; 
+    d = d*p0; 
+    e = e*C0; 
+    C = C*C0; 
+    Udot = Udot*uc/tc;
     if spectral == 1
         trr = trr*p0; 
         t00 = t00*p0; 
@@ -377,43 +386,34 @@ end
 
 %*************************************************************************
 % FUNCTION OUTPUT 
-if displayonly == 1
-    varargout = {};
-else
-    % standard outputs
-    varargout{1} = t;
-    varargout{2} = R;
-    varargout{3} = U;
-    varargout{4} = p;
-    varargout{5} = trr;
-    varargout{6} = t00;
-    varargout{7} = I;
-    varargout{8} = T;    
-    if masstrans == 1
-        varargout{9} = C;
-    end
-    if bubtherm == 1 && medtherm == 1
-        varargout{10} = TL;
-    else
-        varargout{10} = ((T8 - 1)*dimensionalout + 1)*ones(divisions,1);
-    end   
-    % technical data
-    if technical == 1
-        varargout{11} = a; 
-        varargout{12} = b;
-        varargout{13} = c; 
-        varargout{14} = d;
-        varargout{15} = e;
-        varargout{16} = [stepcount p0 alpha];
-        varargout{17} = pA;
-%         varargout{17} = Udot;
-    end 
+% standard outputs
+varargout{1} = t;
+varargout{2} = R;
+varargout{3} = U;
+varargout{4} = p;
+varargout{5} = trr;
+varargout{6} = t00;
+varargout{7} = I;
+varargout{8} = T;    
+if masstrans == 1
+    varargout{9} = C;
 end
+if bubtherm == 1 && medtherm == 1
+    varargout{10} = TL;
+else
+    varargout{10} = ((T8 - 1)*dimensionalout + 1)*ones(divisions,1);
+end   
+% technical data
+varargout{11} = a;
+varargout{12} = b;
+varargout{13} = c; 
+varargout{14} = d;
+varargout{15} = e;
+
 %*************************************************************************
 
 %*************************************************************************
-% DISPLAY
-% display figure
+% DISPLAY RESULT
 if plotresult == 1 
     subplot(3,1,1);
     plot(t,R,'k','LineWidth',2); 
@@ -433,14 +433,18 @@ if plotresult == 1
         semilogy(t,abs(a(end,:)),'k-','LineWidth',2);
         semilogy(t,abs(b(end,:)),'b-','LineWidth',2); 
         ylabel('$a_N$, $b_M$, $e_N$','Interpreter','Latex','FontSize',12);
-        set(gca, 'YScale', 'log');
         axis([0 t(end) 1e-20 1]);
-        leg1 = legend('$a_N$','$b_M$','$e_N$','Location','NorthEast','FontSize',12);
+        set(gca, 'YScale', 'log');
+        if masstrans == 0
+            leg1 = legend('$a_N$','$b_M$','Location','NorthEast','FontSize',12);
+        else
+            leg1 = legend('$a_N$','$b_M$','$e_N$','Location','NorthEast','FontSize',12);
+        end
         set(leg1,'Interpreter','latex');
         set(gca,'TickLabelInterpreter','latex','FontSize',16);
         set(gcf,'color','w');
     end
-    if masstrans == 1
+    if spectral == 1
         subplot(3,1,3);
         hold on;
         box on;
@@ -457,79 +461,90 @@ if plotresult == 1
     end
 end
 %*************************************************************************
-
+IMR_finish;
 
 %*************************************************************************
-% convert run settings to strings
-if radial == 1
-    eqn = 'Rayleigh Plesset equation';
-elseif enthalpy == 1
-    eqn = 'Keller-Miksis in enthalpy';
-else
-    eqn = 'Keller-Miksis in pressure';
-end
-const = 'none';
-
-if bubtherm == 1
-    if medtherm == 1, therm = 'full';
+% COMMAND WINDOW DISPLAY
+function IMR_start()
+    if radial == 1
+        eqn = 'Rayleigh Plesset equation';
+    elseif radial == 2
+        eqn = 'Keller-Miksis pressure';
+    elseif radial == 3
+        eqn = 'Keller-Miksis enthalpy';
     else
-        therm = 'cold-medium approximation';
+        eqn = 'Gilmore';
     end
-else
-    therm = 'polytropic approximation';
-end
-
-if stress == 1
-    if Ca == Inf
-        const = 'Newtonian fluid';
+    const = 'none';
+    
+    if bubtherm == 1
+        if medtherm == 1, therm = 'full';
+        else
+            therm = 'cold-medium approximation';
+        end
     else
-        const = 'neo-Hookean Kelvin-Voigt';
+        therm = 'polytropic approximation';
     end
-elseif stress == 2
-    if Ca ~= Inf && LAM == 0
-        const = 'linear Zener';
-    elseif Ca == Inf && LAM == 0
-        const = 'linear Maxwell';
-    elseif Ca == Inf && LAM ~= 0
-        const = 'linear Jeffreys';
+
+    if masstrans == 1
+        mass = 'mass transfer in the bubble';
+    else 
+        mass = 'no mass transfer in the bubble';
+    end
+
+    if stress == 1
+        if Ca == Inf
+            const = 'Newtonian fluid';
+        else
+            const = 'neo-Hookean Kelvin-Voigt';
+        end
+    elseif stress == 2
+        if Ca ~= Inf && LAM == 0
+            const = 'linear Zener';
+        elseif Ca == Inf && LAM == 0
+            const = 'linear Maxwell';
+        elseif Ca == Inf && LAM ~= 0
+            const = 'linear Jeffreys';
+        else
+            const = 'Kelvin-yangChurch series';
+        end
+    elseif stress == 3
+        if Ca ~= Inf && LAM == 0
+            const = 'upper-convective Zener';
+        elseif Ca == Inf && LAM == 0
+            const = 'upper-convective Maxwell';
+        elseif Ca == Inf && LAM ~= 0
+            const = 'Oldroyd-B';
+        end
+    elseif stress == 4 
+        const = 'Phan-Thien-Tanner';
+    else 
+        const = ['Giesekus(' num2str(eps3) ')'];
+    end
+
+    if spectral == 1
+        solut = 'spectral method';
     else
-        const = 'Kelvin-yangChurch series';
+        solut = 'ODE formulation';
     end
-elseif stress == 3
-    if Ca ~= Inf && LAM == 0
-        const = 'upper-convective Zener';
-    elseif Ca == Inf && LAM == 0
-        const = 'upper-convective Maxwell';
-    elseif Ca == Inf && LAM ~= 0
-        const = 'Oldroyd-B';
-    end
-elseif stress == 4 
-    const = 'Phan-Thien-Tanner';
-else 
-    const = ['Giesekus(' num2str(eps3) ')'];
+    %*************************************************************************
+    % display run settings
+    disp('--- IMRV2 SETTINGS ---');
+    disp(['Radial dynamics: ' eqn]);
+    disp(['Medium rheology: ' const]);
+    disp(['Thermal effects: ' therm]);
+    disp(['Mass effects: ' mass]);
+    disp(['Solution method: ' solut]);
+    disp('--- Dimensionless numbers ---');
+    disp(['Re8 = ' num2str(Re8,'%10.10f')]);
+    disp(['De = ' num2str(De,'%10.10f')]);
+    disp(['Ca = ' num2str(Ca,'%10.10f')]);
+    disp(['LM = ' num2str(LAM,'%10.10f')]);
 end
 
-if spectral == 1
-    solut = 'spectral method';
-else
-    solut = 'ODE formulation';
-end
-%*************************************************************************
-
-%*************************************************************************
-% display run settings
-disp('--- Game settings ---');
-disp(['Radial dynamics: ' eqn]);
-disp(['Medium rheology: ' const]);
-disp(['Thermal effects: ' therm]);
-disp(['Solution method: ' solut]);
-disp('--- Dimensionless numbers ---');
-disp(['Re8 = ' num2str(Re8,'%10.10f')]);
-disp(['De = ' num2str(De,'%10.10f')]);
-disp(['Ca = ' num2str(Ca,'%10.10f')]);
-disp(['LM = ' num2str(LAM,'%10.10f')]);
-disp('--- Match ---');
-%*************************************************************************
+function IMR_finish()    
+    disp('--- COMPLETED SIMULATION ---');    
+end 
 
 %*************************************************************************
 % functions called by solver 

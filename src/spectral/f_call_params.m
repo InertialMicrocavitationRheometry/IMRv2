@@ -8,18 +8,19 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     radial          = 1;        % 1 : RP, 2 : K-M P, 3 : K-M E, 4 : Gil
     bubtherm        = 0;        % 0 : polytropic assumption, 1: thermal PDE in bubble
     medtherm        = 0;        % 0 : warm fluid, 1: cold fluid assumption
-    stress          = 5;        % 1 : N-H, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
+    stress          = 1;        % 1 : N-H, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
     eps3            = 0;        % this value must be (0, 0.5]
     vapor           = 0;        % 0 : ignore vapor pressure, 1 : vapor pressure
     masstrans       = 0;        % mass transfer, default is no mass transfer 
     %*************************************************************************
     % SOLVER OPTIONS
+    TFin            = 1e-6;     % final time (s)
     method          = 45;       % ode45 setting for the time stepper
-    spectral        = 0;        % force spectral collocation solution
+    spectral        = 1;        % force spectral collocation solution
     divisions       = 0;        % minimum number of timesteps
     Nt              = 12;       % number of points in bubble, thermal PDE
     Mt              = 12;       % number of points outside of bubble, thermal PDE
-    Nv              = 80;       % number of points outside of bubble, viscoelastic stress PDE     
+    Nv              = 150;      % number of points outside of bubble, viscoelastic stress PDE     
     Lv              = 3;        % characteristic length for grid stretching, leave at 3
     Lt              = 3;        % characteristic length for grid stretching, leave at 3
     %*************************************************************************
@@ -30,12 +31,9 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     %*************************************************************************
     % OUPUT OPTIONS
     dimensionalout  = 0;        % output result in dimensional variables
-    progdisplay     = 1;        % display progress while code running
+    progdisplay     = 0;        % display progress while code running
     detail          = 2000;    	% number of points in time to store result
     plotresult      = 1;        % generate figure containing results
-    % output options
-    displayonly     = 0;        % do not generate output
-    technical       = 0;        % output technical data
 
     %*************************************************************************
     % ACOUSTIC OPTIONS
@@ -46,8 +44,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     C8              = sqrt(nstate*(P8 + GAM)/rho8); % far-field sound speed (m/s)
     %*************************************************************************
     % PRESSURE WAVEFORM OPTIONS
-    TFin            = 1e-6;      % final time (s)
-    pA              = 0*1e5;      % pressure amplitude (Pa)
+    pA              = 0*1e6;      % pressure amplitude (Pa)
     omega           = 0*4e6*2*pi; % frequency (rad/s)
     TW              = 0;        % gaussian width (s)
     DT              = 0;        % delay (s)
@@ -55,10 +52,10 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     wavetype        = 2;        % wave type oscillating bubble, see f_pinfinity
     %*************************************************************************
     % STRESS OPTIONS
-    vmaterial       = 'water';
     S               = 0.072;              % (N/m) Liquid Surface Tension 
+    vmaterial       = 'water';
     [mu8,Dmu,v_a,v_nc,v_lambda] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity
-	G               = 1E1;                % (Pa) Medium Shear Modulus 
+	G               = 1E3;                % (Pa) Medium Shear Modulus 
     lambda1         = 0.5e-6;             % relaxation time (s)
     lambda2         = lambda1;            % retardation time (s)
     %*************************************************************************
@@ -80,8 +77,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     Rv              = Ru/(18.01528e-3);   % (J/Kg-K) Gas constant vapor
     Ra              = 438.275;            % (J/Kg-K)Gas constant air    
     %*************************************************************************
-
-    % pressure settings
+    % PRESSURE OPTIONS
     Pv              = f_pvsat(T8);  
 	P0              = Pv*vapor + ...
         (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3*kappa); % need to add Pv_sat at room temp  
@@ -90,11 +86,11 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     % OVERRIDES defaults with options and dimensional inputs %
     % check that all inputs are matched
     if mod(nargin,2) == 1
-        disp('Error: unmatched inputs'); 
-        return; 
+        error('INPUT ERROR: unmatched inputs'); 
     end
     % load inputs
-    misscount = 0; p0set = 0; c8set = 0;
+    misscount = 0; p0set = 0; c8set = 0; tflag = 0; visflag = 0;
+
     if isempty(varargin) == 1
         disp('Using default settings');
     else
@@ -106,74 +102,84 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
                 c8set = 1; 
             end
             switch lower(varargin{n})
-            % equation for radial dynamics
-            case 'radial',  radial = varargin{n+1};% ~= 0;
-            % case 'radial',  rayleighplesset = varargin{n+1};% ~= 0;
-            % case 'enth',    enthalpy = varargin{n+1};% ~= 0;
-            % case 'gil',     gil = varargin{n+1};% ~= 0;                
-            % thermal options
-            case 'bubtherm',bubtherm = varargin{n+1};% ~= 0;
-            case 'medtherm',medtherm = varargin{n+1};% ~= 0;
-            case 'vapor',   vapor = varargin{n+1};% ~= 0;
-            % constitutive model
-            case 'stress',  stress = varargin{n+1};% ~= 0;
-            case 'eps3',    eps3 = varargin{n+1};% ~= 0;
-            % display options
-            case 'dimout',  dimensionalout = varargin{n+1};% ~= 0;
-            case 'pdisp',   progdisplay = varargin{n+1};% ~= 0;
-            case 'detail',  detail = varargin{n+1};
-            case 'plot',    plotresult = varargin{n+1};% ~= 0;
-            % output options
-            case 'donly',   displayonly = varargin{n+1};% ~= 0;
-            case 'tech',    technical = varargin{n+1};% ~= 0;
-            % solver options
+            %*****************************************************************
+            % EQUATION OPTIONS
+            case 'radial',      radial = varargin{n+1};
+            case 'bubtherm',    bubtherm = varargin{n+1};
+            case 'medtherm',    medtherm = varargin{n+1};
+            case 'stress',      stress = varargin{n+1};
+            case 'eps3',        eps3 = varargin{n+1};
+            case 'vapor',       vapor = varargin{n+1};
+            case 'masstrans',   masstrans = varargin{n+1};
+            %*****************************************************************
+            % SOLVER OPTIONS
             case 'method',  method = varargin{n+1};
-            case 'spectral',spectral = varargin{n+1};% ~= 0;
+            case 'spectral',spectral = varargin{n+1};
             case 'divisions', divisions = varargin{n+1};
-            % numerical parameters
             case 'nv',      Nv = varargin{n+1};
             case 'nt',      Nt = varargin{n+1};
             case 'mt',      Mt = varargin{n+1};
             case 'lv',      Lv = varargin{n+1};
             case 'lt',      Lt = varargin{n+1};  
-            % waveform parameters
-            case 'tfin',    TFin = varargin{n+1};
+            case 'tfin',    TFin = varargin{n+1};  
+                tflag = tflag + 1; TVector = 0;
+            %*****************************************************************
+            % INITIAL CONDITIONS
+            case 'r0',      R0 = varargin{n+1};
+            case 'u0',      U0 = varargin{n+1};
+            case 'req',     Req = varargin{n+1};
+            %*****************************************************************
+            % OUPUT OPTIONS
+            case 'dimout',  dimensionalout = varargin{n+1};
+            case 'pdisp',   progdisplay = varargin{n+1};
+            case 'detail',  detail = varargin{n+1};
+            case 'plot',    plotresult = varargin{n+1};
+
+            %*****************************************************************
+            % ACOUSTIC OPTIONS
+            case 'rho8',    rho8 = varargin{n+1};
+            case 'gam',     GAM = varargin{n+1};
+            case 'nstate',  nstate = varargin{n+1};
+            case 'p8',      P8 = varargin{n+1};
+            case 'c8',      C8 = varargin{n+1};
+            %*****************************************************************
+            % PRESSURE WAVEFORM OPTIONS
             case 'pa',      pA = varargin{n+1};
             case 'omega',   omega = varargin{n+1};
             case 'tw',      TW = varargin{n+1};
             case 'dt',      DT = varargin{n+1};
             case 'mn',      mn = varargin{n+1};
-            % physical constants
-            case 'gam',     GAM = varargin{n+1};
-            case 'nstate',  nstate = varargin{n+1};
-            case 'p8',      P8 = varargin{n+1};
-            case 'rho8',    rho8 = varargin{n+1};
-            case 'c8',      C8 = varargin{n+1};
-            case 'surf',    S = varargin{n+1};
-            case 'kappa',   kappa = varargin{n+1};
+            %****************************************************************
+            % STRESS OPTIONS
+            case 'mu',      mu8 = varargin{n+1};  
+                visflag = visflag + 1;
+            case 'g',       G = varargin{n+1};
+            case 'lambda1', lambda1 = varargin{n+1};
+            case 'lambda2', lambda2 = varargin{n+1};            
+            case 'surft',    S = varargin{n+1};
+            case 'vmaterial', vmaterial = varargin{n+1}; 
+                visflag = visflag + 1;
+               [mu8,Dmu,v_a,v_nc,v_lambda] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity    
+            %*****************************************************************
+            % THERMAL OPTIONS            
             case 't8',      T8 = varargin{n+1};
-            case 'pv',      Pv = varargin{n+1};
-            % thermal conductivity and diffusivity
+            case 'kappa',   kappa = varargin{n+1};                
             case 'at',      AT = varargin{n+1};
             case 'bt',      BT = varargin{n+1};
             case 'kl',      Km = varargin{n+1};
             case 'dl',      Dm = varargin{n+1};
-            % viscoelastic parameters
-            case 'mu',      mu8 = varargin{n+1};
-            case 'g',       G = varargin{n+1};
-            case 'lambda1', lambda1 = varargin{n+1};
-            case 'lambda2', lambda2 = varargin{n+1};
-            % mass diffusion properties
+	        %*****************************************************************
+            % MASS TRANSFER OPTIONS
             case 'dmass',   D0 = varargin{n+1};
-            % initial conditions
-            case 'r0',      R0 = varargin{n+1};
-            %case 'rref',    Rref = varargin{n+1};
-            case 'u0',      U0 = varargin{n+1};
+            case 'lheat',   L_heat = varargin{n+1};
+            case 'rv',      Rv = varargin{n+1};
+            case 'ra',      Ra = varargin{n+1};
+            %*****************************************************************
+            % PRESSURE OPTIONS         
+            case 'pv',      Pv = varargin{n+1};   
             case 'p0',      P0 = varargin{n+1};
-            case 'req',     Req = varargin{n+1};
             case 'tvector', TVector = varargin{n+1}; 
-            %case 'a0', a0 = varargin{n+1};
-            %case 'b0', b0 = varargin{n+1};
+                tflag = tflag + 1; TFin = 0;
             otherwise, misscount = misscount + 1;
             end
         end
@@ -184,12 +190,45 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
         if c8set == 0 
             C8 = sqrt(nstate*(P8 + GAM)/rho8); 
         end
+        check = 1-isnumeric(radial);
+        if check || radial > 4 || radial <= 0 
+            error('INPUT ERROR: radial must be 1, 2, 3, or 4');
+        end
+        check = 1-isnumeric(bubtherm);
+        if check || bubtherm ~= 0 && bubtherm ~= 1
+            error('INPUT ERROR: bubtherm must be 0 or 1');
+        end
+        check = 1-isnumeric(medtherm);
+        if check || medtherm ~= 0 && medtherm ~= 1
+            error('INPUT ERROR: medtherm must be 0 or 1');
+        end
+        check = 1-isnumeric(stress);
+        if check || stress > 5 || stress <= 0
+            error('INPUT ERROR: stress must be 1, 2, 3, 4, or 5');
+        end        
+        check = 1-isnumeric(vapor);
+        if check || vapor ~= 0 && vapor ~= 1
+            error('INPUT ERROR: vapor must be 0 or 1');
+        end
+        check = 1-isnumeric(radial);
+        if check || masstrans ~= 0 && masstrans ~= 1
+            error('INPUT ERROR: masstrans must be 0 or 1');
+        end        
+        if (tflag > 1)
+            error('INPUT ERROR: Only tvector or tfin can be specified, not both');
+        end
+        if (visflag > 1)
+            error('INPUT ERROR: Only vmaterial or mu8 can be specified, not both');
+        end        
+        if TVector == 0
+            TVector = [0 TFin];
+        end
     end
     % check for physical viscoelastic parameters
     if (lambda1 > mu8/G && (stress == 1)) || abs(eps3 - 0.25) > 0.25
-        disp('Error: nonphysical viscoelastic parameters');
-        return;
+        error('INPUT ERROR: Unphysical viscoelastic parameters');
     end
+
     %*************************************************************************
     % Intermediate calculated variables 
     K8      = AT*T8+BT;                 % far-field thermal conductivity (W/(m K))
@@ -207,7 +246,6 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     Pv_star = vapor*Pv/P8;
 	P0_star = P0/P8;                    % 
     % dimensionless waveform parameters
-    TVector = [0 TFin];   % vector of the time, default to be tspan
     tvector = TVector./t0;
     om      = omega*t0;                 % non-dimensional frequency
     ee      = pA/P8;                    
@@ -286,13 +324,11 @@ if isempty(varargin) == 0
 end
 % check that all inputs were accounted for
 if misscount ~= nargin/2
-    disp(['Error: ' num2str(misscount-nargin/2) ' unrecognized input(s)']);
-    return;
+    error(['INPUT ERROR: ' num2str(misscount-nargin/2) ' unrecognized input(s)']);
 end
 % check dimensionless viscoelastic parameters
 if De > Ca/Re8 && (yangChurch == 0 && kelvinVoigt == 0 && linelas == 0)
-    disp('Error: nonphysical viscoelastic parameters');
-    return;
+    error('INPUT ERROR: nonphysical viscoelastic parameters');
 end
 
 %*************************************************************************
@@ -306,7 +342,7 @@ if stress == 1
 elseif stress == 2
     spectral = 0;
 elseif stress == 3
-    Ca = -1;
+    Ca = -1; 
 elseif stress == 4
     Ca = -1; spectral = 1;
 elseif stress == 5
@@ -334,7 +370,7 @@ init_opts = [Rzero Uzero pzero P8 T8 Pv_star Req_zero];
 % time span options
 tspan_opts = tvector;
 % output options
-out_opts = [dimensionalout progdisplay detail plotresult displayonly technical];
+out_opts = [dimensionalout progdisplay detail plotresult];
 
 % physical parameters%%%%
 % acoustic parameters
@@ -397,7 +433,7 @@ function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)
         mu8 = 0; 
         muo = 0.22;
     else
-        error('No viscosity model specified in f_call_parameters, exiting');
+        error('INPUT ERROR: No viscosity model specified in f_call_parameters, exiting');
     end
     Dmu = muo-mu8;
 end
