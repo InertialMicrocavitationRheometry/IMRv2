@@ -10,7 +10,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     medtherm        = 0;        % 0 : warm fluid, 1: cold fluid assumption
     stress          = 1;        % 1 : N-H, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
     eps3            = 0;        % this value must be (0, 0.5]
-    vapor           = 0;        % 0 : ignore vapor pressure, 1 : vapor pressure
+    vapor           = 1;        % 0 : ignore vapor pressure, 1 : vapor pressure
     masstrans       = 0;        % mass transfer, default is no mass transfer 
     %*************************************************************************
     % SOLVER OPTIONS
@@ -32,7 +32,6 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     % OUPUT OPTIONS
     dimensionalout  = 0;        % output result in dimensional variables
     progdisplay     = 0;        % display progress while code running
-    detail          = 2000;    	% number of points in time to store result
     plotresult      = 1;        % generate figure containing results
 
     %*************************************************************************
@@ -132,7 +131,6 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             % OUPUT OPTIONS
             case 'dimout',  dimensionalout = varargin{n+1};
             case 'pdisp',   progdisplay = varargin{n+1};
-            case 'detail',  detail = varargin{n+1};
             case 'plot',    plotresult = varargin{n+1};
 
             %*****************************************************************
@@ -185,7 +183,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
         end
         if p0set == 0
           % need to add Pv_sat at room temp  
-          P0 = Pv*vapor + (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3*kappa); 
+          P0 = Pv*vapor + (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3*kappa);
         end
         if c8set == 0 
             C8 = sqrt(nstate*(P8 + GAM)/rho8); 
@@ -241,14 +239,15 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     Mnondim = rho8*(4/3*pi*R0^3);       %
     
     % Final non-dimensional variables
+    Pref    = P8;
     t0      = R0/Uc;                    % characteristic time (s) 
 	% dimensionless vapor and infinity pressure
-    Pv_star = vapor*Pv/P8;
-	P0_star = P0/P8;                    % 
+    Pv_star = vapor*Pv/Pref;
+	P0_star = P0/Pref;                    % 
     % dimensionless waveform parameters
     tvector = TVector./t0;
     om      = omega*t0;                 % non-dimensional frequency
-    ee      = pA/P8;                    
+    ee      = pA/Pref;                    
     tw      = TW*t0;
     dt      = DT/t0;    
     % acoustic properties
@@ -269,14 +268,14 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     Ra_star = Ra/Rnondim; 
     L_heat_star = L_heat/(Uc)^2;
     % viscoelastic properties
-    Ca      = P8/G; 
-    Re8     = P8*R0/(mu8*Uc);        % this is the Reynolds number
+    Ca      = Pref/G; 
+    Re8     = Pref*R0/(mu8*Uc);        % this is the Reynolds number
     if Dmu ~= 0
-        DRe = P8*R0/(Dmu*Uc);
+        DRe = Pref*R0/(Dmu*Uc);
     else 
         DRe = 0;
     end
-    We      = P8*R0/(2*S);
+    We      = Pref*R0/(2*S);
     v_lambda_star = v_lambda/t0;
     LAM     = lambda2/lambda1;
     De      = lambda1*Uc/R0;            % Deborah number
@@ -370,7 +369,7 @@ init_opts = [Rzero Uzero pzero P8 T8 Pv_star Req_zero];
 % time span options
 tspan_opts = tvector;
 % output options
-out_opts = [dimensionalout progdisplay detail plotresult];
+out_opts = [dimensionalout progdisplay plotresult];
 
 % physical parameters%%%%
 % acoustic parameters

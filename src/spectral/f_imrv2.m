@@ -32,7 +32,7 @@ tspan = tspan_opts;
 tfin = tspan(end);
 % output options
 dimensionalout  = out_opts(1);  progdisplay     = out_opts(2); 
-detail          = out_opts(3);  plotresult      = out_opts(4); 
+plotresult      = out_opts(3); 
 % physical parameters%
 % acoustic parameters
 Cstar           = acos_opts(1); GAMa            = acos_opts(2); 
@@ -81,7 +81,7 @@ sCI = sCI(2:end,2:end);
 sCAd = sCAd(2:end,2:end);
 % precomputations
 LDR = LAM*De/Re8;
-sam = p0star - iWe + GAMa;
+sam = 1 - Pv_star + GAMa; 
 no = (nstate-1)/nstate;
 kapover = (kappa-1)/kappa;
 yT = 2*Lt./(1+xi) - Lt + 1;
@@ -228,7 +228,7 @@ function dXdt = SVBDODE(t,X)
         end
     else 
         % polytropic approximation
-        p = p0star*R^(-3*kappa);
+        p = (p0star-Pv_star)*R^(-3*kappa);
         pdot = -3*kappa*U/R*p;
         pVap = Pv_star;        
     end
@@ -307,7 +307,7 @@ function dXdt = SVBDODE(t,X)
     % Gilmore equation
 	elseif radial == 4
         hB = sam/no*(((p - iWe/R + GAMa + J)/sam)^no - 1);
-        hH = (sam/(p + pVap - iWe/R + GAMa + J))^(1/nstate);
+        hH = (sam/(p - iWe/R + GAMa + J))^(1/nstate);
         Udot = ((1 + U/Cstar)*(hB - pf8) - R/Cstar*pf8dot ...
             + R/Cstar*(hB + hH*(pdot + iWe*U/R^2 + JdotX)) ...
             - 1.5*(1 - U/(3*Cstar))*U^2) / ((1 - U/Cstar)*R + JdotA*hH/Cstar);
