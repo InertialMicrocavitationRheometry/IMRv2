@@ -16,6 +16,7 @@ function varargout =  f_imrv2(varargin)
 radial          = eqns_opts(1);  bubtherm        = eqns_opts(2); 
 medtherm        = eqns_opts(3);  stress          = eqns_opts(4); 
 eps3            = eqns_opts(5);  masstrans       = eqns_opts(6); 
+perturbed       = eqns_opts(7);  nl              = eqns_opts(8);
 if (stress == 4); ptt = 1; else; ptt = 0; end
 % solver options
 method          = solve_opts(1); spectral        = solve_opts(2); 
@@ -26,7 +27,11 @@ Lv              = solve_opts(7); Lt              = solve_opts(8);
 Rzero           = init_opts(1);  Uzero           = init_opts(2); 
 p0star          = init_opts(3);  P8              = init_opts(4); 
 T8              = init_opts(5);  Pv_star         = init_opts(6); 
-Req             = init_opts(7);
+Req             = init_opts(7);  
+if perturbed == 1
+    azero           = init_opts(8:8+nl-1);
+    adot_zero       = init_opts(8+nl:8+2*nl-1);
+end
 % time span options
 tspan = tspan_opts;
 tfin = tspan(end);
@@ -41,6 +46,9 @@ kappa           = acos_opts(3); nstate          = acos_opts(4);
 om              = wave_opts(1); ee              = wave_opts(2); 
 tw              = wave_opts(3); dt              = wave_opts(4); 
 mn              = wave_opts(5); wavetype        = wave_opts(6); 
+if perturbed == 1
+    l = wave_opts(7:7+nl-1)';
+end 
 pvarargin = [om,ee,tw,dt,mn,wavetype];
 % dimensionless viscoelastic
 We              = sigma_opts(1); Re8             = sigma_opts(2); 
@@ -132,11 +140,21 @@ ie = (6+Nt+Mt+2*Nv):(5+Nt+Mt+2*Nv+Nm);
 
 %*************************************************************************
 % initial condition assembly
-init = [Rzero; Uzero; p0star; % radius, velocity, pressure
-    zeros(Nt+1,1); % auxiliary temperature spectrum
-    ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
-    zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
-    0]; % initial stress integral
+if perturbed == 1
+    init = [Rzero; Uzero; p0star; % radius, velocity, pressure
+        zeros(Nt+1,1); % auxiliary temperature spectrum
+        ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
+        zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
+        0; % initial stress integral 
+        azero'; adot_zero']; % initial conditions for perturbed conditions
+else
+    init = [Rzero; Uzero; p0star; % radius, velocity, pressure
+        zeros(Nt+1,1); % auxiliary temperature spectrum
+        ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
+        zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
+        0]; % initial stress integral
+end
+
 %*************************************************************************
 
 %*************************************************************************
@@ -182,8 +200,11 @@ function dXdt = SVBDODE(t,X)
     if progdisplay == 1, disp(t/tfin); end
     
     % extract standard inputs
-    R = X(1); U = X(2); p = X(3); qdot = [];
-
+    R = X(1); U = X(2); p = X(3); qdot = []; 
+    if perturbed == 1
+        aa = X(7:7+nl-1);
+        adot = X(7+nl:7+2*nl-1);
+    end
     %*************************************************************************
     % non-condensible gas pressure and temperature
     if bubtherm
@@ -313,11 +334,22 @@ function dXdt = SVBDODE(t,X)
             - 1.5*(1 - U/(3*Cstar))*U^2) / ((1 - U/Cstar)*R + JdotA*hH/Cstar);
     end
     %*************************************************************************
-
+    
     %*************************************************************************
     % output assembly
-    Jdot = JdotX - JdotA*Udot/R;
-    dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot];
+    if perturbed == 1
+        Jdot = JdotX - JdotA*Udot/R;
+        eta = (3*U/R) + (4)/(Re8*R^2) + (l.*(l+1))./(3*Re8*R^2);
+        varXi = -(Udot/R) + (4*U)/(Re8*R^3) - ...
+              (2.*l.*(l+1).*U)./(3*Re8*R^3) - ((l+2).*(l-1))./(We*R^3) -...
+              ((4*Rzero)/(Ca*R^3))*(1 + (Rzero^3/R^3))-(2.*l.*(l+1))./...
+              (Ca*(R^2+R*Rzero+Rzero^2));
+        addot = -eta.*adot + varXi.*aa;
+        dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot; adot; addot];
+    else
+        Jdot = JdotX - JdotA*Udot/R;
+        dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot];
+    end
     %*************************************************************************
 end
 
@@ -325,12 +357,17 @@ end
 % POST PROCESSING
 % extract result
 R = X(:,1); U = X(:,2); p = X(:,3);
+if perturbed == 1
+    aa = X(:,7:7+nl-1);
+    adot = X(:,7+nl:7+2*nl-1);
+end
 a = X(:,ia)';
 b = X(:,ib)'; 
 c = X(:,ic)'; 
 d = X(:,id)'; 
 e = X(:,ie)';
-I = X(:,end);
+I = X(:,ie+1);
+
 pA = zeros(size(t));
 for n = 1:length(t)
     pA(n) = f_pinfinity(t(n),pvarargin); 
@@ -403,12 +440,18 @@ if bubtherm == 1 && medtherm == 1
 else
     varargout{10} = ((T8 - 1)*dimensionalout + 1)*ones(divisions,1);
 end   
+if perturbed == 1
+    for i = 1:nl
+        varargout{11+i-1} = aa(:,i);
+        varargout{11+nl+i-1} = adot(:,i);
+    end
+end
 % technical data
-varargout{11} = a;
-varargout{12} = b;
-varargout{13} = c; 
-varargout{14} = d;
-varargout{15} = e;
+% varargout{13} = a;
+% varargout{14} = b;
+% varargout{15} = c; 
+% varargout{16} = d;
+% varargout{17} = e;
 
 %*************************************************************************
 
@@ -420,9 +463,11 @@ if plotresult == 1
     hold('on'); 
     ylabel('$R$','Interpreter','Latex','FontSize',12);
     box on;
-    axis([0 t(end) 0 (max(R) + min(R))]);
-    set(gca,'TickLabelInterpreter','latex','FontSize',16)
-    set(gcf,'color','w');
+    if isreal(R)                                                            % oldb sims for certain values were imaginary, this spits out imaginary solution (BI will take care of it)
+        axis([0 t(end) 0 (max(R) + min(R))]);
+        set(gca,'TickLabelInterpreter','latex','FontSize',16)
+        set(gcf,'color','w');
+    end
     if bubtherm == 1
         if medtherm == 0
             b = zeros(size(a)); 
@@ -529,17 +574,17 @@ function IMR_start()
     end
     %*************************************************************************
     % display run settings
-    disp('--- IMRV2 SETTINGS ---');
-    disp(['Radial dynamics: ' eqn]);
-    disp(['Medium rheology: ' const]);
-    disp(['Thermal effects: ' therm]);
-    disp(['Mass effects: ' mass]);
-    disp(['Solution method: ' solut]);
-    disp('--- Dimensionless numbers ---');
-    disp(['Re8 = ' num2str(Re8,'%10.10f')]);
-    disp(['De = ' num2str(De,'%10.10f')]);
-    disp(['Ca = ' num2str(Ca,'%10.10f')]);
-    disp(['LM = ' num2str(LAM,'%10.10f')]);
+    % disp('--- IMRV2 SETTINGS ---');
+    % disp(['Radial dynamics: ' eqn]);
+    % disp(['Medium rheology: ' const]);
+    % disp(['Thermal effects: ' therm]);
+    % disp(['Mass effects: ' mass]);
+    % disp(['Solution method: ' solut]);
+    % disp('--- Dimensionless numbers ---');
+    % disp(['Re8 = ' num2str(Re8,'%10.10f')]);
+    % disp(['De = ' num2str(De,'%10.10f')]);
+    % disp(['Ca = ' num2str(Ca,'%10.10f')]);
+    % disp(['LM = ' num2str(LAM,'%10.10f')]);
 end
 
 function IMR_finish()    

@@ -12,9 +12,11 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     eps3            = 0;        % this value must be (0, 0.5]
     vapor           = 1;        % 0 : ignore vapor pressure, 1 : vapor pressure
     masstrans       = 0;        % mass transfer, default is no mass transfer 
+    perturbed       = 0;        % perturbation equation from Jin's paper
     %*************************************************************************
     % SOLVER OPTIONS
     TFin            = 1e-6;     % final time (s)
+    TVector         = [0 TFin];
     method          = 45;       % ode45 setting for the time stepper
     spectral        = 1;        % force spectral collocation solution
     divisions       = 0;        % minimum number of timesteps
@@ -28,11 +30,19 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     R0              = 2E-6;     % initial bubble radius
     U0              = 0;        % initial velocity (m/s)
     Req             = 0.5E-6;   % Equilibrium radius for pre-stress bubble, see Estrada JMPS 2017    
+    a0              = zeros(6,1);
+    a0(1)           = 0.01*R0;
+    a0(2)           = 0.01*R0;
+    a0(3)           = 0.01*R0;
+    a0(4)           = 0.01*R0;
+    a0(5)           = 0.01*R0;
+    a0(6)           = 0.01*R0;
+    adot0           = zeros(6,1);
     %*************************************************************************
     % OUPUT OPTIONS
     dimensionalout  = 0;        % output result in dimensional variables
     progdisplay     = 0;        % display progress while code running
-    plotresult      = 1;        % generate figure containing results
+    plotresult      = 0;        % generate figure containing results
 
     %*************************************************************************
     % ACOUSTIC OPTIONS
@@ -49,6 +59,8 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     DT              = 0;        % delay (s)
     mn              = 0;        % power shift for waveform
     wavetype        = 2;        % wave type oscillating bubble, see f_pinfinity
+    l               = 3:8;     % mode number
+    nl              = length(l);
     %*************************************************************************
     % STRESS OPTIONS
     S               = 0.072;              % (N/m) Liquid Surface Tension 
@@ -110,6 +122,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             case 'eps3',        eps3 = varargin{n+1};
             case 'vapor',       vapor = varargin{n+1};
             case 'masstrans',   masstrans = varargin{n+1};
+            case 'perturbed',   perturbed = varargin{n+1};
             %*****************************************************************
             % SOLVER OPTIONS
             case 'method',  method = varargin{n+1};
@@ -121,12 +134,14 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             case 'lv',      Lv = varargin{n+1};
             case 'lt',      Lt = varargin{n+1};  
             case 'tfin',    TFin = varargin{n+1};  
-                tflag = tflag + 1; TVector = 0;
+                tflag = tflag + 1; %TVector = 0;
             %*****************************************************************
             % INITIAL CONDITIONS
             case 'r0',      R0 = varargin{n+1};
             case 'u0',      U0 = varargin{n+1};
             case 'req',     Req = varargin{n+1};
+            case 'a0',      a0 = varargin{n+1};
+            case 'adot0',   adot0 = varargin{n+1}; 
             %*****************************************************************
             % OUPUT OPTIONS
             case 'dimout',  dimensionalout = varargin{n+1};
@@ -284,6 +299,8 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     Req_zero= Req/R0;
     Uzero   = U0/Uc;
     pzero   = P0_star;
+    azero   = a0./R0;
+    adot_zero=adot0./Uc;
 
 %*************************************************************************
 % overwrite defaults with nondimensional inputs 
@@ -361,11 +378,11 @@ end
 
 %*************************************************************************
 % equation settings 
-eqns_opts = [radial bubtherm medtherm stress eps3 masstrans];
+eqns_opts = [radial bubtherm medtherm stress eps3 masstrans perturbed nl];
 % solver options
 solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
 % dimensionless initial conditions
-init_opts = [Rzero Uzero pzero P8 T8 Pv_star Req_zero];
+init_opts = [Rzero Uzero pzero P8 T8 Pv_star Req_zero azero' adot_zero'];
 % time span options
 tspan_opts = tvector;
 % output options
@@ -375,7 +392,7 @@ out_opts = [dimensionalout progdisplay plotresult];
 % acoustic parameters
 acos_opts = [Cstar GAMa kappa nstate];
 % dimensionless waveform parameters
-wave_opts = [om ee tw dt mn wavetype];
+wave_opts = [om ee tw dt mn wavetype l];
 % dimensionless viscoelastic
 sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA v_lambda_star];
 % dimensionless thermal 
