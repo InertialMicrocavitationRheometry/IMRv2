@@ -15,8 +15,9 @@ function varargout =  f_imrv2(varargin)
 % equations settings 
 radial          = eqns_opts(1);  bubtherm        = eqns_opts(2); 
 medtherm        = eqns_opts(3);  stress          = eqns_opts(4); 
-eps3            = eqns_opts(5);  masstrans       = eqns_opts(6); 
-perturbed       = eqns_opts(7);  nl              = eqns_opts(8);
+eps3            = eqns_opts(5);  vapor           = eqns_opts(6);
+masstrans       = eqns_opts(7);  perturbed       = eqns_opts(8);  
+nl              = eqns_opts(9);
 if (stress == 4); ptt = 1; else; ptt = 0; end
 % solver options
 method          = solve_opts(1); spectral        = solve_opts(2); 
@@ -27,10 +28,11 @@ Lv              = solve_opts(7); Lt              = solve_opts(8);
 Rzero           = init_opts(1);  Uzero           = init_opts(2); 
 p0star          = init_opts(3);  P8              = init_opts(4); 
 T8              = init_opts(5);  Pv_star         = init_opts(6); 
-Req             = init_opts(7);  
+Req             = init_opts(7);  S0              = init_opts(8);
+alphax          = init_opts(9);
 if perturbed == 1
-    azero           = init_opts(8:8+nl-1);
-    adot_zero       = init_opts(8+nl:8+2*nl-1);
+    azero           = init_opts(10:10+nl-1);
+    adot_zero       = init_opts(10+nl:10+2*nl-1);
 end
 % time span options
 tspan = tspan_opts;
@@ -145,14 +147,20 @@ if perturbed == 1
         zeros(Nt+1,1); % auxiliary temperature spectrum
         ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
         zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
-        0; % initial stress integral 
+        S0; % initial stress integral 
         azero'; adot_zero']; % initial conditions for perturbed conditions
-else
+elseif spectral == 1
     init = [Rzero; Uzero; p0star; % radius, velocity, pressure
         zeros(Nt+1,1); % auxiliary temperature spectrum
         ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
         zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
-        0]; % initial stress integral
+        S0]; % initial stress integral
+elseif (spectral == 0 && stress < 3)
+    init = [Rzero; Uzero; p0star; % radius, velocity, pressure
+        zeros(Nt+1,1); % auxiliary temperature spectrum
+        ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
+        S0;0; % stress spectrum
+        S0]; % initial stress integral
 end
 
 %*************************************************************************
@@ -165,28 +173,28 @@ if method == 15
     if divisions == 0
         options = odeset();
     else
-        options = odeset('MaxStep',tfin/divisions,'RelTol',1e-6);
+        options = odeset('MaxStep',tfin/divisions,'RelTol',1e-8);
     end
     [t,X] = ode15s(@SVBDODE,tspan,init,options);
 elseif method == 23
     if divisions == 0
         options = odeset();
     else
-        options = odeset('MaxStep',tfin/divisions,'RelTol',1e-6);
+        options = odeset('MaxStep',tfin/divisions,'RelTol',1e-8,'AbsTol',10^-8);
     end
     [t,X] = ode23tb(@SVBDODE,tspan,init,options);
 elseif method == 45
     if divisions == 0
-        options = odeset('NonNegative',1,'AbsTol',1e-5,'RelTol',1e-5);
+        options = odeset('NonNegative',1,'AbsTol',1e-8,'RelTol',1e-8);
     else
-        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-6);
+        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-8);
     end
     [t,X] = ode45(@SVBDODE,tspan,init,options);
 else
     if divisions == 0
         options = odeset('NonNegative',1);
     else
-        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-6);
+        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-8);
     end
     [t,X] = ode45(@SVBDODE,tspan,init,options);
 end
@@ -216,7 +224,8 @@ function dXdt = SVBDODE(t,X)
         % temperature and thermal diffusivity fields
         T = (alpha - 1 + sqrt(1+2*alpha*SI))/alpha;
         D = kapover*(alpha*T.^2 + (1-alpha)*T)/p;
-        pVap = (f_pvsat(T(1)*T8)/P8);
+        pVap = vapor*(f_pvsat(T(1)*T8)/P8);
+
         % new pressure and auxiliary temperature derivative
         pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U);
         
@@ -237,7 +246,7 @@ function dXdt = SVBDODE(t,X)
             if spectral == 1
                 TLdot = TLdot - 2*Br*U./(R*yT.^3).*(ZZT*(X(ic) - X(id)));    
             elseif stress == 1
-                TLdot = TLdot + 4*Br./yT.^6*(U/R*(1-1/R^3)/Ca + 3/Re8*(U/R)^2);      
+                TLdot = TLdot + 4*Br./yT.^6*(U/R*(1-1/R^3)/Ca + 3/Re8*(U/R)^2); 
             end
             % enforce boundary condition and solve
             TLdot(end) = 0;
@@ -260,8 +269,14 @@ function dXdt = SVBDODE(t,X)
     Z1dot = 0; Z2dot = 0;
     if stress == 1 % Kelvin-Voigt with neo-Hookean elasticity
         % compute stress integral
-        J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
-        JdotX = -2*U*(Req*(1/R)^2 + Req^4*(1/R)^5)/Ca + 4/Re8*U^2/R^2;
+        % J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
+        % JdotX = -2*U*(Req*(1/R)^2 + Req^4*(1/R)^5)/Ca + 4/Re8*U^2/R^2;
+        J = (3*alphax-1)*(5 - (Req/R)^4 - 4*(Req/R))/(2*Ca) - 4/Re8*U/R + ...
+        (2*alphax/Ca)*(27/40 + (1/8)*(Req/R)^8 + (1/5)*(Req/R)^5 + (1/2)*(Req/R)^2 - ...
+        2*R/Req);
+        JdotX = ((3*alphax-1)/(2*Ca))*((4*Req^4*U/R^5) + (4*Req*U/R^2)) + ...
+        4*(U^2)/(Re8*R^2) - (2*alphax/Ca)*(2*U/Req + Req^8*U/R^9 + ...
+        Req^5*U/R^6 + Req^2*U/R^3);
     elseif spectral
         % Giesekus, PTT, or forced spectral         
         % extract stress spectrum
@@ -287,9 +302,21 @@ function dXdt = SVBDODE(t,X)
         % extract
         Z1 = X(ic);
         J = Z1/R^3 - 4*LAM/Re8*U/R;
+        Ze = R^3*((3*alphax-1)*(5 - (Req/R)^4 - 4*(Req/R))/(2*Ca) + ...
+        (2*alphax/Ca)*(27/40 + (1/8)*(Req/R)^8 + (1/5)*(Req/R)^5 + (1/2)*(Req/R)^2 - ...
+        2*R/Req));
+        ZdotSqNH = 3*R^2*U*((3*alphax-1)*(5 - (Req/R)^4 - 4*(Req/R))/(2*Ca) + ...
+        (2*alphax/Ca)*(27/40 + (1/8)*(Req/R)^8 + (1/5)*(Req/R)^5 + (1/2)*(Req/R)^2 - ...
+        2*R/Req)) + R^3*(((3*alphax-1)/(2*Ca))*((4*Req^4*U/R^5) + (4*Req*U/R^2)) - ...
+        (2*alphax/Ca)*(2*U/Req + Req^8*U/R^9 + ...
+        Req^5*U/R^6 + Req^2*U/R^3)); % ddt(R^3 S_qKV)
+        % ZdotNH = -1/(2*Ca)*(3*R^2*U*(5-(Req/R)^4-4*Req/R)+ ...
+            % R^2*U*(4*(Req/R)^5+4*Req/R));
+        % ZdotYC = - 4*(R^3-Req^3)/(3*Ca*De);
         % stress integral derivative
-        Z1dot = -Z1/De + 4*(LAM-1)/(Re8*De)*R^2*U - 4*(R^3-Req^3)/(3*Ca*De);
+        Z1dot = -(Z1-Ze)/De + ZdotSqNH + (3*U/R)*(Z1-Ze) + 4*(LAM-1)/(Re8*De)*R^2*U ;
         JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re8*U^2/R^2;
+        Ca;
     elseif stress == 3 % upper-convected Maxwell, OldRoyd-B
         % extract stress sub-integrals
         Z1 = X(ic); Z2 = X(id);
@@ -315,9 +342,12 @@ function dXdt = SVBDODE(t,X)
         Udot = (p + pVap - 1 - pf8 - iWe/R + J - 1.5*U^2)/R;
     % Keller-Miksis in pressure        
     elseif radial == 2
-        Udot = ((1+U./Cstar)*(p + pVap - 1 - pf8 - iWe./R + J) ...
-            + R./Cstar.*(pdot + iWe.*U./R.^2 + JdotX - pf8dot) ...
-            - 1.5.*(1-U./(3.*Cstar)).*U.^2)./((1-U./Cstar).*R + JdotA./Cstar);        
+        Udot = ((1+U./Cstar)*(p - 1 - pf8 - iWe./R + J) ...
+            + R./Cstar.*(pdot + iWe.*U./R.^2 +  JdotX - pf8dot) ...
+            - 1.5.*(1-U./(3.*Cstar)).*U.^2)./((1-U./Cstar).*R + JdotA./Cstar);     
+        % Udot = ((1+U./Cstar)*(p + pVap - 1 - pf8 - iWe./R + J) ... % check to see if pVap should be included 
+        %     + R./Cstar.*(pdot + iWe.*U./R.^2 +  JdotX - pf8dot) ...
+        %     - 1.5.*(1-U./(3.*Cstar)).*U.^2)./((1-U./Cstar).*R + JdotA./Cstar);      
     % Keller-Miksis in enthalpy
     elseif radial == 3    
         hB = (sam/no)*(((p - iWe/R + GAMa + J)/sam)^no - 1);
@@ -342,8 +372,8 @@ function dXdt = SVBDODE(t,X)
         eta = (3*U/R) + (4)/(Re8*R^2) + (l.*(l+1))./(3*Re8*R^2);
         varXi = -(Udot/R) + (4*U)/(Re8*R^3) - ...
               (2.*l.*(l+1).*U)./(3*Re8*R^3) - ((l+2).*(l-1))./(We*R^3) -...
-              ((4*Rzero)/(Ca*R^3))*(1 + (Rzero^3/R^3))-(2.*l.*(l+1))./...
-              (Ca*(R^2+R*Rzero+Rzero^2));
+              ((4*Req)/(Ca*R^3))*(1 + (Req^3/R^3))-(2.*l.*(l+1))./...
+              (Ca*(R^2+R*Req + Req^2));
         addot = -eta.*adot + varXi.*aa;
         dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot; adot; addot];
     else
@@ -356,7 +386,7 @@ end
 %*************************************************************************
 % POST PROCESSING
 % extract result
-R = X(:,1); U = X(:,2); p = X(:,3);
+R = X(:,1); U = X(:,2); p = X(:,3); Z1 = X(:,ic); Z2 = X(:,id); 
 if perturbed == 1
     aa = X(:,7:7+nl-1);
     adot = X(:,7+nl:7+2*nl-1);
@@ -431,19 +461,28 @@ varargout{4} = p;
 varargout{5} = trr;
 varargout{6} = t00;
 varargout{7} = I;
-varargout{8} = T;    
+varargout{8} = T; 
+if stress == 2
+    varargout{9} = Z1; % Z1
+    varargout{10} = Z2; % Z2
+    varargout{11} = (Z1)./R.^3 - 4*LAM/Re8.*U./R; % J
+elseif stress == 3
+    varargout{9} = Z1; % Z1
+    varargout{10} = Z2; % Z2
+    varargout{11} = (Z1 + Z2)./R.^3 - 4*LAM./Re8.*U./R; % J
+end
 if masstrans == 1
-    varargout{9} = C;
+    varargout{12} = C;
 end
 if bubtherm == 1 && medtherm == 1
-    varargout{10} = TL;
+    varargout{13} = TL;
 else
-    varargout{10} = ((T8 - 1)*dimensionalout + 1)*ones(divisions,1);
+    varargout{13} = ((T8 - 1)*dimensionalout + 1)*ones(divisions,1);
 end   
 if perturbed == 1
     for i = 1:nl
-        varargout{11+i-1} = aa(:,i);
-        varargout{11+nl+i-1} = adot(:,i);
+        varargout{14+i-1} = aa(:,i);
+        varargout{14+nl+i-1} = adot(:,i);
     end
 end
 % technical data
@@ -452,6 +491,7 @@ end
 % varargout{15} = c; 
 % varargout{16} = d;
 % varargout{17} = e;
+
 
 %*************************************************************************
 
@@ -588,7 +628,7 @@ function IMR_start()
 end
 
 function IMR_finish()    
-    disp('--- COMPLETED SIMULATION ---');    
+    % disp('--- COMPLETED SIMULATION ---');    
 end 
 
 %*************************************************************************

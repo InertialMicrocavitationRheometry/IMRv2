@@ -5,19 +5,19 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
 
     %*************************************************************************
     % EQUATION OPTIONS
-    radial          = 1;        % 1 : RP, 2 : K-M P, 3 : K-M E, 4 : Gil
-    bubtherm        = 0;        % 0 : polytropic assumption, 1: thermal PDE in bubble
-    medtherm        = 0;        % 0 : warm fluid, 1: cold fluid assumption
-    stress          = 1;        % 1 : N-H, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
+    radial          = 2;        % 1 : RP, 2 : K-M P, 3 : K-M E, 4 : Gil
+    bubtherm        = 1;        % 0 : polytropic assumption, 1: thermal PDE in bubble
+    medtherm        = 1;        % 0 : cold fluid, 1: warm fluid assumption
+    stress          = 1;        % 1 : NHKV, qKV, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
     eps3            = 0;        % this value must be (0, 0.5]
     vapor           = 1;        % 0 : ignore vapor pressure, 1 : vapor pressure
     masstrans       = 0;        % mass transfer, default is no mass transfer 
     perturbed       = 0;        % perturbation equation from Jin's paper
     %*************************************************************************
     % SOLVER OPTIONS
-    TFin            = 1e-6;     % final time (s)
+    TFin            = 100e-6;     % final time (s)
     TVector         = [0 TFin];
-    method          = 45;       % ode45 setting for the time stepper
+    method          = 23;       % ode45 setting for the time stepper
     spectral        = 1;        % force spectral collocation solution
     divisions       = 0;        % minimum number of timesteps
     Nt              = 12;       % number of points in bubble, thermal PDE
@@ -27,30 +27,30 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     Lt              = 3;        % characteristic length for grid stretching, leave at 3
     %*************************************************************************
     % INITIAL CONDITIONS
-    R0              = 2E-6;     % initial bubble radius
+    R0              = 2.447495043190468e-04;     % initial bubble radius
     U0              = 0;        % initial velocity (m/s)
-    Req             = 0.5E-6;   % Equilibrium radius for pre-stress bubble, see Estrada JMPS 2017    
+    Req             = 3.008409399929516e-05;%27E-6;   % Equilibrium radius for pre-stress bubble, see Estrada JMPS 2017    
     a0              = zeros(6,1);
-    a0(1)           = 0.01*R0;
-    a0(2)           = 0.01*R0;
-    a0(3)           = 0.01*R0;
-    a0(4)           = 0.01*R0;
-    a0(5)           = 0.01*R0;
-    a0(6)           = 0.01*R0;
+    a0(1)           = 0.00*R0;
+    a0(2)           = 0.00*R0;
+    a0(3)           = 0.00*R0;
+    a0(4)           = 0.00*R0;
+    a0(5)           = 0.00*R0;
+    a0(6)           = 0.00*R0;
     adot0           = zeros(6,1);
     %*************************************************************************
-    % OUPUT OPTIONS
+    % OUPUT OPTIONS*
     dimensionalout  = 0;        % output result in dimensional variables
     progdisplay     = 0;        % display progress while code running
     plotresult      = 0;        % generate figure containing results
 
     %*************************************************************************
     % ACOUSTIC OPTIONS
-    rho8            = 1060;             % far-field density (kg/m^3)   
+    rho8            = 1064;%997;              % far-field density (kg/m^3)   
     GAM             = 3049.13*1e5;      % state equation parameter (Pa)
     nstate          = 7.15;             % state equation parameter
     P8              = 101325;           % far-field pressure (Pa)
-    C8              = sqrt(nstate*(P8 + GAM)/rho8); % far-field sound speed (m/s)
+    C8              = 1484;%sqrt(nstate*(P8 + GAM)/rho8); % far-field sound speed (m/s)
     %*************************************************************************
     % PRESSURE WAVEFORM OPTIONS
     pA              = 0*1e6;      % pressure amplitude (Pa)
@@ -59,24 +59,31 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     DT              = 0;        % delay (s)
     mn              = 0;        % power shift for waveform
     wavetype        = 2;        % wave type oscillating bubble, see f_pinfinity
-    l               = 3:8;     % mode number
+    l               = 2:7;     % mode number
     nl              = length(l);
     %*************************************************************************
     % STRESS OPTIONS
-    S               = 0.072;              % (N/m) Liquid Surface Tension 
+    S               = 0.072;%0.056;% 0.072              % (N/m) Liquid Surface Tension 
     vmaterial       = 'water';
     [mu8,Dmu,v_a,v_nc,v_lambda] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity
-	G               = 1E3;                % (Pa) Medium Shear Modulus 
-    lambda1         = 0.5e-6;             % relaxation time (s)
-    lambda2         = lambda1;            % retardation time (s)
+	G               = 312.5;%1E3;                % (Pa) Medium Shear Modulus 
+    lambda1         = 0*0.5e-5;             % relaxation time (s)
+    lambda2         = 0;            % retardation time (s)
+    mu8             = 0.027606;%0.0246;%1E-3;
+    alphax          = 0;        % qKV term
+    Ca              = P8/G;           
+    S0              = 0;%(3*alphax-1)*(5 - (Req/1)^4 - 4*(Req/1))/(2*Ca) + ...
+        % (2*alphax/Ca)*(27/40 + (1/8)*(Req/1)^8 + (1/5)*(Req/1)^5 + (1/2)*(Req/1)^2 - ...
+        % 2*1/Req)
+    
     %*************************************************************************
     % THERMAL OPTIONS
     % gas properties
-	kappa           = 1.47;               % Ratio of Specific Heats 
+	kappa           = 1.4;               % Ratio of Specific Heats 
     % medium properties 
     AT              = 5.28e-5;            % (W/m-K^2)Thermal Conductivity coeff
     BT              = 1.165e-2;           % (W/m-K)Thermal Conductivity coeff
-	T8              = 300;                % (K) Far field temp. 
+	T8              = 298.15;                % (K) Far field temp. 
     Km              = 0.615;              % (W/m-K)Thermal Conductivity Medium
     Cp              = 4181;               % Specific Heat Medium J/Kg K;
     Dm              = Km / (rho8*Cp) ;    % Thermal Diffusivity m^2/s 
@@ -90,9 +97,9 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     %*************************************************************************
     % PRESSURE OPTIONS
     Pv              = f_pvsat(T8);  
-	P0              = Pv*vapor + ...
-        (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3*kappa); % need to add Pv_sat at room temp  
-
+	% P0              = Pv*vapor + ...% P8 + 2*S/R0;%
+    %    (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3*kappa); % need to add Pv_sat at room temp  
+    P0              = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
     %*************************************************************************
     % OVERRIDES defaults with options and dimensional inputs %
     % check that all inputs are matched
@@ -142,6 +149,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             case 'req',     Req = varargin{n+1};
             case 'a0',      a0 = varargin{n+1};
             case 'adot0',   adot0 = varargin{n+1}; 
+            case 's0',      S0 = varargin{n+1};
             %*****************************************************************
             % OUPUT OPTIONS
             case 'dimout',  dimensionalout = varargin{n+1};
@@ -168,7 +176,8 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
                 visflag = visflag + 1;
             case 'g',       G = varargin{n+1};
             case 'lambda1', lambda1 = varargin{n+1};
-            case 'lambda2', lambda2 = varargin{n+1};            
+            case 'lambda2', lambda2 = varargin{n+1};
+            case 'alphax', alphax = varargin{n+1};
             case 'surft',    S = varargin{n+1};
             case 'vmaterial', vmaterial = varargin{n+1}; 
                 visflag = visflag + 1;
@@ -249,8 +258,8 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     Uc      = sqrt(P8/rho8);            % characteristic velocity (m/s)
     theta   = Rv/Ra*(P0-Pv)/Pv;         % mass air / mass vapor 
     C0      = 1/(1+theta);              % initial vapor concentration
-    mv0     = Pv*(4/3*pi*R0^3)/Rv/T8;   % mass of vapor
-    ma0     = (P0-Pv)*(4/3*pi*R0^3)/Ra/T8;  % mass of non-condensible gas
+    mv0     = Pv*vapor*(4/3*pi*R0^3)/Rv/T8;   % mass of vapor
+    ma0     = (P0-Pv*vapor)*(4/3*pi*R0^3)/Ra/T8;  % mass of non-condensible gas
     Mnondim = rho8*(4/3*pi*R0^3);       %
     
     % Final non-dimensional variables
@@ -269,7 +278,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     GAMa    = GAM/P8;                   % bulk liquid stiffness
 	Cstar   = C8/Uc;                    % speed of sound
     % thermal properties
-    chi     = T8*K8/(P8*R0*Uc);
+    chi     = T8*K8/(P8*R0*Uc);% T8*K8/(P0*R0*Uc); 
     iota    = Km/(K8*Lt);
     Foh     = Dm/(Uc*R0); 
     alpha   = AT*T8/K8;              % we do not need beta = BT/K8, we do for diffusion
@@ -343,9 +352,9 @@ if misscount ~= nargin/2
     error(['INPUT ERROR: ' num2str(misscount-nargin/2) ' unrecognized input(s)']);
 end
 % check dimensionless viscoelastic parameters
-if De > Ca/Re8 && (yangChurch == 0 && kelvinVoigt == 0 && linelas == 0)
-    error('INPUT ERROR: nonphysical viscoelastic parameters');
-end
+% if De > Ca/Re8 && (yangChurch == 0 && kelvinVoigt == 0 && linelas == 0)
+%     error('INPUT ERROR: nonphysical viscoelastic parameters');
+% end
 
 %*************************************************************************
 % final setting adjustments 
@@ -378,11 +387,11 @@ end
 
 %*************************************************************************
 % equation settings 
-eqns_opts = [radial bubtherm medtherm stress eps3 masstrans perturbed nl];
+eqns_opts = [radial bubtherm medtherm stress eps3 vapor masstrans perturbed nl];
 % solver options
 solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
 % dimensionless initial conditions
-init_opts = [Rzero Uzero pzero P8 T8 Pv_star Req_zero azero' adot_zero'];
+init_opts = [Rzero Uzero pzero P8 T8 Pv_star Req_zero S0 alphax azero' adot_zero'];
 % time span options
 tspan_opts = tvector;
 % output options
