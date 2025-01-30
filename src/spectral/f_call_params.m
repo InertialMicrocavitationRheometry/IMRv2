@@ -6,11 +6,11 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     %*************************************************************************
     % EQUATION OPTIONS
     radial          = 2;        % 1 : RP, 2 : K-M P, 3 : K-M E, 4 : Gil
-    bubtherm        = 1;        % 0 : polytropic assumption, 1: thermal PDE in bubble
-    medtherm        = 1;        % 0 : cold fluid, 1: warm fluid assumption
+    bubtherm        = 0;        % 0 : polytropic assumption, 1: thermal PDE in bubble
+    medtherm        = 0;        % 0 : cold fluid, 1: warm fluid assumption
     stress          = 1;        % 1 : NHKV, qKV, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
     eps3            = 0;        % this value must be (0, 0.5]
-    vapor           = 1;        % 0 : ignore vapor pressure, 1 : vapor pressure
+    vapor           = 0;        % 0 : ignore vapor pressure, 1 : vapor pressure
     masstrans       = 0;        % mass transfer, default is no mass transfer 
     perturbed       = 0;        % perturbation equation from Jin's paper
     %*************************************************************************
@@ -18,7 +18,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     TFin            = 100e-6;     % final time (s)
     TVector         = [0 TFin];
     method          = 23;       % ode45 setting for the time stepper
-    spectral        = 1;        % force spectral collocation solution
+    spectral        = 0;        % force spectral collocation solution
     divisions       = 0;        % minimum number of timesteps
     Nt              = 12;       % number of points in bubble, thermal PDE
     Mt              = 12;       % number of points outside of bubble, thermal PDE
@@ -84,7 +84,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     AT              = 5.28e-5;            % (W/m-K^2)Thermal Conductivity coeff
     BT              = 1.165e-2;           % (W/m-K)Thermal Conductivity coeff
 	T8              = 298.15;                % (K) Far field temp. 
-    Km              = 0.615;              % (W/m-K)Thermal Conductivity Medium
+    Km              = 0.55;%0.615;              % (W/m-K)Thermal Conductivity Medium
     Cp              = 4181;               % Specific Heat Medium J/Kg K;
     Dm              = Km / (rho8*Cp) ;    % Thermal Diffusivity m^2/s 
 	%*************************************************************************
@@ -99,7 +99,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     Pv              = f_pvsat(T8);  
 	% P0              = Pv*vapor + ...% P8 + 2*S/R0;%
     %    (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3*kappa); % need to add Pv_sat at room temp  
-    P0              = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
+    P0              = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3))
     %*************************************************************************
     % OVERRIDES defaults with options and dimensional inputs %
     % check that all inputs are matched
@@ -145,8 +145,10 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             %*****************************************************************
             % INITIAL CONDITIONS
             case 'r0',      R0 = varargin{n+1};
+                P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3))
             case 'u0',      U0 = varargin{n+1};
             case 'req',     Req = varargin{n+1};
+                P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3))
             case 'a0',      a0 = varargin{n+1};
             case 'adot0',   adot0 = varargin{n+1}; 
             case 's0',      S0 = varargin{n+1};
@@ -179,6 +181,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             case 'lambda2', lambda2 = varargin{n+1};
             case 'alphax', alphax = varargin{n+1};
             case 'surft',    S = varargin{n+1};
+                P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
             case 'vmaterial', vmaterial = varargin{n+1}; 
                 visflag = visflag + 1;
                [mu8,Dmu,v_a,v_nc,v_lambda] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity    
@@ -198,7 +201,8 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             case 'ra',      Ra = varargin{n+1};
             %*****************************************************************
             % PRESSURE OPTIONS         
-            case 'pv',      Pv = varargin{n+1};   
+            case 'pv',      Pv = varargin{n+1}; 
+                P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
             case 'p0',      P0 = varargin{n+1};
             case 'tvector', TVector = varargin{n+1}; 
                 tflag = tflag + 1; TFin = 0;
@@ -207,7 +211,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
         end
         if p0set == 0
           % need to add Pv_sat at room temp  
-          P0 = Pv*vapor + (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3*kappa);
+          P0 = (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3*kappa);
         end
         if c8set == 0 
             C8 = sqrt(nstate*(P8 + GAM)/rho8); 
@@ -305,7 +309,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     De      = lambda1*Uc/R0;            % Deborah number
     % dimensionless initial conditions
     Rzero   = 1;
-    Req_zero= Req/R0;
+    Req_zero= Req/R0
     Uzero   = U0/Uc;
     pzero   = P0_star;
     azero   = a0./R0;
