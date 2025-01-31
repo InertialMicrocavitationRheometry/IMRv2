@@ -41,8 +41,8 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     %*************************************************************************
     % OUPUT OPTIONS*
     dimensionalout  = 0;        % output result in dimensional variables
-    progdisplay     = 0;        % display progress while code running
-    plotresult      = 0;        % generate figure containing results
+    progdisplay     = 1;        % display progress while code running
+    plotresult      = 1;        % generate figure containing results
 
     %*************************************************************************
     % ACOUSTIC OPTIONS
