@@ -4,10 +4,9 @@
 * Mauro Rodriguez, mauro_rodriguez@brown.edu
 * Victor Sanchez, victor_sanchez@brown.edu
 
-
-
 ## Description: 
-This code is a reduced version of the IMR code taken from Estrada et al. (2018) JMPS. Additional physics have been added including the Keller-Miksis with enthalpy and non-Newtonian viscosity.
+This code is a reduced version of the IMR code taken from Estrada et al. (2018) JMPS. 
+Additional physics have been added including the Keller-Miksis with enthalpy and non-Newtonian viscosity.
 
 ## Inputs:
 * tspan - time to run simulation
