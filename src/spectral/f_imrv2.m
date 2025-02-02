@@ -1,17 +1,14 @@
 function varargout =  f_imrv2(varargin)
 
-%*************************************************************************
 % Description: This code the IMRv2 code expanding beyond IMR from
 % Estrada et al. (2018) JMPS. Additional physics have been added including
 % the Keller-Miksis with enthalpy and non-Newtonian viscosity. 
-%*************************************************************************
 
-%*************************************************************************
 % Problem Initialization
-[eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts, wave_opts, ...
-    sigma_opts, thermal_opts, mass_opts]  = f_call_params(varargin{:});
+[eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts,... 
+    wave_opts, sigma_opts, thermal_opts, mass_opts]...
+    = f_call_params(varargin{:});
 
-%*************************************************************************
 % equations settings 
 radial          = eqns_opts(1);  bubtherm        = eqns_opts(2); 
 medtherm        = eqns_opts(3);  stress          = eqns_opts(4); 
@@ -47,11 +44,11 @@ kappa           = acos_opts(3); nstate          = acos_opts(4);
 % dimensionless waveform parameters
 om              = wave_opts(1); ee              = wave_opts(2); 
 tw              = wave_opts(3); dt              = wave_opts(4); 
-mn              = wave_opts(5); wavetype        = wave_opts(6); 
+mn              = wave_opts(5); wave_type       = wave_opts(6); 
 if perturbed == 1
     l = wave_opts(7:7+nl-1)';
 end 
-pvarargin = [om,ee,tw,dt,mn,wavetype];
+pvarargin = [om,ee,tw,dt,mn,wave_type];
 % dimensionless viscoelastic
 We              = sigma_opts(1); Re8             = sigma_opts(2); 
 DRe             = sigma_opts(3); v_a             = sigma_opts(4); 
@@ -69,9 +66,7 @@ Fom             = mass_opts(1); C0              = mass_opts(2);
 Rv_star         = mass_opts(3); Ra_star         = mass_opts(4);
 L_heat_star     = mass_opts(5); mv0             = mass_opts(6);
 ma0             = mass_opts(7);
-%*************************************************************************
 
-%*************************************************************************
 % numerical setup and precomputations %
 % collocation point construction
 y = cos(pi*(0:Nt)'/(2*Nt));
@@ -89,6 +84,7 @@ Q = sparse(Q);
 sCA = sCA(2:end,2:end) - 1;
 sCI = sCI(2:end,2:end);
 sCAd = sCAd(2:end,2:end);
+
 % precomputations
 LDR = LAM*De/Re8;
 sam = 1 - Pv_star + GAMa; 
@@ -99,9 +95,7 @@ yV = 2*Lv./(1-ze) - Lv + 1;
 nn = ((-1).^(0:Nt).*(0:Nt).^2)';
 nn = sparse(nn);
 Udot = 0; 
-%*************************************************************************
 
-%*************************************************************************
 % precomputations for viscous dissipation
 zT = 1 - 2./(1 + (yT - 1)/Lv);
 ZZT = cos(acos(zT)*(1:Nv)) - 1;
@@ -120,9 +114,7 @@ switch Lv
     case 0.5, load('eNstorep5','eNNp5'); cdd = eNNp5(1:Nv)';
     otherwise, cdd = preStressInt(Lv,Nv);
 end
-%*************************************************************************
 
-%*************************************************************************
 % index management
 if stress == 1
     zeNO = 0; 
@@ -138,9 +130,7 @@ ib = (5+Nt):(5+Nt+Mt);
 ic = (6+Nt+Mt):(5+Nt+Mt+Nv);
 id = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
 ie = (6+Nt+Mt+2*Nv):(5+Nt+Mt+2*Nv+Nm);
-%*************************************************************************
 
-%*************************************************************************
 % initial condition assembly
 if perturbed == 1
     init = [Rzero; Uzero; p0star; % radius, velocity, pressure
@@ -163,10 +153,7 @@ elseif (spectral == 0 && stress < 3)
         S0]; % initial stress integral
 end
 
-%*************************************************************************
-
-%*************************************************************************
-% SOLVER CALL 
+% solver start
 IMR_start;
 stepcount = 0;
 if method == 15
@@ -199,10 +186,8 @@ else
     [t,X] = ode45(@SVBDODE,tspan,init,options);
 end
 
-%*************************************************************************
 
-%*************************************************************************
-% SOLVER FUNCTION
+% solver function
 function dXdt = SVBDODE(t,X)
     stepcount = stepcount + 1;
     if progdisplay == 1, disp(t/tfin); end
@@ -213,7 +198,7 @@ function dXdt = SVBDODE(t,X)
         aa = X(7:7+nl-1);
         adot = X(7+nl:7+2*nl-1);
     end
-    %*************************************************************************
+    
     % non-condensible gas pressure and temperature
     if bubtherm
         % extract auxiliary temperature
@@ -262,12 +247,17 @@ function dXdt = SVBDODE(t,X)
         pdot = -3*kappa*U/R*p;
         pVap = Pv_star;        
     end
-    %*************************************************************************
-
-    %*************************************************************************
+    
     % stress equation
     Z1dot = 0; Z2dot = 0;
-    if stress == 1 % Kelvin-Voigt with neo-Hookean elasticity
+
+    % no stress
+    if stress == 0
+        J = 0;
+        JdotX = 0;
+
+    % Kelvin-Voigt with neo-Hookean elasticity
+    elseif stress == 1 
         % compute stress integral
         % J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
         % JdotX = -2*U*(Req*(1/R)^2 + Req^4*(1/R)^5)/Ca + 4/Re8*U^2/R^2;
@@ -277,8 +267,9 @@ function dXdt = SVBDODE(t,X)
         JdotX = ((3*alphax-1)/(2*Ca))*((4*Req^4*U/R^5) + (4*Req*U/R^2)) + ...
         4*(U^2)/(Re8*R^2) - (2*alphax/Ca)*(2*U/Req + Req^8*U/R^9 + ...
         Req^5*U/R^6 + Req^2*U/R^3);
+
+    % Giesekus, PTT, or forced spectral             
     elseif spectral
-        % Giesekus, PTT, or forced spectral         
         % extract stress spectrum
         c = X(ic); d = X(id); 
         % inverse Chebyshev transforms and derivatives
@@ -298,7 +289,9 @@ function dXdt = SVBDODE(t,X)
         % compute stress integral
         J = 2*sum(cdd.*(c-d));
         JdotX = 2*sum(cdd.*(Z1dot - Z2dot));   
-    elseif stress == 2 % linear Maxwell, linear Jeffreys, linear Zener
+
+    % linear Maxwell, linear Jeffreys, linear Zener        
+    elseif stress == 2 
         % extract
         Z1 = X(ic);
         J = Z1/R^3 - 4*LAM/Re8*U/R;
@@ -317,7 +310,9 @@ function dXdt = SVBDODE(t,X)
         Z1dot = -(Z1-Ze)/De + ZdotSqNH + (3*U/R)*(Z1-Ze) + 4*(LAM-1)/(Re8*De)*R^2*U ;
         JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re8*U^2/R^2;
         Ca;
-    elseif stress == 3 % upper-convected Maxwell, OldRoyd-B
+
+    % upper-convected Maxwell, OldRoyd-B
+    elseif stress == 3 
         % extract stress sub-integrals
         Z1 = X(ic); Z2 = X(id);
         % compute new derivatives
@@ -328,14 +323,10 @@ function dXdt = SVBDODE(t,X)
     else
         error('stress setting is not available');
     end
-    %*************************************************************************
 
-    %*************************************************************************
     % pressure waveform
     [pf8,pf8dot] = f_pinfinity(t,pvarargin);
-    %*************************************************************************
-
-    %*************************************************************************
+    
     % bubble wall acceleration
     % Rayleigh-Plesset        
     if radial == 1
@@ -363,9 +354,7 @@ function dXdt = SVBDODE(t,X)
             + R/Cstar*(hB + hH*(pdot + iWe*U/R^2 + JdotX)) ...
             - 1.5*(1 - U/(3*Cstar))*U^2) / ((1 - U/Cstar)*R + JdotA*hH/Cstar);
     end
-    %*************************************************************************
     
-    %*************************************************************************
     % output assembly
     if perturbed == 1
         Jdot = JdotX - JdotA*Udot/R;
@@ -380,11 +369,9 @@ function dXdt = SVBDODE(t,X)
         Jdot = JdotX - JdotA*Udot/R;
         dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot];
     end
-    %*************************************************************************
 end
 
-%*************************************************************************
-% POST PROCESSING
+% post processing
 % extract result
 R = X(:,1); U = X(:,2); p = X(:,3); Z1 = X(:,ic); Z2 = X(:,id); 
 if perturbed == 1
@@ -421,10 +408,8 @@ if masstrans == 1
     C = gC*e;
 end
 
-%*************************************************************************
 
-%*************************************************************************
-% DIMENSIONALIZATION
+% Dimensionalization
 if dimensionalout == 1
     % re-dimensionalize problem
     t = t*tc; 
@@ -449,10 +434,8 @@ if dimensionalout == 1
         end
     end
 end
-%*************************************************************************
 
-%*************************************************************************
-% FUNCTION OUTPUT 
+% Function output
 % standard outputs
 varargout{1} = t;
 varargout{2} = R;
@@ -492,18 +475,16 @@ end
 % varargout{16} = d;
 % varargout{17} = e;
 
-
-%*************************************************************************
-
-%*************************************************************************
-% DISPLAY RESULT
+% display result
 if plotresult == 1 
     subplot(3,1,1);
     plot(t,R,'k','LineWidth',2); 
     hold('on'); 
     ylabel('$R$','Interpreter','Latex','FontSize',12);
     box on;
-    if isreal(R)                                                            % oldb sims for certain values were imaginary, this spits out imaginary solution (BI will take care of it)
+    if isreal(R)                                                            
+        % oldb sims for certain values were imaginary
+        % this spits out imaginary solution (BI will take care of it)
         axis([0 t(end) 0 (max(R) + min(R))]);
         set(gca,'TickLabelInterpreter','latex','FontSize',16)
         set(gcf,'color','w');
@@ -545,11 +526,9 @@ if plotresult == 1
         set(gcf,'color','w');
     end
 end
-%*************************************************************************
 IMR_finish;
 
-%*************************************************************************
-% COMMAND WINDOW DISPLAY
+% Command window display
 function IMR_start()
     if radial == 1
         eqn = 'Rayleigh Plesset equation';
@@ -612,7 +591,7 @@ function IMR_start()
     else
         solut = 'ODE formulation';
     end
-    %*************************************************************************
+    
     % display run settings
     % disp('--- IMRV2 SETTINGS ---');
     % disp(['Radial dynamics: ' eqn]);
@@ -631,7 +610,6 @@ function IMR_finish()
     % disp('--- COMPLETED SIMULATION ---');    
 end 
 
-%*************************************************************************
 % functions called by solver 
 % stress differentiator
 function [trr,dtrr,t00,dt00] = stressdiff(c,d)
@@ -646,7 +624,6 @@ function [trr,dtrr,t00,dt00] = stressdiff(c,d)
     end
 end
 
-%*************************************************************************
 % stress solver
 function s = stresssolve(x)
     if Nv < 650
@@ -656,7 +633,6 @@ function s = stresssolve(x)
     end
 end
 
-%*************************************************************************
 % fast Chebyshev transform
 function a = fctShift(v)
     v = v(:);
@@ -665,7 +641,6 @@ function a = fctShift(v)
     a = [a(2:Nv); a(Nv+1)/2];
 end
 
-%*************************************************************************
 % fast Chebyshev transform and differentiate
 function [v,w] = fctdShift(a)
     M = Nv + 1;
@@ -689,7 +664,6 @@ end
 
 end
 
-%*************************************************************************
 % precomputation functions 
 function [A,B,D,E,C,F] = dcdmtx(N)
 %FCD	Discrete Chebyshev derivative matrices
@@ -729,7 +703,6 @@ F = E*B;
 
 end
 
-%*************************************************************************
 function [A,B,D,E,C,F] = dcdmtxe(N)
 %FCD	Even discrete Chebyshev derivative matrices
 
@@ -766,7 +739,7 @@ F = E*B;
 
 end
 
-%*************************************************************************
+
 function cdd = preStressInt(L,N)
 
 % integral precomputations
@@ -800,7 +773,7 @@ cdd = store.(Lstr)(1:N)';
 
 end
 
-%*************************************************************************
+
 function cdd = StressInt(L,N,varargin)
 
 if nargin == 2

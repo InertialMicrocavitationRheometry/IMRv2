@@ -7,9 +7,9 @@ ee =        vararg(2);
 tw =        vararg(3);
 dt =        vararg(4);
 mn =        vararg(5);
-wavetype =  vararg(6);
+wave_type =  vararg(6);
 
-switch wavetype
+switch wave_type
     case 0
         [p8, p8dot] = histo(t);
     case 1
