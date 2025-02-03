@@ -1,4 +1,4 @@
-function varargout =  f_imrv2(varargin)
+function varargout =  m_imrv2(varargin)
 
 % Description: This code the IMRv2 code expanding beyond IMR from
 % Estrada et al. (2018) JMPS. Additional physics have been added including
