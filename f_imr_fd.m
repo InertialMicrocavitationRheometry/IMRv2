@@ -2,9 +2,12 @@
 clear; close all; clc;
 % Adding the routines path
 src= strcat(pwd,'/src/finite_difference');
+common= strcat(pwd,'/src/common');
 addpath(genpath(src));
+addpath(genpath(common));
 
 % All quantities below are in SI units (s,m)
+
 % time to run simulation 
 tend = 1.738E-4; % WARNING: Does not matter, gets changed later
 % Initital Radii 
@@ -34,16 +37,13 @@ comp = 1;
 vmaterial = 'water';
 % non-Newtonian model for viscosity
 vmodel = 'newtonian';
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%% RUNNING BASELINE CODE %%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[t,R,~,~,~,~,~,~,~,~] = m_cavitation...
+
+% running baseline code
+[t,R,~,~,~,~,~,~,~,~] = m_imr_fd...
     (tend,R0,NT,NTM,Pext_type,Pext_Amp_Freq,disptime,Tgrad,Tmgrad,Cgrad,...
     Dim,comp,vmaterial,vmodel);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% OUTPUT %%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% output
 skip = 50;
 t = t(1:skip:end);
 R = R(1:skip:end);
@@ -57,7 +57,5 @@ figure(1);
 plot(t,R,'k')
 xlabel('t')
 ylabel('R')
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% Clean up %%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% clean up
 rmpath(src);

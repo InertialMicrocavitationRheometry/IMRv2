@@ -1,49 +1,28 @@
-function [ t , R ,U ,P, T,C, Tm,tdel,Tdel,Cdel] =...
-    m_cavitation(tspan,R0,NT,NTM,Pext_type,Pext_Amp_Freq,disptime,...
-            Tgrad,Tmgrad,Cgrad,Dim,comp,vmaterial,vmodel)
+function varargout =  m_imr_fd(varargin)
 
-% Original Authors: Carlos Barajas
-% Developer(s): Mauro Rodriguez (mauro_rodriguez@brown.edu)
-%
 % Description: This code is a reduced version of the IMR code taken from
 % Estrada et al. (2018) JMPS. Additional physics have been added including
 % the Keller-Miksis with enthalpy and non-Newtonian viscosity. 
 
-% Inputs: 
-% tspan - time to run simulation
-% R0 - Initial Radii
-% NT - number of nodes for temperature and concentration fields 
-% NTM - number of nodes for temperature in the medium 
-% Pext_type - type of external pressure ('sn' = sine, 'RC' = Rayleigh 
-% collapse, 'RG' = Rayleigh growth, impulse 'ip',...
-% non-equlibrium initial conditions (laser caviation and Flynn(1975) ) 'IC'
-% Pext_Amp_Freq - amplitude and frequency of external pressure [amp w]
-
 % Note: For this code the out-of-equilibrium Rayleigh Collapse the intial
 % mass in the bubble and radii are specified 
 
+tspan = varargin{1};
+R0    = varargin{2};
+NT    = varargin{3}; 
+NTM   = varargin{4};
+Pext_type = varargin{5};
+Pext_Amp_Freq = varargin{6};
+disptime = varargin{7}; 
+Tgrad = varargin{8}; 
+Tmgrad = varargin{9};
+Cgrad = varargin{10};
+Dim = varargin{11};
+comp = varargin{12};
+vmaterial = varargin{13};
+vmodel = varargin{14};
 
-% FOR THE FOLLOWING INPUTS 0 = FALSE AND 1 = TRUE 
-% disptime - Displays elapsed time on the command window
-% Tgrad - Models temperature gradients in the buuble
-% Tmgrad- Models temperature gradients outside the buuble
-% Cgrad - Models concentration gradients in the buuble
-
-% Outputs: 
-% t - time vector
-% T_Bubble - Temperature inside the bubble  
-% T_Medium - Temperature outside the bubble  
-% R - Bubble Radius 
-% U - Bubble velocity 
-% P - Internal bubble pressure
-% C - Vapor Concentration in the bubble
-% Tm - Temperature in the medium 
-% Dim - outputs variables in dimensional form
-% Comp - 0 (ignores compressibility effects) or 1 (uses Keller- Miksis)
-% Reduced - 0 utilizes full model or 1 uses Preston's reduced order model
-
-%***************************************
-% Load Parameters : 
+% load parameters
 Pmt = f_call_parameters(R0,vmaterial); % Calls parameters script 
 k = Pmt(1); chi = Pmt(2);  fom = Pmt(3); foh = Pmt(4);  Ca = Pmt(5);  
 Re8 = Pmt(6); We = Pmt(7);  Br = Pmt(8);  A_star = Pmt(9); B_star = Pmt(10);
@@ -59,37 +38,33 @@ else
     iDRe = 1/DRe;
 end
 
-%****************************************
-% Needed to account for fast diffusion
-
+% needed to account for fast diffusion
     P0_star = P0_star - (1-Cgrad)*f_pvsat(1*T_inf)/P_inf; 
     % When we assume water vapor undergoes infinitely fast mass diffusion
     % the vapor pressure is constant and P is the pressure of
     % non-condesible gas 
 
-%******************************************
-% Creates finite difference matrices 
+% creates finite difference matrices 
 D_Matrix_T_C = f_finite_diff_mat(NT,1,0);
 DD_Matrix_T_C = f_finite_diff_mat(NT,2,0);
 D_Matrix_Tm = f_finite_diff_mat(NTM,1,1);
 DD_Matrix_Tm = f_finite_diff_mat(NTM,2,1);
 
-%******************************************
-% Create spatial nodes
-% Inside the bubble
+% create spatial nodes
+
+% inside the bubble
 N = NT -1; 
 deltaY = 1/N;
 i = 1:1:N+1;
 yk = ((i-1)*deltaY)';
-% Outside the bubble     
+% outside the bubble     
 Nm =NTM-1; 
 deltaYm = -2/Nm;
 j = 1:1:Nm+1;
 xk = (1+(j-1)*deltaYm)';
 yk2 = ((2./(xk+1)-1)*L+1);
 
-%******************************************
-% Initial Conditions
+% initial conditions
 tspan_star = tspan/t0;
 tspan_star = 5; % forcing this for 3dasm project
 R0_star = 1; 
@@ -98,8 +73,8 @@ Tau0 = zeros(1,NT);
 C0 = C0*ones(1,NT);
 Tm0 = ones(1,NTM);
 
-% Need to modify initial conditions for the Out-of-Equilibrium Rayleigh
-% Collapse:  
+% need to modify initial conditions for the Out-of-Equilibrium Rayleigh
+% collapse:  
 if  (Pext_type == 'IC') 
     Pv = f_pvsat(1*T_inf)/P_inf;
     P0_star = Pext_Amp_Freq(1)/P_inf + Cgrad*f_pvsat(1*T_inf)/P_inf; 
@@ -146,10 +121,8 @@ elseif (Pext_type == 'ML')
 else
 end
 
-%************************************************
-% March equations in time 
-% options = odeset('RelTol',1e-10); %Tune tolerances of simulation
-% [t,X] = ode45(@fun,time_span,X0,options) <== Syntax 
+
+% march equations in time 
     opts = odeset('RelTol',1e-8,'AbsTol',1E-8);
     X0 = [R0_star U0_star P0_star Tau0 C0 Tm0 ]; 
     [t , X] = ode23tb(@bubble, [0 tspan_star] , X0, opts);
@@ -163,8 +136,7 @@ end
     T = (A_star -1 + sqrt(1+2*Tau*A_star)) / A_star; % Temp in bubble
     Mv = 0;
 
-% ******************************
-% Transform variables back into their dimensional form 
+% transform variables back into their dimensional form 
  if (Dim == 1)
     R = R*R0; 
     t= t*t0;
@@ -175,16 +147,28 @@ end
     Tdel = Tdel*T_inf;
     Mv = Mv*(Mv0+Ma0);
  end
- %***********************
 
-%*************************************************************************
-% Nested function; ODE Solver calls to march governing equations in time
-% This function has acess to all parameters above; 
+% variable output
+varargout{1} = t;
+varargout{2} = R; 
+varargout{3} = U; 
+varargout{4} = P;
+varargout{5} = T; 
+varargout{6} = C;
+varargout{7} = Tm;
+varargout{8} = tdel; 
+varargout{9} = Tdel; 
+varargout{10} = Cdel;
 
-% Solves the full model (PDE's)
+
+% nested function; ODE Solver calls to march governing equations in time.  
+
+% this function has acess to all parameters above
+
+% solves the full model (PDE's)
 function dxdt = bubble(t,x)
     
-     % Break x vector into indv. values
+     % break x vector into indv. values
      R = x(1); % Bubble wall Radius 
      U = x(2); % Bubble wall velocity
      P = x(3); % Internal pressure
@@ -197,7 +181,7 @@ function dxdt = bubble(t,x)
         disp(t/tspan_star);
     end
          
-    % *********Solves for boundary condition at the wall************** 
+    % solves for boundary condition at the wall
     
     if (Tmgrad == 1)
            if t/tspan_star> 0.001
@@ -212,25 +196,24 @@ function dxdt = bubble(t,x)
             prelim = 0 ;      
     end
 
-    %****************************************************************
-     % Sets value at boundary conditions
+     % sets value at boundary conditions
      tau_del=[tau_del prelim]; 
      Tau(end) = prelim;
      T = TW(Tau);
      Tm(1) = T(end); 
            
-     % Calculated variables     
+     % calculated variables     
      K_star = A_star*T+B_star;  
      C(end) =  CW(T(end),P);
      
      Rmix = C*Rv_star + (1-C)*Ra_star; 
      
-     % Gets variables that are not directly calculated as outputs
+     % gets variables that are not directly calculated as outputs
      Tdel = [Tdel , T(end)];
      tdel = [tdel t];
      Cdel = [Cdel C(end)];    
      
-     %Set external pressure
+     % set external pressure
      if (Pext_type == 'sn')
          Pext =  -Pext_Amp_Freq(1)/P_inf*sin(2*pi*Pext_Amp_Freq(2)*t*t0) ; 
          P_ext_prime = -2*pi*Pext_Amp_Freq(2)*t0*Pext_Amp_Freq(1)/P_inf...
@@ -277,38 +260,32 @@ function dxdt = bubble(t,x)
          
      end
 
-    % *****************************************    
-    % Create derivative terms
+    % create derivative terms
     
-    % Temp. field inside the bubble
+    % temp. field inside the bubble
     DTau  = D_Matrix_T_C*Tau;
     DDTau = DD_Matrix_T_C*Tau;
     
-    % Concentration field inside the bubble
+    % concentration field inside the bubble
     DC  = D_Matrix_T_C*C; 
     DDC = DD_Matrix_T_C*C;
     
-    % Temp. field outside the bubble
+    % temp. field outside the bubble
  
     DTm = D_Matrix_Tm*Tm;
     DDTm = DD_Matrix_Tm*Tm;
  
-    %***************************************
-    % Internal pressure equation
+    % internal pressure equation
     
      P_prime = 3/R*(Tgrad*chi*(k-1)*DTau(end)/R-k*P*U+...
               + Cgrad*k*P*fom*Rv_star*DC(end)...
               /( T(end)*R* Rmix(end)* (1-C(end)) ) );
 
-    % *****************************************
-
-    %***************************************
-    % Updating the viscous forces/Reynolds number    
+    % updating the viscous forces/Reynolds number    
      [fnu,intfnu,dintfnu,ddintfnu] = ...
          f_nonNewtonian_integrals(vmodel,U,R,v_a,v_nc,v_lambda);
     
-    %***************************************    
-    % Temperature inside the bubble
+    % temperature inside the bubble
     
     U_vel = (chi/R*(k-1).*DTau-yk*R*P_prime/3)/(k*P);
     first_term = (DDTau.*chi./R^2+P_prime).*( K_star.*T/P*(k-1)/k);
@@ -317,27 +294,21 @@ function dxdt = bubble(t,x)
     Tau_prime = first_term+second_term; 
     Tau_prime(end) = 0;
     Tau_prime = Tau_prime*Tgrad; 
-    % *****************************************
-      
-    %***************************************
-    % Vapor concentration equation 
+
+    % vapor concentration equation 
     
     U_mix = U_vel + fom/R*((Rv_star - Ra_star)./Rmix).*DC  ;
     one = DDC;
     two = DC.*(DTau./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*DC );
     three =  (U_mix-U.*yk)/R.*DC; 
-    % *****************************************
-    
-    % *****************************************
+
     % C_prime
     
     C_prime = fom/R^2*(one - two) - three;
     C_prime(end) = 0;
     C_prime = C_prime*Cgrad;
-    %***************************************
-    
-    %***************************************
-    % External temperature: In the liquid
+
+    % external temperature: In the liquid
     
     first_term = (1+xk).^2./(L*R).*...
         (U./yk2.^2.*(1-yk2.^3)/2+foh/R.*((xk+1)/(2*L)-1./yk2)).* DTm;
@@ -348,10 +319,9 @@ function dxdt = bubble(t,x)
     Tm_prime(end) = 0; % Sets boundary condition on temp        
     Tm_prime(1) = 0; % Previously calculated; 
     Tm_prime = Tm_prime*Tgrad;
-    % ***************************************** 
 
-    %***************************************
-    % Viscoelastic Forces : 
+
+    % viscoelastic forces : 
     
     E = 1/(2*Ca)*(5-4/R - 1/R^4)+ 4*U/(Re8*R) - 6*intfnu*iDRe; 
     E_prime = 2*U*(1/R^2 + 1/R^5)/Ca - 4/Re8*U^2/R^2 - 6*dintfnu*iDRe; 
@@ -361,7 +331,7 @@ function dxdt = bubble(t,x)
     %      E_prime= 4/Ca*U*/R^4 - 4/Re*U^2/R^2;
      
      if  (Pext_type == 'IC') 
-     %Account for initial stress state     
+     % account for initial stress state     
        E = 1/(2*Ca)*(5-(4*REq/R) - (REq/R)^4)+ 4*U/(Re8*R); 
        E_prime = 2*U*(REq/R^2 + REq^4/R^5)/Ca - 4/Re8*U^2/R^2;
      
@@ -370,9 +340,8 @@ function dxdt = bubble(t,x)
     %      E_prime= 4/Ca*U*REq^3/R^4 - 4/Re*U^2/R^2;
     %      
      end
-    %****************************************************
 
-    % Equations of motion 
+    % equations of motion 
      R_prime = U;  
   
      if (Tgrad == 0)
@@ -392,15 +361,13 @@ function dxdt = bubble(t,x)
           - 1.5*(1-U/(3*C_star))*U^2)/((1-U/C_star)*R + ...
           4/Re8/C_star - 6*ddintfnu*iDRe/C_star);
      end
-     % *****************************************
      
      dxdt = [R_prime; U_prime; P_prime; Tau_prime; C_prime; Tm_prime]; 
+
 end
 
-%*************************************************************************
+% other nested functions used to carry out repeatetive calculations throughout the code 
 
-% Other nested functions used to carry out repeatetive calculations 
-% throughout the code 
 function Tw= TW(Tauw)
  
     %calculates the temperature at the bubble wall as a fuction of \tau 
@@ -411,8 +378,8 @@ end
 
 function Cw= CW(Tw,P)
     
-  % Calculates the concentration at the bubble wall 
-  %Function of P and temp at the wall 
+  % calculates the concentration at the bubble wall 
+  % function of P and temp at the wall 
  
   thetha = Rv_star/Ra_star*(P./(f_pvsat(Tw*T_inf)/P_inf) -1);
   Cw = 1./(1+thetha); 
@@ -421,19 +388,17 @@ end
 
 function Tauw= Boundary(prelim)
        
-    % Solves temperature boundary conditions at the bubble wall     
-    % Create finite diff. coeffs. 
-    % Coefficients in terms of forward difference 
+    % solves temperature boundary conditions at the bubble wall     
+    % create finite diff. coeffs. 
+    % coefficients in terms of forward difference 
     
-%    %Second order
+    % second order
     coeff = [-3/2 , 2 ,-1/2 ];
     Tm_trans = Tm(2:3);
     T_trans = flipud(Tau(end-2:end-1));
     C_trans = flipud(C(end-2:end-1));
     
-%   Could implement any order... sixth order example is shown below 
-
-%     Sixth order    
+    % sixth order    
 %     coeff= [-49/20 ,6	,-15/2	,20/3	,-15/4	,6/5	,-1/6]; %Sixth order coeff 
 %     Tm_trans = Tm(2:7);
 %     T_trans = flipud(Tau(end-6:end-1));
@@ -444,6 +409,6 @@ function Tauw= Boundary(prelim)
     fom*L_heat_star*P*( (CW(TW(prelim),P)*(Rv_star-Ra_star)+Ra_star))^-1 *...
     (TW(prelim) * (1-CW(TW(prelim),P))  ).^(-1).*...
     (-coeff*[CW(TW(prelim),P); C_trans] )/deltaY; 
- %************************************************************************
 end
+
 end
