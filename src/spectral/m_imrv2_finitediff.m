@@ -171,6 +171,10 @@ function dXdt = SVBDODE(t,X)
         J = 0;
         JdotX = 0;
 
+        %TODO Need to add non-Newtonian behavior to JdotX 
+        %((1-U/C_star)*R + ...
+        %  4/Re8/C_star - 6*ddintfnu*iDRe/C_star);
+
     % Kelvin-Voigt with neo-Hookean elasticity
     elseif stress == 1 
         % compute stress integral
@@ -243,33 +247,10 @@ function dXdt = SVBDODE(t,X)
     [pf8,pf8dot] = f_pinfinity(t,pvarargin);
     
     % bubble wall acceleration
+    [Udot] = f_radial_eq(radial, p, pVap, pf8, pf8dot, iWe, R, U, J, JdotX,...
+        Cstar, sam, no, GAMa, nstate, JdotA );
 
-    % Rayleigh-Plesset        
-    if radial == 1
-        Udot = (p + pVap - 1 - pf8 - iWe/R + J - 1.5*U^2)/R;
-    % Keller-Miksis in pressure        
-    elseif radial == 2
-        Udot = ((1+U./Cstar)*(p - 1 - pf8 - iWe./R + J) ...
-            + R./Cstar.*(pdot + iWe.*U./R.^2 +  JdotX - pf8dot) ...
-            - 1.5.*(1-U./(3.*Cstar)).*U.^2)./((1-U./Cstar).*R + JdotA./Cstar);     
-        % Udot = ((1+U./Cstar)*(p + pVap - 1 - pf8 - iWe./R + J) ... % check to see if pVap should be included 
-        %     + R./Cstar.*(pdot + iWe.*U./R.^2 +  JdotX - pf8dot) ...
-        %     - 1.5.*(1-U./(3.*Cstar)).*U.^2)./((1-U./Cstar).*R + JdotA./Cstar);      
-    % Keller-Miksis in enthalpy
-    elseif radial == 3    
-        hB = (sam/no)*(((p - iWe/R + GAMa + J)/sam)^no - 1);
-        hH = (sam/(p - iWe/R + GAMa + J))^(1/nstate);
-        Udot = ((1 + U/Cstar)*(hB - pf8) - R/Cstar*pf8dot ...
-            + R/Cstar*hH*(pdot + iWe*U./R.^2 + JdotX) ...
-            - 1.5*(1 - U./(3*Cstar)).*U.^2)/((1 - U./Cstar).*R + JdotA*hH./Cstar);
-    % Gilmore equation
-	elseif radial == 4
-        hB = sam/no*(((p - iWe/R + GAMa + J)/sam)^no - 1);
-        hH = (sam/(p - iWe/R + GAMa + J))^(1/nstate);
-        Udot = ((1 + U/Cstar)*(hB - pf8) - R/Cstar*pf8dot ...
-            + R/Cstar*(hB + hH*(pdot + iWe*U/R^2 + JdotX)) ...
-            - 1.5*(1 - U/(3*Cstar))*U^2) / ((1 - U/Cstar)*R + JdotA*hH/Cstar);
-    end    
+    % stress integral rate
     Jdot = JdotX - JdotA*Udot/R;
 
     % output assembly

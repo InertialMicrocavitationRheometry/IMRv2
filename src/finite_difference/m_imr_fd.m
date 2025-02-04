@@ -370,6 +370,7 @@ function dxdt = bubble(t,x)
      end
 
      Pv = (f_pvsat(T(end)*T_inf)/P_inf);
+     
      if comp == 0
      %R.P
         U_prime = (P +abs(1-Cgrad)*Pv-1-Pext - E - 1/(We*R) - 1.5*U^2)/R;
