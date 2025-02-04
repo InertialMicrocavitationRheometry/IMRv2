@@ -267,7 +267,6 @@ function dXdt = SVBDODE(t,X)
         % stress integral derivative
         Z1dot = -(Z1-Ze)/De + ZdotSqNH + (3*U/R)*(Z1-Ze) + 4*(LAM-1)/(Re8*De)*R^2*U ;
         JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re8*U^2/R^2;
-        Ca;
 
     % upper-convected Maxwell, OldRoyd-B
     elseif stress == 3 
@@ -291,7 +290,7 @@ function dXdt = SVBDODE(t,X)
 
     % stress integral rate
     Jdot = JdotX - JdotA*Udot/R;
-    
+
     % output assembly
     dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot];
 
