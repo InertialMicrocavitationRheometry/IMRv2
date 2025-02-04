@@ -69,124 +69,40 @@ ma0             = mass_opts(7);
 
 % pre_process code
 
-% collocation point construction
-y = cos(pi*(0:Nt)'/(2*Nt));
-xi = cos(pi*(0:Mt)'/Mt);
-ze = cos(pi*(1:Nv)'/Nv);
-% collocation matrix construction
-[gA,gAI,~,~,gAPd,gAPdd] = dcdmtxe(Nt);
-[mA,~,~,~,mAPd,mAPdd] = dcdmtx(Mt);
-[gC,gCI,~,~,~,~] = dcdmtxe(Nt);
-Q = [gA(2:end,:) zeros(Nt,Mt+1);
-    zeros(Mt,Nt+1) mA(2:end,:);
-    2*(0:Nt).^2 iota*(0:Mt).^2];
-Q = sparse(Q);
-[sCA,sCI,sCAd,~,~,~] = dcdmtx(Nv);
-sCA = sCA(2:end,2:end) - 1;
-sCI = sCI(2:end,2:end);
-sCAd = sCAd(2:end,2:end);
+% creates finite difference matrices 
+D_Matrix_T_C = f_finite_diff_mat(Nt,1,0);
+DD_Matrix_T_C = f_finite_diff_mat(Nt,2,0);
+D_Matrix_Tm = f_finite_diff_mat(Mt,1,1);
+DD_Matrix_Tm = f_finite_diff_mat(Mt,2,1);
 
-% precomputations
-LDR = LAM*De/Re8;
-sam = 1 - Pv_star + GAMa; 
-no = (nstate-1)/nstate;
-kapover = (kappa-1)/kappa;
-yT = 2*Lt./(1+xi) - Lt + 1;
-yV = 2*Lv./(1-ze) - Lv + 1;
-nn = ((-1).^(0:Nt).*(0:Nt).^2)';
-nn = sparse(nn);
-Udot = 0; 
+% create spatial nodes
 
-% precomputations for viscous dissipation
-zT = 1 - 2./(1 + (yT - 1)/Lv);
-ZZT = cos(acos(zT)*(1:Nv)) - 1;
+% inside the bubble
+N = Nt -1; 
+deltaY = 1/N;
+i = 1:1:N+1;
+y = ((i-1)*deltaY)';
+% outside the bubble     
+Nm =NTM-1; 
+deltaYm = -2/Nm;
+j = 1:1:Nm+1;
+xi = (1+(j-1)*deltaYm)';
+yT = ((2./(xk+1)-1)*L+1);
 
-% compute or load integral coefficients
-switch Lv
-    case 3, load('eNstore3','eNN'); cdd = eNN(1:Nv)';
-    case 4, load('eNstore4','eNN4'); cdd = eNN4(1:Nv)';
-    case 5, load('eNstore5','eNN5'); cdd = eNN5(1:Nv)';
-    case 6, load('eNstore6','eNN6'); cdd = eNN6(1:Nv)';
-    case 10, load('eNstore10','eNN10'); cdd = eNN10(1:Nv)';
-    case 20, load('eNstore20','eNN20'); cdd = eNN20(1:Nv)';
-    case 0.1, load('eNstorep1','eNNp1'); cdd = eNNp1(1:Nv)';
-    case 0.01, load('eNstorep01','eNNp01'); cdd = eNNp01(1:Nv)';
-    case 0.3, load('eNstorep3','eNNp3'); cdd = eNNp3(1:Nv)';
-    case 0.5, load('eNstorep5','eNNp5'); cdd = eNNp5(1:Nv)';
-    otherwise, cdd = preStressInt(Lv,Nv);
-end
 
-% index management
-if stress == 1
-    zeNO = 0; 
-else 
-    zeNO = 1; 
-end
-if spectral == 0, Nv = 1; end
-if bubtherm == 0, Nt = -1; Mt = -1; qdot = []; end
-if medtherm == 0, Mt = -1; end
-if masstrans == 0, Nm = -1; end
-ia = 4:(4+Nt);
-ib = (5+Nt):(5+Nt+Mt);
-ic = (6+Nt+Mt):(5+Nt+Mt+Nv);
-id = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
-ie = (6+Nt+Mt+2*Nv):(5+Nt+Mt+2*Nv+Nm);
-
-% initial condition assembly
-if perturbed == 1
-    init = [Rzero; Uzero; p0star; % radius, velocity, pressure
-        zeros(Nt+1,1); % auxiliary temperature spectrum
-        ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
-        zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
-        S0; % initial stress integral 
-        azero'; adot_zero']; % initial conditions for perturbed conditions
-elseif spectral == 1
-    init = [Rzero; Uzero; p0star; % radius, velocity, pressure
-        zeros(Nt+1,1); % auxiliary temperature spectrum
-        ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
-        zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
-        S0]; % initial stress integral
-elseif (spectral == 0 && stress < 3)
-    init = [Rzero; Uzero; p0star; % radius, velocity, pressure
-        zeros(Nt+1,1); % auxiliary temperature spectrum
-        ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
-        S0;0; % stress spectrum
-        S0]; % initial stress integral
-end
-
+% initial conditions
+Tau0 = zeros(1,Nt);
+C0 = C0*ones(1,Nt);
+Tm0 = ones(1,Mt);
+init = [Rzero; Uzero; p0star; % radius, velocity, pressure
+        Tau0; % auxiliary temperature spectrum
+        C0; % medium vapor concentration 
+        Tm0]; % medium temperature
 
 % solver start
 IMR_start;
 stepcount = 0;
-if method == 15
-    if divisions == 0
-        options = odeset();
-    else
-        options = odeset('MaxStep',tfin/divisions,'RelTol',1e-8);
-    end
-    [t,X] = ode15s(@SVBDODE,tspan,init,options);
-elseif method == 23
-    if divisions == 0
-        options = odeset();
-    else
-        options = odeset('MaxStep',tfin/divisions,'RelTol',1e-8,'AbsTol',10^-8);
-    end
-    [t,X] = ode23tb(@SVBDODE,tspan,init,options);
-elseif method == 45
-    if divisions == 0
-        options = odeset('NonNegative',1,'AbsTol',1e-8,'RelTol',1e-8);
-    else
-        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-8);
-    end
-    [t,X] = ode45(@SVBDODE,tspan,init,options);
-else
-    if divisions == 0
-        options = odeset('NonNegative',1);
-    else
-        options = odeset('NonNegative',1,'MaxStep',tfin/divisions,'RelTol',1e-8);
-    end
-    [t,X] = ode45(@SVBDODE,tspan,init,options);
-end
+[t,X] = f_imrv2_odesolve(method, divisions, tfin, init);
 
 
 % solver function
@@ -196,10 +112,6 @@ function dXdt = SVBDODE(t,X)
     
     % extract standard inputs
     R = X(1); U = X(2); p = X(3); qdot = []; 
-    if perturbed == 1
-        aa = X(7:7+nl-1);
-        adot = X(7+nl:7+2*nl-1);
-    end
     
     % non-condensible gas pressure and temperature
     if bubtherm
@@ -330,6 +242,7 @@ function dXdt = SVBDODE(t,X)
     [pf8,pf8dot] = f_pinfinity(t,pvarargin);
     
     % bubble wall acceleration
+
     % Rayleigh-Plesset        
     if radial == 1
         Udot = (p + pVap - 1 - pf8 - iWe/R + J - 1.5*U^2)/R;
@@ -355,22 +268,12 @@ function dXdt = SVBDODE(t,X)
         Udot = ((1 + U/Cstar)*(hB - pf8) - R/Cstar*pf8dot ...
             + R/Cstar*(hB + hH*(pdot + iWe*U/R^2 + JdotX)) ...
             - 1.5*(1 - U/(3*Cstar))*U^2) / ((1 - U/Cstar)*R + JdotA*hH/Cstar);
-    end
-    
+    end    
+    Jdot = JdotX - JdotA*Udot/R;
+
     % output assembly
-    if perturbed == 1
-        Jdot = JdotX - JdotA*Udot/R;
-        eta = (3*U/R) + (4)/(Re8*R^2) + (l.*(l+1))./(3*Re8*R^2);
-        varXi = -(Udot/R) + (4*U)/(Re8*R^3) - ...
-              (2.*l.*(l+1).*U)./(3*Re8*R^3) - ((l+2).*(l-1))./(We*R^3) -...
-              ((4*Req)/(Ca*R^3))*(1 + (Req^3/R^3))-(2.*l.*(l+1))./...
-              (Ca*(R^2+R*Req + Req^2));
-        addot = -eta.*adot + varXi.*aa;
-        dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot; adot; addot];
-    else
-        Jdot = JdotX - JdotA*Udot/R;
-        dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot];
-    end
+    dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot];
+
 end
 
 % post processing

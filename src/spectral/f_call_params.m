@@ -29,7 +29,6 @@ end
 % otherwise, reading the default casefile
 if defaultread
     disp('using default case file');
-    default = strcat(common,'/default_case.m');
     run('../common/default_case.m');
 end
 
@@ -208,7 +207,14 @@ Pref    = P8;
 t0      = R0/Uc;                    % characteristic time (s) 
 % dimensionless vapor and infinity pressure
 Pv_star = vapor*Pv/Pref;
-P0_star = P0/Pref;                    % 
+P0_star = P0/Pref;                   
+
+% TODO
+% When we assume water vapor undergoes infinitely fast mass diffusion
+% the vapor pressure is constant and P is the pressure of
+% non-condesible gas 
+%P0_star = P0_star - (1-masstrans)*f_pvsat(T_inf)/P_inf; 
+
 % dimensionless waveform parameters
 tvector = TVector./t0;
 om      = omega*t0;                 % non-dimensional frequency
@@ -325,6 +331,33 @@ if spectral == 1
     JdotA = 0; 
 end
 
+% TODO
+
+% need to modify initial conditions for the Out-of-Equilibrium Rayleigh
+% collapse:  
+% if  (Pext_type == 'IC') 
+%     Pv = f_pvsat(1*T_inf)/P_inf;
+%     P0_star = Pext_Amp_Freq(1)/P_inf + Cgrad*f_pvsat(1*T_inf)/P_inf; 
+%     % Need to recalculate intital concentration
+%     thetha = Rv_star/Ra_star*(P0_star-Pv)/Pv; % masp air / mass vapor 
+%     C0 = 1/(1+thetha);
+%     Ma0 = (P0_star-Pv)/Ra_star;  
+%     % Need to calculate the equilibrium radii for initial 
+%     % stress state: 
+%     [REq] = f_calc_Req(R0, Tgrad ,Cgrad,Pext_Amp_Freq(1),vmaterial);
+%     %REq = 1;
+%     C0 = C0*ones(1,NT);
+%     U0_star = -(1-P0_star)/(C_star); % Initial velocity 
+%     %Plesset & Prosperetti, ARFM 1977, p166
+%     else
+%     U0_star = 0;
+% end
+% 
+% if  (Pext_type == 'RC') 
+%     U0_star = -1*(Pext_Amp_Freq(1)/P_inf)/(C_star); % Intitial velocity 
+%      %Plesset & Prosperetti, ARFM 1977, p166 
+% end
+
 % equation settings 
 eqns_opts = [radial bubtherm medtherm stress eps3 vapor masstrans perturbed nl];
 % solver options
@@ -337,6 +370,7 @@ tspan_opts = tvector;
 out_opts = [dimensionalout progdisplay plotresult];
 
 % physical parameters
+
 % acoustic parameters
 acos_opts = [Cstar GAMa kappa nstate];
 % dimensionless waveform parameters
