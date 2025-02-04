@@ -1,5 +1,7 @@
+function [] = f_display(radial, bubtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM)
+
 % Command window display
-function [] = f_imr_display(radial, bubtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM)
+
     if radial == 1
         eqn = 'Rayleigh Plesset equation';
     elseif radial == 2

@@ -133,33 +133,17 @@ id = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
 ie = (6+Nt+Mt+2*Nv):(5+Nt+Mt+2*Nv+Nm);
 
 % initial condition assembly
-if perturbed == 1
-    init = [Rzero; Uzero; p0star; % radius, velocity, pressure
-        zeros(Nt+1,1); % auxiliary temperature spectrum
-        ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
-        zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
-        S0; % initial stress integral 
-        azero'; adot_zero']; % initial conditions for perturbed conditions
-elseif spectral == 1
-    init = [Rzero; Uzero; p0star; % radius, velocity, pressure
-        zeros(Nt+1,1); % auxiliary temperature spectrum
-        ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
-        zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
-        S0]; % initial stress integral
-elseif (spectral == 0 && stress < 3)
-    init = [Rzero; Uzero; p0star; % radius, velocity, pressure
-        zeros(Nt+1,1); % auxiliary temperature spectrum
-        ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
-        S0;0; % stress spectrum
-        S0]; % initial stress integral
-end
-
+init = [Rzero; Uzero; p0star; % radius, velocity, pressure
+    zeros(Nt+1,1); % auxiliary temperature spectrum
+    ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
+    zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
+    0]; % initial stress integral
 
 % solver 
-f_imr_display(radial, bubtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM);
+f_display(radial, bubtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM);
 stepcount = 0;
 bubble = @SVBDODE;
-[t,X] = f_imrv2_odesolve(bubble, init, method, divisions, tspan, tfin);
+[t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);
 
 % solver function
 function dXdt = SVBDODE(t,X)

@@ -100,10 +100,10 @@ init = [Rzero; Uzero; p0star; % radius, velocity, pressure
         Tm0]; % medium temperature
 
 % solver start
-f_imr_display(radial, bubtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM);
+f_display(radial, bubtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM);
 stepcount = 0;
 bubble = @SVBDODE;
-[t,X] = f_imrv2_odesolve(bubble, init, method, divisions, tspan, tfin);
+[t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);
 
 
 % solver function
