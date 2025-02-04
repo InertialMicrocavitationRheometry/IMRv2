@@ -24,14 +24,34 @@ vmodel = varargin{14};
 
 % load parameters
 Pmt = f_call_parameters(R0,vmaterial); % Calls parameters script 
-k = Pmt(1); chi = Pmt(2);  fom = Pmt(3); foh = Pmt(4);  Ca = Pmt(5);  
-Re8 = Pmt(6); We = Pmt(7);  Br = Pmt(8);  A_star = Pmt(9); B_star = Pmt(10);
-Rv_star = Pmt(11);  Ra_star = Pmt(12); P0_star = Pmt(13); t0 = Pmt(14);
-C0 = Pmt(15); L = Pmt(16); L_heat_star = Pmt(17); Km_star = Pmt(18); 
-P_inf = Pmt(19); T_inf = Pmt(20); C_star = Pmt(21);  
-Mv0 = Pmt(22);   Ma0 = Pmt(23); 
+k = Pmt(1); 
+chi = Pmt(2);  
+fom = Pmt(3); 
+foh = Pmt(4);  
+Ca = Pmt(5);  
+Re8 = Pmt(6); 
+We = Pmt(7);  
+Br = Pmt(8);  
+A_star = Pmt(9); 
+B_star = Pmt(10);
+Rv_star = Pmt(11);  
+Ra_star = Pmt(12); 
+P0_star = Pmt(13); 
+t0 = Pmt(14);
+C0 = Pmt(15); 
+L = Pmt(16); 
+L_heat_star = Pmt(17); 
+Km_star = Pmt(18); 
+P_inf = Pmt(19); 
+T_inf = Pmt(20); 
+C_star = Pmt(21);  
+Mv0 = Pmt(22);   
+Ma0 = Pmt(23); 
 % additional non-Newtonian parameters
-DRe = Pmt(24); v_a = Pmt(25); v_nc = Pmt(26); v_lambda = Pmt(27);
+DRe = Pmt(24); 
+v_a = Pmt(25); 
+v_nc = Pmt(26); 
+v_lambda = Pmt(27);
 if DRe==0
     iDRe = 0;
 else

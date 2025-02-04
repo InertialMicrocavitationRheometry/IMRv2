@@ -67,7 +67,8 @@ Rv_star         = mass_opts(3); Ra_star         = mass_opts(4);
 L_heat_star     = mass_opts(5); mv0             = mass_opts(6);
 ma0             = mass_opts(7);
 
-% numerical setup and precomputations %
+% pre_process code
+
 % collocation point construction
 y = cos(pi*(0:Nt)'/(2*Nt));
 xi = cos(pi*(0:Mt)'/Mt);
@@ -152,6 +153,7 @@ elseif (spectral == 0 && stress < 3)
         S0;0; % stress spectrum
         S0]; % initial stress integral
 end
+
 
 % solver start
 IMR_start;
@@ -372,6 +374,7 @@ function dXdt = SVBDODE(t,X)
 end
 
 % post processing
+
 % extract result
 R = X(:,1); U = X(:,2); p = X(:,3); Z1 = X(:,ic); Z2 = X(:,id); 
 if perturbed == 1
@@ -435,8 +438,7 @@ if dimensionalout == 1
     end
 end
 
-% Function output
-% standard outputs
+% outputs
 varargout{1} = t;
 varargout{2} = R;
 varargout{3} = U;
@@ -593,21 +595,21 @@ function IMR_start()
     end
     
     % display run settings
-    % disp('--- IMRV2 SETTINGS ---');
-    % disp(['Radial dynamics: ' eqn]);
-    % disp(['Medium rheology: ' const]);
-    % disp(['Thermal effects: ' therm]);
-    % disp(['Mass effects: ' mass]);
-    % disp(['Solution method: ' solut]);
-    % disp('--- Dimensionless numbers ---');
-    % disp(['Re8 = ' num2str(Re8,'%10.10f')]);
-    % disp(['De = ' num2str(De,'%10.10f')]);
-    % disp(['Ca = ' num2str(Ca,'%10.10f')]);
-    % disp(['LM = ' num2str(LAM,'%10.10f')]);
+    disp('--- IMRV2 SETTINGS ---');
+    disp(['Radial dynamics: ' eqn]);
+    disp(['Medium rheology: ' const]);
+    disp(['Thermal effects: ' therm]);
+    disp(['Mass effects: ' mass]);
+    disp(['Solution method: ' solut]);
+    disp('--- Dimensionless numbers ---');
+    disp(['Re8 = ' num2str(Re8,'%10.10f')]);
+    disp(['De = ' num2str(De,'%10.10f')]);
+    disp(['Ca = ' num2str(Ca,'%10.10f')]);
+    disp(['LM = ' num2str(LAM,'%10.10f')]);
 end
 
 function IMR_finish()    
-    % disp('--- COMPLETED SIMULATION ---');    
+    disp('--- COMPLETED SIMULATION ---');    
 end 
 
 % functions called by solver 
