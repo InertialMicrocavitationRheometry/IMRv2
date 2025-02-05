@@ -144,15 +144,15 @@ end
 
 % march equations in time 
     opts = odeset('RelTol',1e-8,'AbsTol',1E-8);
-    X0 = [R0_star U0_star P0_star Tau0 C0 Tm0 ]; 
+    X0 = [R0_star U0_star P0_star Tau0 Tm0 C0 ]; 
     [t , X] = ode23tb(@bubble, [0 tspan_star] , X0, opts);
     %[t , X] = ode23tb(@bubble, [0 tspan_star] , X0);
     R = X(:,1); % Bubble wall Radius 
     U = X(:,2); % Bubble wall velocity
     P = X(:,3); % Internal pressure
     Tau = X(:,4:(NT+3)); % Variable relating to internal temp
-    C =  X(:,(NT+4):(2*NT+3)); % Vapor concentration in the bubble 
-    Tm = X(:, (2*NT+4):end ); % Temperature variation in the medium
+    Tm =  X(:,(NT+4):(2*NT+3)); % Vapor concentration in the bubble 
+    C = X(:, (2*NT+4):end ); % Temperature variation in the medium
     T = (A_star -1 + sqrt(1+2*Tau*A_star)) / A_star; % Temp in bubble
     Mv = 0;
 
@@ -174,8 +174,8 @@ varargout{2} = R;
 varargout{3} = U; 
 varargout{4} = P;
 varargout{5} = T; 
-varargout{6} = C;
-varargout{7} = Tm;
+varargout{6} = Tm;
+varargout{7} = C;
 varargout{8} = tdel; 
 varargout{9} = Tdel; 
 varargout{10} = Cdel;
@@ -193,8 +193,8 @@ function dxdt = bubble(t,x)
      U = x(2); % Bubble wall velocity
      P = x(3); % Internal pressure
      Tau = x(4:(NT+3));
-     C = x((NT+4):(2*NT+3)); 
-     Tm = x((2*NT+4):end );
+     Tm = x((NT+4):(2*NT+3));
+     C = x((2*NT+4):end); 
      
     if (disptime == 1 )
         %display simulation time in terminal 
@@ -315,19 +315,6 @@ function dxdt = bubble(t,x)
     Tau_prime(end) = 0;
     Tau_prime = Tau_prime*Tgrad; 
 
-    % vapor concentration equation 
-    
-    U_mix = U_vel + fom/R*((Rv_star - Ra_star)./Rmix).*DC  ;
-    one = DDC;
-    two = DC.*(DTau./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*DC );
-    three =  (U_mix-U.*yk)/R.*DC; 
-
-    % C_prime
-    
-    C_prime = fom/R^2*(one - two) - three;
-    C_prime(end) = 0;
-    C_prime = C_prime*Cgrad;
-
     % external temperature: In the liquid
     
     first_term = (1+xk).^2./(L*R).*...
@@ -340,6 +327,18 @@ function dxdt = bubble(t,x)
     Tm_prime(1) = 0; % Previously calculated; 
     Tm_prime = Tm_prime*Tgrad;
 
+    % vapor concentration equation 
+    
+    U_mix = U_vel + fom/R*((Rv_star - Ra_star)./Rmix).*DC  ;
+    one = DDC;
+    two = DC.*(DTau./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*DC );
+    three =  (U_mix-U.*yk)/R.*DC; 
+
+    % C_prime
+    
+    C_prime = fom/R^2*(one - two) - three;
+    C_prime(end) = 0;
+    C_prime = C_prime*Cgrad;
 
     % viscoelastic forces : 
     
@@ -383,7 +382,7 @@ function dxdt = bubble(t,x)
           4/Re8/C_star - 6*ddintfnu*iDRe/C_star);
      end
      
-     dxdt = [R_prime; U_prime; P_prime; Tau_prime; C_prime; Tm_prime]; 
+     dxdt = [R_prime; U_prime; P_prime; Tau_prime; Tm_prime; C_prime]; 
 
 end
 
