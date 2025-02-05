@@ -29,8 +29,8 @@ adot0           = zeros(6,1);
 
 % output options
 dimensionalout  = 0;        % output result in dimensional variables
-progdisplay     = 1;        % display progress while code running
-plotresult      = 1;        % generate figure containing results
+progdisplay     = 0;        % display progress while code running
+plotresult      = 0;        % generate figure containing results
 
 % acoustic options
 rho8            = 1064;%997;              % far-field density (kg/m^3)   

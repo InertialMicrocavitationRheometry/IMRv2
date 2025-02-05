@@ -285,7 +285,7 @@ function dXdt = SVBDODE(t,X)
     [pf8,pf8dot] = f_pinfinity(t,pvarargin);
     
     % bubble wall acceleration
-    [Udot] = f_radial_eq(radial, p, pVap, pf8, pf8dot, iWe, R, U, J, JdotX, ...
+    [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, R, U, J, JdotX, ...
         Cstar, sam, no, GAMa, nstate, JdotA );
 
     % stress integral rate

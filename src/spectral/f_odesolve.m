@@ -1,4 +1,4 @@
-function [t,X] = f_imrv2_odesolve(bubble, init, method, divisions, tspan, tfin)
+function [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin)
 
 if method == 15
     if divisions == 0
