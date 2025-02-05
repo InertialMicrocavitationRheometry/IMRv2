@@ -90,14 +90,14 @@ xi = (1+(j-1)*deltaYm)';
 yT = ((2./(xk+1)-1)*L+1);
 
 
-% initial conditions
+% initial condition assembly
+
+% radius, velocity, pressure, bubble temperature, medium temperature,
+% vapor concentration
 Tau0 = zeros(1,Nt);
-C0 = C0*ones(1,Nt);
 Tm0 = ones(1,Mt);
-init = [Rzero; Uzero; p0star; % radius, velocity, pressure
-        Tau0; % auxiliary temperature spectrum
-        Tm0; % medium vapor concentration 
-        C0]; % medium temperature
+C0 = C0*ones(1,Nt);
+init = [Rzero; Uzero; Tau0; Tm0; C0]; 
 
 % solver start
 f_display(radial, bubtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM);
@@ -159,57 +159,83 @@ function dXdt = SVBDODE(t,X)
     Tau = X(4:(NT+3)); 
     Tm = X((NT+4):(2*NT+3));
     C = X((2*NT+4):end); 
-    
-    % non-condensible gas pressure and temperature
-    if bubtherm
-        % extract auxiliary temperature
-        SI = gA*X(ia);
-        % auxiliary temperature derivatives
-        dSI = gAPd*SI; % first order derivative
-        ddSI = gAPdd*SI; % second order derivative
-        % temperature and thermal diffusivity fields
-        T = (alpha - 1 + sqrt(1+2*alpha*SI))/alpha;
-        D = kapover*(alpha*T.^2 + (1-alpha)*T)/p;
-        pVap = vapor*(f_pvsat(T(1)*T8)/P8);
 
-        % new pressure and auxiliary temperature derivative
-        pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U);
-        
-        SIdot = pdot*D + chi/R^2*(2*D./y - kapover/p*(dSI - dSI(1)*y)).*dSI ...
-            + chi*D/R^2.*ddSI;
-        SIdot(end) = pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
-            + kapover/p*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);
-        
-        if medtherm % warm-liquid
-            % extract medium temperature
-            TL = mA*X(ib);
-            % new derivative of medium temperature
-            first_term = (1+xi).^2/(Lt*R).*...
-                (Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
-                U/2*(1./yT.^2 - yT)).*(mAPd*TL);
-            second_term = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
-            TLdot =  first_term + second_term;
-            % include viscous heating
-            if spectral == 1
-                TLdot = TLdot - 2*Br*U./(R*yT.^3).*(ZZT*(X(ic) - X(id)));    
-            elseif stress == 1
-                TLdot = TLdot + 4*Br./yT.^6*(U/R*(1-1/R^3)/Ca + 3/Re8*(U/R)^2); 
-            end
-            % enforce boundary condition and solve
-            TLdot(end) = 0;
-            qdot = [ones(1,Nt+1) -(alpha*(T(1)-1)+1)*ones(1,Mt+1); Q]...
-                \[0; SIdot(2:end); TLdot(2:end); 0];       
-        else % cold-liquid approximation
-            % solve auxiliary temperature with boundary condition
-            qdot = gAI*[0; SIdot(2:end)];            
-        end
-    else 
-        % polytropic approximation
-        p = (p0star-Pv_star)*R^(-3*kappa);
-        pdot = -3*kappa*U/R*p;
-        pVap = Pv_star;        
+    % solve for boundary condition at the wall
+    if (Tmgrad == 1)
+        if t/tspan_star> 0.001
+            %Might need to tune 0.001 for convergence: 
+            guess= -.001+tau_del(end); 
+            prelim  = fzero(@Boundary,guess);
+        else
+            guess = -.0001; 
+            prelim  = fzero(@Boundary,guess);            
+        end          
+    else
+        prelim = 0 ;      
     end
     
+    % sets value at boundary conditions
+    Tau(end) = prelim;
+    T = TW(Tau);
+    Tm(1) = T(end); 
+
+    if bubtherm
+        % temp. field inside the bubble
+        DTau  = D_Matrix_T_C*Tau;
+        DDTau = DD_Matrix_T_C*Tau;
+        % internal pressure equation
+        P_prime = 3/R*(Tgrad*chi*(k-1)*DTau(end)/R-k*P*U+...
+              + Cgrad*k*P*fom*Rv_star*DC(end)...
+              /( T(end)*R* Rmix(end)* (1-C(end)) ) );
+
+        % temperature inside the bubble
+        U_vel = (chi/R*(k-1).*DTau-yk*R*P_prime/3)/(k*P);
+        first_term = (DDTau.*chi./R^2+P_prime).*( K_star.*T/P*(k-1)/k);
+        second_term = -DTau.*(1/(R).*(U_vel-yk*U));
+   
+        Tau_prime = first_term+second_term; 
+        Tau_prime(end) = 0;
+        Tau_prime = Tau_prime*Tgrad; 
+
+        if medtherm 
+            % temp. field outside the bubble
+            DTm = D_Matrix_Tm*Tm;
+            DDTm = DD_Matrix_Tm*Tm;
+            % warm liquid
+            first_term = (1+xk).^2./(L*R).*...
+                (U./yk2.^2.*(1-yk2.^3)/2+foh/R.*((xk+1)/(2*L)-1./yk2)).* DTm;
+            second_term = foh/R^2.*(xk+1).^4/L^2.*DDTm/4;
+            %third_term =  4*Br./yk2.^6.*(3/Re8.*(U/R)^2);
+            third_term =  4*Br./yk2.^6.*(3/(Re8+DRe*fnu).*(U/R)^2);
+            Tm_prime = first_term+second_term+third_term;
+            % Sets boundary condition on temp        
+            Tm_prime(end) = 0; 
+            % Previously calculated; 
+            Tm_prime(1) = 0; 
+        else
+            Tm_prime = Tm_prime*Tgrad;
+        end
+    else
+        P = P0_star*(1/R)^(3*k);
+        P_prime = -3*k*U/R*P;
+    end
+
+    if masstrans
+        % concentration field inside the bubble
+        DC  = D_Matrix_T_C*C; 
+        DDC = DD_Matrix_T_C*C;
+        % vapor concentration equation 
+        U_mix = U_vel + fom/R*((Rv_star - Ra_star)./Rmix).*DC  ;
+        one = DDC;
+        two = DC.*(DTau./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*DC );
+        three =  (U_mix-U.*yk)/R.*DC; 
+
+        % C_prime
+        C_prime = fom/R^2*(one - two) - three;
+        C_prime(end) = 0;
+    end
+    Pv = (f_pvsat(T(end)*T_inf)/P_inf);
+
     % stress equation
     Z1dot = 0; Z2dot = 0;
 

@@ -133,11 +133,15 @@ id = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
 ie = (6+Nt+Mt+2*Nv):(5+Nt+Mt+2*Nv+Nm);
 
 % initial condition assembly
-init = [Rzero; Uzero; p0star; % radius, velocity, pressure
-    zeros(Nt+1,1); % auxiliary temperature spectrum
-    ones(Mt ~= -1); zeros(Mt,1); % medium temperature spectrum
-    zeros(2*(Nv - 1)*(spectral == 1) + 2,1); % stress spectrum
-    0]; % initial stress integral
+
+% radius, velocity, pressure, auxiliary temperature spectrum,
+% medium temperature spectrum, stress spectrum,
+% initial stress integral
+Tau0 = zeros(Nt+1,1);
+Tm0 = ones(Mt ~= -1);
+Tm1 = zeros(Mt,1);
+Sp = zeros(2*(Nv - 1)*(spectral == 1) + 2,1);  
+init = [Rzero; Uzero; p0star; Tau0; Tm0; Tm1; Sp; 0]; 
 
 % solver 
 f_display(radial, bubtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM);
@@ -246,11 +250,10 @@ function dXdt = SVBDODE(t,X)
     if progdisplay == 1, disp(t/tfin); end
     
     % extract standard inputs
-    R = X(1); U = X(2); p = X(3); qdot = []; 
-    if perturbed == 1
-        aa = X(7:7+nl-1);
-        adot = X(7+nl:7+2*nl-1);
-    end
+    R = X(1); 
+    U = X(2); 
+    p = X(3); 
+    qdot = []; 
     
     % non-condensible gas pressure and temperature
     if bubtherm
