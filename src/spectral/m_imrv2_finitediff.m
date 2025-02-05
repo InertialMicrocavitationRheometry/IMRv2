@@ -1,10 +1,12 @@
+% file m_imrv2_finitediff.m
+% brief contains module m_imrv2_finitediff
+
+% brief This module features a fourth- and sixth-order accurate finite 
+% difference solver of the PDEs involving thermal transport and 
+% viscoelasticity to solve Rayleigh-Plesset equations
 function varargout =  m_imrv2_finitediff(varargin)
 
-% Description: This code the IMRv2 code expanding beyond IMR from
-% Estrada et al. (2018) JMPS. Additional physics have been added including
-% the Keller-Miksis with enthalpy and non-Newtonian viscosity. 
-
-% Problem Initialization
+% problem Initialization
 [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts,... 
     wave_opts, sigma_opts, thermal_opts, mass_opts]...
     = f_call_params(varargin{:});
@@ -16,28 +18,29 @@ eps3            = eqns_opts(5);  vapor           = eqns_opts(6);
 masstrans       = eqns_opts(7);  perturbed       = eqns_opts(8);  
 nl              = eqns_opts(9);
 if (stress == 4); ptt = 1; else; ptt = 0; end
+
 % solver options
 method          = solve_opts(1); spectral        = solve_opts(2); 
 divisions       = solve_opts(3); Nv              = solve_opts(4); 
 Nt              = solve_opts(5); Mt              = solve_opts(6); 
 Lv              = solve_opts(7); Lt              = solve_opts(8); 
+
 % dimensionless initial conditions
 Rzero           = init_opts(1);  Uzero           = init_opts(2); 
 p0star          = init_opts(3);  P8              = init_opts(4); 
 T8              = init_opts(5);  Pv_star         = init_opts(6); 
 Req             = init_opts(7);  S0              = init_opts(8);
 alphax          = init_opts(9);
-if perturbed == 1
-    azero           = init_opts(10:10+nl-1);
-    adot_zero       = init_opts(10+nl:10+2*nl-1);
-end
+
 % time span options
 tspan = tspan_opts;
 tfin = tspan(end);
 % output options
 dimensionalout  = out_opts(1);  progdisplay     = out_opts(2); 
 plotresult      = out_opts(3); 
-% physical parameters%
+
+% physical parameters 
+
 % acoustic parameters
 Cstar           = acos_opts(1); GAMa            = acos_opts(2); 
 kappa           = acos_opts(3); nstate          = acos_opts(4); 
@@ -45,10 +48,9 @@ kappa           = acos_opts(3); nstate          = acos_opts(4);
 om              = wave_opts(1); ee              = wave_opts(2); 
 tw              = wave_opts(3); dt              = wave_opts(4); 
 mn              = wave_opts(5); wave_type       = wave_opts(6); 
-if perturbed == 1
-    l = wave_opts(7:7+nl-1)';
-end 
+
 pvarargin = [om,ee,tw,dt,mn,wave_type];
+
 % dimensionless viscoelastic
 We              = sigma_opts(1); Re8             = sigma_opts(2); 
 DRe             = sigma_opts(3); v_a             = sigma_opts(4); 
@@ -57,17 +59,19 @@ LAM             = sigma_opts(7); De              = sigma_opts(8);
 JdotA           = sigma_opts(9); v_lambda_star   = sigma_opts(10); 
 iWe             = 1/We;
 if Ca==-1; Ca=Inf; end
+
 % dimensionless thermal 
 Foh             = thermal_opts(1); Br              = thermal_opts(2); 
 alpha           = thermal_opts(3); beta            = thermal_opts(4); 
 chi             = thermal_opts(5); iota            = thermal_opts(6); 
+
 % dimensionaless mass transfer 
 Fom             = mass_opts(1); C0              = mass_opts(2);
 Rv_star         = mass_opts(3); Ra_star         = mass_opts(4);
 L_heat_star     = mass_opts(5); mv0             = mass_opts(6);
 ma0             = mass_opts(7);
 
-% pre_process code
+% pre_process
 
 % creates finite difference matrices 
 D_Matrix_T_C = f_finite_diff_mat(Nt,1,0);
@@ -296,54 +300,43 @@ function dXdt = SVBDODE(t,X)
     dXdt = [U; Udot; pdot; Taudot; Tmdot; Cdot];
 
 end
-
-
-% display result
-if plotresult == 1 
-    subplot(3,1,1);
-    plot(t,R,'k','LineWidth',2); 
-    hold('on'); 
-    ylabel('$R$','Interpreter','Latex','FontSize',12);
-    box on;
-    if isreal(R)                                                            
-        % oldb sims for certain values were imaginary
-        % this spits out imaginary solution (BI will take care of it)
-        axis([0 t(end) 0 (max(R) + min(R))]);
-        set(gca,'TickLabelInterpreter','latex','FontSize',16)
-        set(gcf,'color','w');
-    end
-    if bubtherm == 1
-        if medtherm == 0
-            b = zeros(size(a)); 
-        end
-        subplot(3,1,2);
-        hold on;
-        box on;
-        semilogy(t,abs(a(end,:)),'k-','LineWidth',2);
-        semilogy(t,abs(b(end,:)),'b-','LineWidth',2); 
-        ylabel('$a_N$, $b_M$, $e_N$','Interpreter','Latex','FontSize',12);
-        axis([0 t(end) 1e-20 1]);
-        set(gca, 'YScale', 'log');
-        if masstrans == 0
-            leg1 = legend('$a_N$','$b_M$','Location','NorthEast','FontSize',12);
-        else
-            leg1 = legend('$a_N$','$b_M$','$e_N$','Location','NorthEast','FontSize',12);
-        end
-        set(leg1,'Interpreter','latex');
-        set(gca,'TickLabelInterpreter','latex','FontSize',16);
-        set(gcf,'color','w');
-    end
-end
 disp('--- COMPLETED SIMULATION ---');    
 
 % functions called by solver 
 
+function Tw= TW(Tauw)
+    %calculates the temperature at the bubble wall as a fuction of \tau 
+    Tw = (A_star -1 + sqrt(1+2*Tauw*A_star)) / A_star;
+end
 
-% function Cw= CW(Tw,P)
-%   % Calculates the concentration at the bubble wall 
-%   %Function of P and temp at the wall 
-%   thetha = Rv_star/Ra_star*(P./(f_pvsat(Tw*T8)/P8) -1);
-%   Cw = 1./(1+thetha); 
-% end
+function Cw= CW(Tw,P)
+    % calculates the temperature and concentration at the bubble wall 
+    thetha = Rv_star/Ra_star*(P./(f_pvsat(Tw*T_inf)/P_inf) -1);
+    Cw = 1./(1+thetha); 
+end
+
+function Tauw= Boundary(prelim)       
+    % solves temperature boundary conditions at the bubble wall     
+    % create finite diff. coeffs. 
+    % coefficients in terms of forward difference 
+    
+    % second order
+    coeff = [-3/2 , 2 ,-1/2 ];
+    Tm_trans = Tm(2:3);
+    T_trans = flipud(Tau(end-2:end-1));
+    C_trans = flipud(C(end-2:end-1));
+    
+    % sixth order    
+%     coeff= [-49/20 ,6	,-15/2	,20/3	,-15/4	,6/5	,-1/6]; %Sixth order coeff 
+%     Tm_trans = Tm(2:7);
+%     T_trans = flipud(Tau(end-6:end-1));
+%     C_trans = flipud(C(end-6:end-1));
+
+    Tauw =chi*(2*Km_star/L*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...
+    chi*(-coeff*[prelim ;T_trans] )/deltaY + Cgrad*...
+    fom*L_heat_star*P*( (CW(TW(prelim),P)*(Rv_star-Ra_star)+Ra_star))^-1 *...
+    (TW(prelim) * (1-CW(TW(prelim),P))  ).^(-1).*...
+    (-coeff*[CW(TW(prelim),P); C_trans] )/deltaY; 
+end
 
 end

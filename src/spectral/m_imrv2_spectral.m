@@ -1,8 +1,10 @@
-function varargout =  m_imrv2_spectral(varargin)
+% file m_imrv2_spectral.m
+% brief contains module m_imrv2_spectral
 
-% Description: This code the IMRv2 code expanding beyond IMR from
-% Estrada et al. (2018) JMPS. Additional physics have been added including
-% the Keller-Miksis with enthalpy and non-Newtonian viscosity. 
+% brief This module features a Chebyshev spectral collocation solver of the
+% PDEs involving thermal transport and viscoelasticity to solve
+% Rayleigh-Plesset equations
+function varargout =  m_imrv2_spectral(varargin)
 
 % Problem Initialization
 [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts,... 
@@ -16,28 +18,29 @@ eps3            = eqns_opts(5);  vapor           = eqns_opts(6);
 masstrans       = eqns_opts(7);  perturbed       = eqns_opts(8);  
 nl              = eqns_opts(9);
 if (stress == 4); ptt = 1; else; ptt = 0; end
+
 % solver options
 method          = solve_opts(1); spectral        = solve_opts(2); 
 divisions       = solve_opts(3); Nv              = solve_opts(4); 
 Nt              = solve_opts(5); Mt              = solve_opts(6); 
 Lv              = solve_opts(7); Lt              = solve_opts(8); 
+
 % dimensionless initial conditions
 Rzero           = init_opts(1);  Uzero           = init_opts(2); 
 p0star          = init_opts(3);  P8              = init_opts(4); 
 T8              = init_opts(5);  Pv_star         = init_opts(6); 
 Req             = init_opts(7);  S0              = init_opts(8);
 alphax          = init_opts(9);
-if perturbed == 1
-    azero           = init_opts(10:10+nl-1);
-    adot_zero       = init_opts(10+nl:10+2*nl-1);
-end
+
 % time span options
 tspan = tspan_opts;
 tfin = tspan(end);
 % output options
 dimensionalout  = out_opts(1);  progdisplay     = out_opts(2); 
 plotresult      = out_opts(3); 
-% physical parameters%
+
+% physical parameters
+
 % acoustic parameters
 Cstar           = acos_opts(1); GAMa            = acos_opts(2); 
 kappa           = acos_opts(3); nstate          = acos_opts(4); 
@@ -45,9 +48,7 @@ kappa           = acos_opts(3); nstate          = acos_opts(4);
 om              = wave_opts(1); ee              = wave_opts(2); 
 tw              = wave_opts(3); dt              = wave_opts(4); 
 mn              = wave_opts(5); wave_type       = wave_opts(6); 
-if perturbed == 1
-    l = wave_opts(7:7+nl-1)';
-end 
+
 pvarargin = [om,ee,tw,dt,mn,wave_type];
 % dimensionless viscoelastic
 We              = sigma_opts(1); Re8             = sigma_opts(2); 
@@ -170,10 +171,6 @@ if masstrans == 1
 end
 Z1 = X(:,ic); 
 Z2 = X(:,id); 
-if perturbed == 1
-    aa = X(:,7:7+nl-1);
-    adot = X(:,7+nl:7+2*nl-1);
-end
 a = X(:,ia)';
 b = X(:,ib)'; 
 c = X(:,ic)'; 
@@ -317,11 +314,14 @@ function dXdt = SVBDODE(t,X)
         J = 0;
         JdotX = 0;
 
-    % Kelvin-Voigt with neo-Hookean elasticity
+    % compute stress integral
     elseif stress == 1 
-        % compute stress integral
-        % J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
-        % JdotX = -2*U*(Req*(1/R)^2 + Req^4*(1/R)^5)/Ca + 4/Re8*U^2/R^2;
+        % Kelvin-Voigt with neo-Hookean elasticity
+        J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
+        JdotX = -2*U*(Req*(1/R)^2 + Req^4*(1/R)^5)/Ca + 4/Re8*U^2/R^2;
+
+    elseif stress == 2
+        % quadratic Kelvin-Voigt with neo-Hookean elasticity
         J = (3*alphax-1)*(5 - (Req/R)^4 - 4*(Req/R))/(2*Ca) - 4/Re8*U/R + ...
         (2*alphax/Ca)*(27/40 + (1/8)*(Req/R)^8 + (1/5)*(Req/R)^5 + (1/2)*(Req/R)^2 - ...
         2*R/Req);
@@ -352,7 +352,7 @@ function dXdt = SVBDODE(t,X)
         JdotX = 2*sum(cdd.*(Z1dot - Z2dot));   
 
     % linear Maxwell, linear Jeffreys, linear Zener        
-    elseif stress == 2 
+    elseif stress == 3 
         % extract
         Z1 = X(ic);
         J = Z1/R^3 - 4*LAM/Re8*U/R;
@@ -372,7 +372,7 @@ function dXdt = SVBDODE(t,X)
         JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re8*U^2/R^2;
 
     % upper-convected Maxwell, OldRoyd-B
-    elseif stress == 3 
+    elseif stress == 4 
         % extract stress sub-integrals
         Z1 = X(ic); Z2 = X(id);
         % compute new derivatives
@@ -398,63 +398,10 @@ function dXdt = SVBDODE(t,X)
     dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot];
 
 end
-
-
-% display result
-if plotresult == 1 
-    subplot(3,1,1);
-    plot(t,R,'k','LineWidth',2); 
-    hold('on'); 
-    ylabel('$R$','Interpreter','Latex','FontSize',12);
-    box on;
-    if isreal(R)                                                            
-        % oldb sims for certain values were imaginary
-        % this spits out imaginary solution (BI will take care of it)
-        axis([0 t(end) 0 (max(R) + min(R))]);
-        set(gca,'TickLabelInterpreter','latex','FontSize',16)
-        set(gcf,'color','w');
-    end
-    if bubtherm == 1
-        if medtherm == 0
-            b = zeros(size(a)); 
-        end
-        subplot(3,1,2);
-        hold on;
-        box on;
-        semilogy(t,abs(a(end,:)),'k-','LineWidth',2);
-        semilogy(t,abs(b(end,:)),'b-','LineWidth',2); 
-        ylabel('$a_N$, $b_M$, $e_N$','Interpreter','Latex','FontSize',12);
-        axis([0 t(end) 1e-20 1]);
-        set(gca, 'YScale', 'log');
-        if masstrans == 0
-            leg1 = legend('$a_N$','$b_M$','Location','NorthEast','FontSize',12);
-        else
-            leg1 = legend('$a_N$','$b_M$','$e_N$','Location','NorthEast','FontSize',12);
-        end
-        set(leg1,'Interpreter','latex');
-        set(gca,'TickLabelInterpreter','latex','FontSize',16);
-        set(gcf,'color','w');
-    end
-    if spectral == 1
-        subplot(3,1,3);
-        hold on;
-        box on;
-        semilogy(t,abs(c(end,:)),'k-','LineWidth',2);
-        semilogy(t,abs(d(end,:)),'b-','LineWidth',2); 
-        xlabel('$t$','Interpreter','Latex','FontSize',12);
-        ylabel('$c_P$, $d_P$','Interpreter','Latex','FontSize',12);
-        set(gca, 'YScale', 'log');
-        axis([0 t(end) 1e-20 1]);
-        leg1 = legend('$c_P$','$d_P$','Location','NorthEast','FontSize',12);
-        set(leg1,'Interpreter','latex');
-        set(gca,'TickLabelInterpreter','latex','FontSize',16);
-        set(gcf,'color','w');
-    end
-end
 disp('--- COMPLETED SIMULATION ---');  
 
-
 % functions called by solver 
+
 % stress differentiator
 function [trr,dtrr,t00,dt00] = stressdiff(c,d)
     if Nv < 650
