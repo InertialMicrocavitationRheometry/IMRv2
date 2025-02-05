@@ -87,11 +87,17 @@ deltaY = 1/N;
 i = 1:1:N+1;
 y = ((i-1)*deltaY)';
 % outside the bubble     
-Nm =NTM-1; 
+Nm =Mt-1; 
 deltaYm = -2/Nm;
 j = 1:1:Nm+1;
+
+% precomputations
+%LDR = LAM*De/Re8;
+sam = 1 - Pv_star + GAMa; 
+no = (nstate-1)/nstate;
+kapover = (kappa-1)/kappa;
 xi = (1+(j-1)*deltaYm)';
-yT = ((2./(xk+1)-1)*L+1);
+yT = ((2./(xi+1)-1)*Lt+1);
 
 % initial condition assembly
 
@@ -105,6 +111,7 @@ else
     C0 = zeros(-1,1);
 end
 init = [Rzero; Uzero; Tau0; Tm0; C0];
+init
 tau_del = [];
 
 % solver start
@@ -163,9 +170,6 @@ function dXdt = SVBDODE(t,X)
     R = X(1); 
     U = X(2); 
     p = X(3); 
-    Tau = X(4:(NT+3)); 
-    Tm = X((NT+4):(2*NT+3));
-    C = X((2*NT+4):end); 
 
     % solve for boundary condition at the wall
     if (medtherm == 1)
@@ -182,17 +186,25 @@ function dXdt = SVBDODE(t,X)
     end
     
     % sets value at boundary conditions
-    tau_del=[tau_del prelim]; 
-    Tau(end) = prelim;
-    T = TW(Tau);
-    Tm(1) = T(end); 
+    if bubtherm
+        Tau = X(4:(Nt+3)); 
+        tau_del=[tau_del prelim]; 
+        Tau(end) = prelim;
+        T = TW(Tau);
+         
+        K_star = A_star*T+B_star; 
+        pVap = (f_pvsat(T(1)*T8)/P8); 
+    else
+        pVap = p0star;
+    end
+    if medtherm
+        Tm(1) = T(end);
+        Tm = X((Mt+4):(2*Mt+3));
+    end 
 
-    % calculated variables     
-    K_star = A_star*T+B_star;  
-    C(end) =  CW(T(end),P);
-    Rmix = C*Rv_star + (1-C)*Ra_star; 
-    pVap = vapor*(f_pvsat(T(1)*T8)/P8); 
-
+    Taudot = zeros(-1,1);
+    Tmdot = zeros(-1,1);
+    Cdot = zeros(-1,1);
     if bubtherm && medtherm
         % temp. field inside the bubble
         DTau  = D_Matrix_T_C*Tau;
@@ -214,10 +226,10 @@ function dXdt = SVBDODE(t,X)
         DDTm = DD_Matrix_Tm*Tm;
         % warm liquid
         first_term = (1+xk).^2./(L*R).*...
-            (U./yk2.^2.*(1-yk2.^3)/2+foh/R.*((xk+1)/(2*L)-1./yk2)).* DTm;
+            (U./yT.^2.*(1-yT.^3)/2+foh/R.*((xk+1)/(2*L)-1./yT)).* DTm;
         second_term = foh/R^2.*(xk+1).^4/L^2.*DDTm/4;
-        %third_term =  4*Br./yk2.^6.*(3/Re8.*(U/R)^2);
-        third_term =  4*Br./yk2.^6.*(3/(Re8+DRe*fnu).*(U/R)^2);
+        %third_term =  4*Br./yT.^6.*(3/Re8.*(U/R)^2);
+        third_term =  4*Br./yT.^6.*(3/(Re8+DRe*fnu).*(U/R)^2);
         Tmdot = first_term+second_term+third_term;
         % Sets boundary condition on temp        
         Tmdot(end) = 0; 
@@ -247,6 +259,9 @@ function dXdt = SVBDODE(t,X)
     end
 
     if masstrans
+        C = X((2*Nt+4):end); 
+        C(end) =  CW(T(end),P);
+        Rmix = C*Rv_star + (1-C)*Ra_star; 
         % concentration field inside the bubble
         DC  = D_Matrix_T_C*C; 
         DDC = DD_Matrix_T_C*C;
