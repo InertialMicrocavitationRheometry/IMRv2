@@ -94,9 +94,13 @@ yT = ((2./(xk+1)-1)*L+1);
 
 % radius, velocity, pressure, bubble temperature, medium temperature,
 % vapor concentration
-Tau0 = zeros(1,Nt);
-Tm0 = ones(1,Mt);
-C0 = C0*ones(1,Nt);
+Tau0 = zeros(Nt,1);
+Tm0 = ones(Mt ~= -1);
+if masstrans
+    C0 = C0*ones(Nt,1);
+else 
+    C0 = zeros(-1,1);
+end
 init = [Rzero; Uzero; Tau0; Tm0; C0]; 
 
 % solver start
