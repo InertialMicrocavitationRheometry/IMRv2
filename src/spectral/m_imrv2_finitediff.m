@@ -89,7 +89,6 @@ j = 1:1:Nm+1;
 xi = (1+(j-1)*deltaYm)';
 yT = ((2./(xk+1)-1)*L+1);
 
-
 % initial condition assembly
 
 % radius, velocity, pressure, bubble temperature, medium temperature,
@@ -101,7 +100,8 @@ if masstrans
 else 
     C0 = zeros(-1,1);
 end
-init = [Rzero; Uzero; Tau0; Tm0; C0]; 
+init = [Rzero; Uzero; Tau0; Tm0; C0];
+tau_del = [];
 
 % solver start
 f_display(radial, bubtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM);
@@ -116,8 +116,8 @@ R = X(:,1);
 U = X(:,2); 
 p = X(:,3); 
 Tau = X(:,4:(NT+3)); % Variable relating to internal temp
-Tm =  X(:,(NT+4):(2*NT+3)); % Vapor concentration in the bubble 
-C = X(:, (2*NT+4):end ); % Temperature variation in the medium
+Tm = X(:,(NT+4):(2*NT+3)); % Temperature in the medium
+C = X(:, (2*NT+4):end ); % Vapor concentration in the bubble 
 T = (A_star -1 + sqrt(1+2*Tau*A_star)) / A_star; % Temp in bubble
 
 % transform variables back into their dimensional form 
@@ -126,8 +126,8 @@ T = (A_star -1 + sqrt(1+2*Tau*A_star)) / A_star; % Temp in bubble
     R = R*Rref; 
     U = U*uc;
     p = p*p0;
-    T = T*T8;
     if bubtherm == 1
+        T = T*T8;
         if medtherm == 1
             TL = TL*T8; 
         end
@@ -150,7 +150,6 @@ if masstrans == 1
 end
 % TODO Add the stress output if possible, similar to the spectral code
 
-
 % solver function
 function dXdt = SVBDODE(t,X)
     stepcount = stepcount + 1;
@@ -165,7 +164,7 @@ function dXdt = SVBDODE(t,X)
     C = X((2*NT+4):end); 
 
     % solve for boundary condition at the wall
-    if (Tmgrad == 1)
+    if (medtherm == 1)
         if t/tspan_star> 0.001
             %Might need to tune 0.001 for convergence: 
             guess= -.001+tau_del(end); 
@@ -179,49 +178,68 @@ function dXdt = SVBDODE(t,X)
     end
     
     % sets value at boundary conditions
+    tau_del=[tau_del prelim]; 
     Tau(end) = prelim;
     T = TW(Tau);
     Tm(1) = T(end); 
 
-    if bubtherm
+    % calculated variables     
+    K_star = A_star*T+B_star;  
+    C(end) =  CW(T(end),P);
+    Rmix = C*Rv_star + (1-C)*Ra_star; 
+    pVap = vapor*(f_pvsat(T(1)*T8)/P8); 
+
+    if bubtherm && medtherm
         % temp. field inside the bubble
         DTau  = D_Matrix_T_C*Tau;
         DDTau = DD_Matrix_T_C*Tau;
         % internal pressure equation
-        P_prime = 3/R*(Tgrad*chi*(k-1)*DTau(end)/R-k*P*U+...
-              + Cgrad*k*P*fom*Rv_star*DC(end)...
-              /( T(end)*R* Rmix(end)* (1-C(end)) ) );
-
+        pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U+...
+              + kappa*p*fom*Rv_star*DC(end)...
+              /( T(end)*R*Rmix(end)*(1-C(end)) ) );
         % temperature inside the bubble
-        U_vel = (chi/R*(k-1).*DTau-yk*R*P_prime/3)/(k*P);
-        first_term = (DDTau.*chi./R^2+P_prime).*( K_star.*T/P*(k-1)/k);
+        U_vel = (chi/R*(k-1).*DTau-yk*R*pdot/3)/(kappa*p);
+        first_term = (DDTau.*chi./R^2+pdot).*( K_star.*T/p*(kappa-1)/kappa);
         second_term = -DTau.*(1/(R).*(U_vel-yk*U));
    
-        Tau_prime = first_term+second_term; 
-        Tau_prime(end) = 0;
-        Tau_prime = Tau_prime*Tgrad; 
+        Taudot= first_term+second_term; 
+        Taudot(end) = 0;
 
-        if medtherm 
-            % temp. field outside the bubble
-            DTm = D_Matrix_Tm*Tm;
-            DDTm = DD_Matrix_Tm*Tm;
-            % warm liquid
-            first_term = (1+xk).^2./(L*R).*...
-                (U./yk2.^2.*(1-yk2.^3)/2+foh/R.*((xk+1)/(2*L)-1./yk2)).* DTm;
-            second_term = foh/R^2.*(xk+1).^4/L^2.*DDTm/4;
-            %third_term =  4*Br./yk2.^6.*(3/Re8.*(U/R)^2);
-            third_term =  4*Br./yk2.^6.*(3/(Re8+DRe*fnu).*(U/R)^2);
-            Tm_prime = first_term+second_term+third_term;
-            % Sets boundary condition on temp        
-            Tm_prime(end) = 0; 
-            % Previously calculated; 
-            Tm_prime(1) = 0; 
-        else
-            Tm_prime = Tm_prime*Tgrad;
-        end
+        % temp. field outside the bubble
+        DTm = D_Matrix_Tm*Tm;
+        DDTm = DD_Matrix_Tm*Tm;
+        % warm liquid
+        first_term = (1+xk).^2./(L*R).*...
+            (U./yk2.^2.*(1-yk2.^3)/2+foh/R.*((xk+1)/(2*L)-1./yk2)).* DTm;
+        second_term = foh/R^2.*(xk+1).^4/L^2.*DDTm/4;
+        %third_term =  4*Br./yk2.^6.*(3/Re8.*(U/R)^2);
+        third_term =  4*Br./yk2.^6.*(3/(Re8+DRe*fnu).*(U/R)^2);
+        Tmdot = first_term+second_term+third_term;
+        % Sets boundary condition on temp        
+        Tmdot(end) = 0; 
+        % Previously calculated; 
+        Tmdot(1) = 0; 
+
+    elseif bubtherm
+        % temp. field inside the bubble
+        DTau  = D_Matrix_T_C*Tau;
+        DDTau = DD_Matrix_T_C*Tau;
+        % internal pressure equation
+        pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U);
+        % temperature inside the bubble
+        U_vel = (chi/R*(k-1).*DTau-yk*R*pdot/3)/(kappa*p);
+        first_term = (DDTau.*chi./R^2+pdot).*( K_star.*T/p*(kappa-1)/kappa);
+        second_term = -DTau.*(1/(R).*(U_vel-yk*U));
+   
+        Taudot= first_term+second_term; 
+        Taudot(end) = 0;
+        Tmdot = zeros(-1,1);
+
     else
-        P = P0_star*(1/R)^(3*k);
-        P_prime = -3*k*U/R*P;
+        % polytropic gas
+        p = p0star*(1/R)^(3*kappa);
+        pdot= -3*kappa*U/R*p;
+        pVap = Pv_star;
     end
 
     if masstrans
@@ -234,88 +252,32 @@ function dXdt = SVBDODE(t,X)
         two = DC.*(DTau./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*DC );
         three =  (U_mix-U.*yk)/R.*DC; 
 
-        % C_prime
-        C_prime = fom/R^2*(one - two) - three;
-        C_prime(end) = 0;
+        % concentration evolution
+        Cdot = fom/R^2*(one - two) - three;
+        Cdot(end) = 0;
     end
-    Pv = (f_pvsat(T(end)*T_inf)/P_inf);
 
-    % stress equation
-    Z1dot = 0; Z2dot = 0;
-
-    % no stress
     if stress == 0
+        % no stress
         J = 0;
         JdotX = 0;
-
         %TODO Need to add non-Newtonian behavior to JdotX 
         %((1-U/C_star)*R + ...
         %  4/Re8/C_star - 6*ddintfnu*iDRe/C_star);
-
-    % Kelvin-Voigt with neo-Hookean elasticity
     elseif stress == 1 
-        % compute stress integral
-        % J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
+        % Kelvin-Voigt with neo-Hookean elasticity
+        J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
         % JdotX = -2*U*(Req*(1/R)^2 + Req^4*(1/R)^5)/Ca + 4/Re8*U^2/R^2;
+    elseif stress == 2
+        % quadratic Kelvin-Voigt with neo-Hookean elasticity
         J = (3*alphax-1)*(5 - (Req/R)^4 - 4*(Req/R))/(2*Ca) - 4/Re8*U/R + ...
         (2*alphax/Ca)*(27/40 + (1/8)*(Req/R)^8 + (1/5)*(Req/R)^5 + (1/2)*(Req/R)^2 - ...
         2*R/Req);
         JdotX = ((3*alphax-1)/(2*Ca))*((4*Req^4*U/R^5) + (4*Req*U/R^2)) + ...
         4*(U^2)/(Re8*R^2) - (2*alphax/Ca)*(2*U/Req + Req^8*U/R^9 + ...
-        Req^5*U/R^6 + Req^2*U/R^3);
-
-    % Giesekus, PTT, or forced spectral             
-    elseif spectral
-        % extract stress spectrum
-        c = X(ic); d = X(id); 
-        % inverse Chebyshev transforms and derivatives
-        [trr,dtrr,t00,dt00] = stressdiff(c,d);
-        % new spectral coefficient derivatives
-        exptau = exp(ptt*Re8*De*(trr + 2*t00));            
-        Z1dot = stresssolve(-(exptau/De + zeNO*4*U./(yV.^3*R) ...
-            + eps3*Re8*trr).*trr ...
-            + (1-ze).^2*U/(2*Lv*R).*(yV - zeNO./yV.^2).*dtrr ...
-            - 4./yV.^3*((1-(Req/R)^3)/(3*Ca) + U/(Re8*R) ...
-            + LDR*(2*U^2/R^2 + Udot/R))/De - zeNO*4*LAM/Re8*(U/R)^2./yV.^6);
-        Z2dot = stresssolve(-(exptau/De - zeNO*2*U./(yV.^3*R) ...
-            + eps3*Re8*t00).*t00 ...
-            + (1-ze).^2*U/(2*Lv*R).*(yV - zeNO./yV.^2).*dt00 ...
-            + 2./yV.^3*((1-(Req/R)^3)/(3*Ca) + U/(Re8*R) ...
-            + LDR*(2*U^2/R^2 + Udot/R))/De - zeNO*10*LAM/Re8*(U/R)^2./yV.^6);
-        % compute stress integral
-        J = 2*sum(cdd.*(c-d));
-        JdotX = 2*sum(cdd.*(Z1dot - Z2dot));   
-
-    % linear Maxwell, linear Jeffreys, linear Zener        
-    elseif stress == 2 
-        % extract
-        Z1 = X(ic);
-        J = Z1/R^3 - 4*LAM/Re8*U/R;
-        Ze = R^3*((3*alphax-1)*(5 - (Req/R)^4 - 4*(Req/R))/(2*Ca) + ...
-        (2*alphax/Ca)*(27/40 + (1/8)*(Req/R)^8 + (1/5)*(Req/R)^5 + (1/2)*(Req/R)^2 - ...
-        2*R/Req));
-        ZdotSqNH = 3*R^2*U*((3*alphax-1)*(5 - (Req/R)^4 - 4*(Req/R))/(2*Ca) + ...
-        (2*alphax/Ca)*(27/40 + (1/8)*(Req/R)^8 + (1/5)*(Req/R)^5 + (1/2)*(Req/R)^2 - ...
-        2*R/Req)) + R^3*(((3*alphax-1)/(2*Ca))*((4*Req^4*U/R^5) + (4*Req*U/R^2)) - ...
-        (2*alphax/Ca)*(2*U/Req + Req^8*U/R^9 + ...
-        Req^5*U/R^6 + Req^2*U/R^3)); % ddt(R^3 S_qKV)
-        % ZdotNH = -1/(2*Ca)*(3*R^2*U*(5-(Req/R)^4-4*Req/R)+ ...
-            % R^2*U*(4*(Req/R)^5+4*Req/R));
-        % ZdotYC = - 4*(R^3-Req^3)/(3*Ca*De);
-        % stress integral derivative
-        Z1dot = -(Z1-Ze)/De + ZdotSqNH + (3*U/R)*(Z1-Ze) + 4*(LAM-1)/(Re8*De)*R^2*U ;
-        JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re8*U^2/R^2;
-
-    % upper-convected Maxwell, OldRoyd-B
-    elseif stress == 3 
-        % extract stress sub-integrals
-        Z1 = X(ic); Z2 = X(id);
-        % compute new derivatives
-        Z1dot = -(1/De - 2*U/R)*Z1 + 2*(LAM-1)/(Re8*De)*R^2*U;
-        Z2dot = -(1/De + 1*U/R)*Z2 + 2*(LAM-1)/(Re8*De)*R^2*U;
-        J = (Z1 + Z2)/R^3 - 4*LAM/Re8*U/R;
-        JdotX = (Z1dot+Z2dot)/R^3 - 3*U/R^4*(Z1+Z2) + 4*LAM/Re8*U^2/R^2;        
+        Req^5*U/R^6 + Req^2*U/R^3);       
     else
+        % TODO ADD ADDITIONAL STRESS MODELS
         error('stress setting is not available');
     end
 
@@ -327,10 +289,11 @@ function dXdt = SVBDODE(t,X)
         Cstar, sam, no, GAMa, nstate, JdotA );
 
     % stress integral rate
-    Jdot = JdotX - JdotA*Udot/R;
+    % TODO ADD STRESS MODELS
+    % Jdot = JdotX - JdotA*Udot/R;
 
     % output assembly
-    dXdt = [U; Udot; pdot; qdot; Z1dot; Z2dot; Jdot];
+    dXdt = [U; Udot; pdot; Taudot; Tmdot; Cdot];
 
 end
 
@@ -370,68 +333,11 @@ if plotresult == 1
         set(gca,'TickLabelInterpreter','latex','FontSize',16);
         set(gcf,'color','w');
     end
-    if spectral == 1
-        subplot(3,1,3);
-        hold on;
-        box on;
-        semilogy(t,abs(c(end,:)),'k-','LineWidth',2);
-        semilogy(t,abs(d(end,:)),'b-','LineWidth',2); 
-        xlabel('$t$','Interpreter','Latex','FontSize',12);
-        ylabel('$c_P$, $d_P$','Interpreter','Latex','FontSize',12);
-        set(gca, 'YScale', 'log');
-        axis([0 t(end) 1e-20 1]);
-        leg1 = legend('$c_P$','$d_P$','Location','NorthEast','FontSize',12);
-        set(leg1,'Interpreter','latex');
-        set(gca,'TickLabelInterpreter','latex','FontSize',16);
-        set(gcf,'color','w');
-    end
 end
 disp('--- COMPLETED SIMULATION ---');    
 
 % functions called by solver 
-% stress differentiator
-function [trr,dtrr,t00,dt00] = stressdiff(c,d)
-    if Nv < 650
-        trr = sCA*c;
-        dtrr = sCAd*c;
-        t00 = sCA*d;
-        dt00 = sCAd*d;
-    else
-        [trr,dtrr] = fctdShift(c);
-        [t00,dt00] = fctdShift(d);
-    end
-end
 
-% stress solver
-function s = stresssolve(x)
-    if Nv < 650
-        s = sCI*x;
-    else
-        s = fctShift(x);
-    end
-end
-
-% fast Chebyshev transform
-function a = fctShift(v)
-    v = v(:);
-    v = [0; v; flipud(v(1:Nv-1))];
-    a = real(fft(v))/Nv;
-    a = [a(2:Nv); a(Nv+1)/2];
-end
-
-% fast Chebyshev transform and differentiate
-function [v,w] = fctdShift(a)
-    M = Nv + 1;
-    a = a(:)';
-    dd = Nv*[0 a(1:Nv-1) a(Nv)*2 fliplr(a(1:Nv-1))];
-    v = ifft(dd);
-    v = v(2:M)' - sum(a);
-    n2b = (0:M-2).^2.*dd(1:Nv);
-    cc = imag(ifft([0:M-2 0 2-M:-1].*dd));
-    w = zeros(Nv,1);
-    w(1:Nv-1) = csc(pi/Nv*(1:M-2)).*cc(2:Nv);
-    w(Nv) = sum((-1).^(1:Nv).*n2b)/Nv + 0.5*(-1)^M*Nv*dd(M);
-end
 
 % function Cw= CW(Tw,P)
 %   % Calculates the concentration at the bubble wall 
@@ -439,131 +345,5 @@ end
 %   thetha = Rv_star/Ra_star*(P./(f_pvsat(Tw*T8)/P8) -1);
 %   Cw = 1./(1+thetha); 
 % end
-
-end
-
-% precomputation functions 
-function [A,B,D,E,C,F] = dcdmtx(N)
-%FCD	Discrete Chebyshev derivative matrices
-
-jj = 0:N;
-jj2 = jj.^2;
-theta = pi*jj'/N;
-
-% matrix for a -> p
-A = cos(theta*jj);
-
-% matrix for p -> a
-B = 2*cos(theta*jj)'/N;
-B(:,[1 N+1]) = 0.5*B(:,[1 N+1]);
-B([1 N+1],:) = 0.5*B([1 N+1],:);
-
-theta = theta(2:N);
-
-% matrix for a -> dp/dx
-D = zeros(N+1);
-D(1,:) = jj2;
-D(2:N,:) = csc(theta)*jj.*sin(theta*jj);
-D(N+1,:) = jj2.*((-1).^(jj+1));
-
-% matrix for a -> d2p/dx2
-E = zeros(N+1);
-E(1,:) = jj2.*(jj2-1)/3;
-E(2:N,:) = (cos(theta)./sin(theta).^3)*jj.*sin(theta*jj) ...
-    - (csc(theta).^2)*((0:N).^2).*cos(theta*jj);
-E(N+1,:) = jj2.*(jj2-1).*(-1).^jj/3;
-
-% matrix for p -> dp/dx
-C = D*B;
-
-% matrix for p -> d2p/dx2
-F = E*B;
-
-end
-
-function [A,B,D,E,C,F] = dcdmtxe(N)
-%FCD	Even discrete Chebyshev derivative matrices
-
-jj = 2*(0:N);
-jj2 = jj.^2;
-theta = pi*jj'/(4*N);
-
-% matrix for a -> p
-A = cos(theta*jj);
-
-% matrix for p -> a
-B = 2*cos(theta*jj)'/N;
-B(:,[1 N+1]) = 0.5*B(:,[1 N+1]);
-B([1 N+1],:) = 0.5*B([1 N+1],:);
-
-theta = theta(2:N+1);
-
-% matrix for a -> dp/dx
-D = zeros(N+1);
-D(1,:) = jj2;
-D(2:N+1,:) = csc(theta)*jj.*sin(theta*jj);
-
-% matrix for a -> d2p/dx2
-E = zeros(N+1);
-E(1,:) = jj2.*(jj2-1)/3;
-E(2:N+1,:) = (cos(theta)./sin(theta).^3)*jj.*sin(theta*jj) ...
-    - (csc(theta).^2)*(jj2).*cos(theta*jj);
-
-% matrix for p -> dp/dx
-C = D*B;
-
-% matrix for p -> d2p/dx2
-F = E*B;
-
-end
-
-
-function cdd = preStressInt(L,N)
-
-% integral precomputations
-Lstr = ['L' num2str(L,18)];
-Lstr = strrep(Lstr,'.','p');
-if exist('StressIntStore.mat','file') ~= 0    
-    load('StressIntStore.mat','store');    
-    if isfield(store,Lstr) == 1
-        if size(store.(Lstr),2) >= N, Nstart = 0;
-        else
-            Nstart = size(store.(Lstr),2) + 1;
-            disp('Past integral precomputation not found in full, catching up ...');
-        end
-    else
-        Nstart = 1;
-        disp('Past integral precomputation not found, starting anew ...');
-    end
-else
-    Nstart = 1;
-    store = struct;
-    disp('Past integral precomputation not found, starting anew ...');
-end
-if Nstart ~= 0 % begin extended precomputation
-    
-    store.(Lstr)(Nstart:N) = StressInt(L,N,Nstart);
-    save('StressIntStore.mat','store');
-    disp('Precomputation completed.');
-
-end
-cdd = store.(Lstr)(1:N)';
-
-end
-
-
-function cdd = StressInt(L,N,varargin)
-
-if nargin == 2
-    k = 1;
-else
-    k = varargin{1};
-end
-syms x;
-cdd = zeros(N-k+1,1);
-
-for n = k:N
-    cdd(n-k+1) = subs(2*L*int((cos(n*acos(x))-1)/((L*(2/(1-x)-1)+1)*(1-x)^2),-1,1));
-end
 
 end

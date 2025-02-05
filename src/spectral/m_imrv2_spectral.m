@@ -140,6 +140,8 @@ ie = (6+Nt+Mt+2*Nv):(5+Nt+Mt+2*Nv+Nm);
 Tau0 = zeros(Nt+1,1);
 Tm0 = ones(Mt ~= -1);
 Tm1 = zeros(Mt,1);
+% TODO ADD THE MASS Transfer structure here
+
 Sp = zeros(2*(Nv - 1)*(spectral == 1) + 2,1);  
 init = [Rzero; Uzero; p0star; Tau0; Tm0; Tm1; Sp; 0]; 
 
@@ -155,6 +157,17 @@ bubble = @SVBDODE;
 R = X(:,1); 
 U = X(:,2); 
 p = X(:,3); 
+if bubtherm == 1
+    T = (alpha-1+sqrt(1+2*alpha*gA*a))/alpha;
+    if medtherm == 1
+        TL = mA*b; 
+    end
+else
+    T = R.^(-3*kappa);
+end
+if masstrans == 1
+    C = gC*e;
+end
 Z1 = X(:,ic); 
 Z2 = X(:,id); 
 if perturbed == 1
@@ -179,18 +192,6 @@ if spectral == 1
 else
     trr = c; t00 = d;
 end
-if bubtherm == 1
-    T = (alpha-1+sqrt(1+2*alpha*gA*a))/alpha;
-    if medtherm == 1
-        TL = mA*b; 
-    end
-else
-    T = R.^(-3*kappa);
-end
-if masstrans == 1
-    C = gC*e;
-end
-
 % dimensionalization
 if dimensionalout == 1
     % re-dimensionalize problem
@@ -306,6 +307,10 @@ function dXdt = SVBDODE(t,X)
     
     % stress equation
     Z1dot = 0; Z2dot = 0;
+
+        %TODO Need to add non-Newtonian behavior to JdotX 
+        %((1-U/C_star)*R + ...
+        %  4/Re8/C_star - 6*ddintfnu*iDRe/C_star);
 
     % no stress
     if stress == 0
