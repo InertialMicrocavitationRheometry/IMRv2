@@ -108,106 +108,43 @@ bubble = @SVBDODE;
 % post processing
 
 % extract result
-R = X(:,1); U = X(:,2); p = X(:,3); Z1 = X(:,ic); Z2 = X(:,id); 
-if perturbed == 1
-    aa = X(:,7:7+nl-1);
-    adot = X(:,7+nl:7+2*nl-1);
-end
-a = X(:,ia)';
-b = X(:,ib)'; 
-c = X(:,ic)'; 
-d = X(:,id)'; 
-e = X(:,ie)';
-I = X(:,ie+1);
+R = X(:,1); 
+U = X(:,2); 
+p = X(:,3); 
+Tau = X(:,4:(NT+3)); % Variable relating to internal temp
+Tm =  X(:,(NT+4):(2*NT+3)); % Vapor concentration in the bubble 
+C = X(:, (2*NT+4):end ); % Temperature variation in the medium
+T = (A_star -1 + sqrt(1+2*Tau*A_star)) / A_star; % Temp in bubble
 
-pA = zeros(size(t));
-for n = 1:length(t)
-    pA(n) = f_pinfinity(t(n),pvarargin); 
-end 
-
-% transform to real space
-if spectral == 1
-    trr = sCA*c; t00 = sCA*d;
-else
-    trr = c; t00 = d;
-end
-if bubtherm == 1
-    T = (alpha-1+sqrt(1+2*alpha*gA*a))/alpha;
-    if medtherm == 1
-        TL = mA*b; 
-    end
-else
-    T = R.^(-3*kappa);
-end
-if masstrans == 1
-    C = gC*e;
-end
-
-
-% Dimensionalization
-if dimensionalout == 1
-    % re-dimensionalize problem
-    t = t*tc; 
+% transform variables back into their dimensional form 
+ if (dimensionalout == 1)
+    t = t*tc;
     R = R*Rref; 
-    U = U*uc; 
-    p = p*p0; 
-    %pA = pA*p0; 
-    I = I*p0; 
+    U = U*uc;
+    p = p*p0;
     T = T*T8;
-    c = c*p0; 
-    d = d*p0; 
-    e = e*C0; 
-    C = C*C0; 
-    Udot = Udot*uc/tc;
-    if spectral == 1
-        trr = trr*p0; 
-        t00 = t00*p0; 
-    end
     if bubtherm == 1
         if medtherm == 1
             TL = TL*T8; 
         end
     end
-end
+ end
 
 % outputs
 varargout{1} = t;
 varargout{2} = R;
 varargout{3} = U;
 varargout{4} = p;
-varargout{5} = trr;
-varargout{6} = t00;
-varargout{7} = I;
-varargout{8} = T; 
-if stress == 2
-    varargout{9} = Z1; % Z1
-    varargout{10} = Z2; % Z2
-    varargout{11} = (Z1)./R.^3 - 4*LAM/Re8.*U./R; % J
-elseif stress == 3
-    varargout{9} = Z1; % Z1
-    varargout{10} = Z2; % Z2
-    varargout{11} = (Z1 + Z2)./R.^3 - 4*LAM./Re8.*U./R; % J
-end
-if masstrans == 1
-    varargout{12} = C;
-end
+varargout{5} = T;
 if bubtherm == 1 && medtherm == 1
-    varargout{13} = TL;
+    varargout{6} = TL;
 else
-    varargout{13} = ((T8 - 1)*dimensionalout + 1)*ones(divisions,1);
+    varargout{6} = ((T8 - 1)*dimensionalout + 1)*ones(size(t,1),1);
 end   
-if perturbed == 1
-    for i = 1:nl
-        varargout{14+i-1} = aa(:,i);
-        varargout{14+nl+i-1} = adot(:,i);
-    end
+if masstrans == 1
+    varargout{7} = C;
 end
-% technical data
-% varargout{13} = a;
-% varargout{14} = b;
-% varargout{15} = c; 
-% varargout{16} = d;
-% varargout{17} = e;
+% TODO Add the stress output if possible, similar to the spectral code
 
 
 % solver function
