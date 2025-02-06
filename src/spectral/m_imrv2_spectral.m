@@ -158,15 +158,15 @@ bubble = @SVBDODE;
 R = X(:,1); 
 U = X(:,2); 
 p = X(:,3); 
-if bubtherm == 1
+if bubtherm
     T = (alpha-1+sqrt(1+2*alpha*gA*a))/alpha;
-    if medtherm == 1
+    if medtherm
         TL = mA*b; 
     end
 else
     T = R.^(-3*kappa);
 end
-if masstrans == 1
+if masstrans
     C = gC*e;
 end
 Z1 = X(:,ic); 

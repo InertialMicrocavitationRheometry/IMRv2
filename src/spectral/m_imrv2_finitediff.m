@@ -103,15 +103,21 @@ yT = ((2./(xi+1)-1)*Lt+1);
 
 % radius, velocity, pressure, bubble temperature, medium temperature,
 % vapor concentration
-Tau0 = zeros(Nt,1);
-Tm0 = ones(Mt ~= -1);
+T = zeros(-1,1);
+if bubtherm
+    Tau0 = zeros(Nt,1);
+    Tm0 = ones(Mt ~= -1);
+    
+else
+    Tau0 = zeros(-1,1);
+    Tm0 = zeros(-1,1);
+end
 if masstrans
     C0 = C0*ones(Nt,1);
 else 
     C0 = zeros(-1,1);
 end
-init = [Rzero; Uzero; Tau0; Tm0; C0];
-init
+init = [Rzero; Uzero; p0star; Tau0; Tm0; C0];
 tau_del = [];
 
 % solver start
@@ -126,10 +132,17 @@ bubble = @SVBDODE;
 R = X(:,1); 
 U = X(:,2); 
 p = X(:,3); 
-Tau = X(:,4:(NT+3)); % Variable relating to internal temp
-Tm = X(:,(NT+4):(2*NT+3)); % Temperature in the medium
-C = X(:, (2*NT+4):end ); % Vapor concentration in the bubble 
-T = (A_star -1 + sqrt(1+2*Tau*A_star)) / A_star; % Temp in bubble
+if bubtherm
+    Tau = X(:,4:(Nt+3)); 
+    T = (A_star -1 + sqrt(1+2*Tau*A_star)) / A_star; % Temp in bubble
+    if medtherm
+        Tm = X(:,(Nt+4):(2*Nt+3)); 
+    end
+
+end
+if masstrans
+    C = X(:,(2*Nt+4):end); 
+end
 
 % transform variables back into their dimensional form 
  if (dimensionalout == 1)
