@@ -367,7 +367,7 @@ init_opts = [Rzero Uzero pzero P8 T8 Pv_star Req_zero S0 alphax azero' adot_zero
 % time span options
 tspan_opts = tvector;
 % output options
-out_opts = [dimensionalout progdisplay plotresult];
+out_opts = [dimensionalout progdisplay];
 
 % physical parameters
 

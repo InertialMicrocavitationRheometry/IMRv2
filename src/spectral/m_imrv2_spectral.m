@@ -37,7 +37,6 @@ tspan = tspan_opts;
 tfin = tspan(end);
 % output options
 dimensionalout  = out_opts(1);  progdisplay     = out_opts(2); 
-plotresult      = out_opts(3); 
 
 % physical parameters
 

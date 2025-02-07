@@ -6,7 +6,7 @@
 % viscoelasticity to solve Rayleigh-Plesset equations
 function varargout =  m_imrv2_finitediff(varargin)
 
-% problem Initialization
+% problem initialization
 [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts,... 
     wave_opts, sigma_opts, thermal_opts, mass_opts]...
     = f_call_params(varargin{:});
@@ -37,7 +37,6 @@ tspan = tspan_opts;
 tfin = tspan(end);
 % output options
 dimensionalout  = out_opts(1);  progdisplay     = out_opts(2); 
-plotresult      = out_opts(3); 
 
 % physical parameters 
 
@@ -107,7 +106,6 @@ T = zeros(-1,1);
 if bubtherm
     Tau0 = zeros(Nt,1);
     Tm0 = ones(Mt ~= -1);
-    
 else
     Tau0 = zeros(-1,1);
     Tm0 = zeros(-1,1);
@@ -207,6 +205,7 @@ function dXdt = SVBDODE(t,X)
          
         K_star = A_star*T+B_star; 
         pVap = (f_pvsat(T(1)*T8)/P8); 
+        Rmix = C*Rv_star + (1-C)*Ra_star; 
     else
         pVap = p0star;
     end
@@ -215,9 +214,14 @@ function dXdt = SVBDODE(t,X)
         Tm = X((Mt+4):(2*Mt+3));
     end 
 
+    % updating the viscous forces/Reynolds number    
+     [fnu,intfnu,dintfnu,ddintfnu] = ...
+         f_nonNewtonian_integrals(vmodel,U,R,v_a,v_nc,v_lambda);
+
     Taudot = zeros(-1,1);
     Tmdot = zeros(-1,1);
     Cdot = zeros(-1,1);
+
     if bubtherm && medtherm
         % temp. field inside the bubble
         DTau  = D_Matrix_T_C*Tau;
@@ -238,9 +242,9 @@ function dXdt = SVBDODE(t,X)
         DTm = D_Matrix_Tm*Tm;
         DDTm = DD_Matrix_Tm*Tm;
         % warm liquid
-        first_term = (1+xk).^2./(L*R).*...
-            (U./yT.^2.*(1-yT.^3)/2+foh/R.*((xk+1)/(2*L)-1./yT)).* DTm;
-        second_term = foh/R^2.*(xk+1).^4/L^2.*DDTm/4;
+        first_term = (1+xi).^2./(Lt*R).*...
+            (U./yT.^2.*(1-yT.^3)/2+Foh/R.*((xi+1)/(2*Lt)-1./yT)).* DTm;
+        second_term = Foh/R^2.*(xi+1).^4/Lt^2.*DDTm/4;
         %third_term =  4*Br./yT.^6.*(3/Re8.*(U/R)^2);
         third_term =  4*Br./yT.^6.*(3/(Re8+DRe*fnu).*(U/R)^2);
         Tmdot = first_term+second_term+third_term;
@@ -256,8 +260,8 @@ function dXdt = SVBDODE(t,X)
         % internal pressure equation
         pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U);
         % temperature inside the bubble
-        U_vel = (chi/R*(k-1).*DTau-yk*R*pdot/3)/(kappa*p);
-        first_term = (DDTau.*chi./R^2+pdot).*( K_star.*T/p*(kappa-1)/kappa);
+        U_vel = (chi/R*(kappa-1).*DTau-yk*R*pdot/3)/(kappa*p);
+        first_term = (DDTau.*chi./R^2+pdot).*( K_star.*T/p*kapover );
         second_term = -DTau.*(1/(R).*(U_vel-yk*U));
    
         Taudot= first_term+second_term; 

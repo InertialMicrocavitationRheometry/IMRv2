@@ -1,4 +1,4 @@
-function [t,X] = f_imrv2_odesolve(bubble, init, method, divisions, tspan, tfin)
+function [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin)
 
 if method == 15
     if divisions == 0
@@ -11,7 +11,7 @@ elseif method == 23
     if divisions == 0
         options = odeset();
     else
-        options = odeset('MaxStep',tfin/divisions,'RelTol',1e-8,'AbsTol',10^-8);
+        options = odeset('MaxStep',tfin/divisions,'RelTol',1e-8,'AbsTol',1e-8);
     end
     [t,X] = ode23tb(bubble,tspan,init,options);
 elseif method == 45
