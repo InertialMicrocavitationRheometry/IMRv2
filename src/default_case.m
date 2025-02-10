@@ -3,15 +3,14 @@ radial          = 1;        % 1 : RP, 2 : K-M P, 3 : K-M E, 4 : Gil
 bubtherm        = 0;        % 0 : polytropic assumption, 1: thermal PDE in bubble
 medtherm        = 0;        % 0 : cold fluid, 1: warm fluid assumption
 stress          = 0;        % 1 : NHKV, qKV, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
-eps3            = 0;        % this value must be (0, 0.5]
+eps3            = -1;        % this value must be (0, 0.5]
 vapor           = 0;        % 0 : ignore vapor pressure, 1 : vapor pressure
 masstrans       = 0;        % mass transfer, default is no mass transfer 
-perturbed       = 0;        % perturbation equation from Jin's paper
     
 % solver options
 TFin            = 100e-6;     % final time (s)
 TVector         = [0 TFin];
-method          = 23;       % ode45 setting for the time stepper
+method          = 45;       % ode45 setting for the time stepper
 spectral        = 0;        % force spectral collocation solution
 divisions       = 0;        % minimum number of timesteps
 Nt              = 12;       % number of points in bubble, thermal PDE
@@ -24,13 +23,11 @@ Lt              = 3;        % characteristic length for grid stretching, leave a
 R0              = 2.447495043190468e-04;     % initial bubble radius
 U0              = 0;        % initial velocity (m/s)
 Req             = 3.008409399929516e-05;%27E-6;   % Equilibrium radius for pre-stress bubble, see Estrada JMPS 2017    
-a0              = zeros(6,1);
-adot0           = zeros(6,1);
 
 % output options
 dimensionalout  = 0;        % output result in dimensional variables
-progdisplay     = 1;        % display progress while code running
-plotresult      = 1;        % generate figure containing results
+progdisplay     = 0;        % display progress while code running
+plotresult      = 0;        % generate figure containing results
 
 % acoustic options
 rho8            = 1064;%997;              % far-field density (kg/m^3)   
@@ -46,8 +43,6 @@ TW              = 0;        % gaussian width (s)
 DT              = 0;        % delay (s)
 mn              = 0;        % power shift for waveform
 wave_type       = 2;        % wave type oscillating bubble, see f_pinfinity
-l               = 2:7;     % mode number
-nl              = length(l);
     
 % stress options
 S               = 0.072;%0.056;% 0.072              % (N/m) Liquid Surface Tension 

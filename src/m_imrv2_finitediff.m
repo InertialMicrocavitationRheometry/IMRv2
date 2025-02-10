@@ -15,8 +15,7 @@ function varargout =  m_imrv2_finitediff(varargin)
 radial          = eqns_opts(1);  bubtherm        = eqns_opts(2); 
 medtherm        = eqns_opts(3);  stress          = eqns_opts(4); 
 eps3            = eqns_opts(5);  vapor           = eqns_opts(6);
-masstrans       = eqns_opts(7);  perturbed       = eqns_opts(8);  
-nl              = eqns_opts(9);
+masstrans       = eqns_opts(7);  
 if (stress == 4); ptt = 1; else; ptt = 0; end
 
 % solver options
@@ -120,7 +119,7 @@ tau_del = [];
 TL = [];
 
 % solver start
-f_display(radial, bubtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM);
+f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM);
 stepcount = 0;
 bubble = @SVBDODE;
 [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);
@@ -322,8 +321,8 @@ function dXdt = SVBDODE(t,X)
     [pf8,pf8dot] = f_pinfinity(t,pvarargin);
     
     % bubble wall acceleration
-    [Udot] = f_radial_eq(radial, p, pVap, pf8, pf8dot, iWe, R, U, J, JdotX,...
-        Cstar, sam, no, GAMa, nstate, JdotA );
+    [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, R, U, ...
+        J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
 
     % stress integral rate
     % TODO ADD STRESS MODELS

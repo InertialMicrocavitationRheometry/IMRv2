@@ -1,4 +1,4 @@
-function [] = f_display(radial, bubtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM)
+function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM)
 
 % Command window display
 

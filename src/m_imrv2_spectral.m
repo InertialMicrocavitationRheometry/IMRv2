@@ -15,8 +15,7 @@ function varargout =  m_imrv2_spectral(varargin)
 radial          = eqns_opts(1);  bubtherm        = eqns_opts(2); 
 medtherm        = eqns_opts(3);  stress          = eqns_opts(4); 
 eps3            = eqns_opts(5);  vapor           = eqns_opts(6);
-masstrans       = eqns_opts(7);  perturbed       = eqns_opts(8);  
-nl              = eqns_opts(9);
+masstrans       = eqns_opts(7);  
 if (stress == 4); ptt = 1; else; ptt = 0; end
 
 % solver options
@@ -146,7 +145,7 @@ Sp = zeros(2*(Nv - 1)*(spectral == 1) + 2,1);
 init = [Rzero; Uzero; p0star; Tau0; Tm0; Tm1; Sp; 0]; 
 
 % solver 
-f_display(radial, bubtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM);
+f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM);
 stepcount = 0;
 bubble = @SVBDODE;
 [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);
@@ -157,6 +156,15 @@ bubble = @SVBDODE;
 R = X(:,1); 
 U = X(:,2); 
 p = X(:,3); 
+% extracting the Chebyshev coefficients
+Z1 = X(:,ic); 
+Z2 = X(:,id); 
+a = X(:,ia)';
+b = X(:,ib)'; 
+c = X(:,ic)'; 
+d = X(:,id)'; 
+e = X(:,ie)';
+I = X(:,ie+1);
 if bubtherm
     T = (alpha-1+sqrt(1+2*alpha*gA*a))/alpha;
     if medtherm
@@ -168,14 +176,6 @@ end
 if masstrans
     C = gC*e;
 end
-Z1 = X(:,ic); 
-Z2 = X(:,id); 
-a = X(:,ia)';
-b = X(:,ib)'; 
-c = X(:,ic)'; 
-d = X(:,id)'; 
-e = X(:,ie)';
-I = X(:,ie+1);
 
 pA = zeros(size(t));
 for n = 1:length(t)
@@ -387,8 +387,8 @@ function dXdt = SVBDODE(t,X)
     [pf8,pf8dot] = f_pinfinity(t,pvarargin);
     
     % bubble wall acceleration
-    [Udot] = f_radial_eq(radial, p, pVap, pf8, pf8dot, iWe, R, U, J, JdotX, ...
-        Cstar, sam, no, GAMa, nstate, JdotA );
+    [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, R, U, ...
+        J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
 
     % stress integral rate
     Jdot = JdotX - JdotA*Udot/R;

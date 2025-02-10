@@ -2,8 +2,6 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
     = f_call_params(varargin)
 
-common = strcat('../common');
-addpath(genpath(common));
 
 % check that all inputs are matched
 if mod(nargin,2) == 1
@@ -29,7 +27,7 @@ end
 % otherwise, reading the default casefile
 if defaultread
     disp('using default case file');
-    run('../common/default_case.m');
+    run('default_case.m');
 end
 
 % remaining parameters
@@ -259,8 +257,6 @@ Rzero   = 1;
 Req_zero= Req/R0;
 Uzero   = U0/Uc;
 pzero   = P0_star;
-azero   = a0./R0;
-adot_zero = adot0./Uc;
 
 % overwrite defaults with nondimensional inputs 
 if isempty(varargin) == 0
@@ -362,11 +358,11 @@ end
 % end
 
 % equation settings 
-eqns_opts = [radial bubtherm medtherm stress eps3 vapor masstrans perturbed nl];
+eqns_opts = [radial bubtherm medtherm stress eps3 vapor masstrans];
 % solver options
 solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
 % dimensionless initial conditions
-init_opts = [Rzero Uzero pzero P8 T8 Pv_star Req_zero S0 alphax azero' adot_zero'];
+init_opts = [Rzero Uzero pzero P8 T8 Pv_star Req_zero S0 alphax];
 % time span options
 tspan_opts = tvector;
 % output options
@@ -377,7 +373,7 @@ out_opts = [dimensionalout progdisplay];
 % acoustic parameters
 acos_opts = [Cstar GAMa kappa nstate];
 % dimensionless waveform parameters
-wave_opts = [om ee tw dt mn wave_type l];
+wave_opts = [om ee tw dt mn wave_type];
 % dimensionless viscoelastic
 sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA v_lambda_star];
 % dimensionless thermal 

@@ -1,4 +1,4 @@
-function [Udot] = f_radial_eq(radial, p, pVap, pf8, pf8dot, iWe, R, U, J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA )
+function [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, R, U, J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA )
 
     % Rayleigh-Plesset 
     if radial == 1
