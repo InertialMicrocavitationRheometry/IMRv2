@@ -117,6 +117,7 @@ else
 end
 init = [Rzero; Uzero; p0star; Tau0; Tm0; C0];
 tau_del = [];
+TL = [];
 
 % solver start
 f_display(radial, bubtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM);
@@ -205,7 +206,6 @@ function dXdt = SVBDODE(t,X)
          
         K_star = A_star*T+B_star; 
         pVap = (f_pvsat(T(1)*T8)/P8); 
-        Rmix = C*Rv_star + (1-C)*Ra_star; 
     else
         pVap = p0star;
     end
@@ -215,29 +215,69 @@ function dXdt = SVBDODE(t,X)
     end 
 
     % updating the viscous forces/Reynolds number    
-     [fnu,intfnu,dintfnu,ddintfnu] = ...
-         f_nonNewtonian_integrals(vmodel,U,R,v_a,v_nc,v_lambda);
+    % [fnu,intfnu,dintfnu,ddintfnu] = ...
+    %     f_nonNewtonian_integrals(vmodel,U,R,v_a,v_nc,v_lambda);
 
     Taudot = zeros(-1,1);
     Tmdot = zeros(-1,1);
     Cdot = zeros(-1,1);
 
-    if bubtherm && medtherm
+    if bubtherm && masstrans
+        C = X((2*Nt+4):end); 
+        C(end) =  CW(T(end),P);
+        Rmix = C*Rv_star + (1-C)*Ra_star; 
+        % concentration field inside the bubble
+        DC  = D_Matrix_T_C*C; 
+        DDC = DD_Matrix_T_C*C;
         % temp. field inside the bubble
         DTau  = D_Matrix_T_C*Tau;
         DDTau = DD_Matrix_T_C*Tau;
+
         % internal pressure equation
         pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U+...
               + kappa*p*fom*Rv_star*DC(end)...
               /( T(end)*R*Rmix(end)*(1-C(end)) ) );
+
         % temperature inside the bubble
-        U_vel = (chi/R*(k-1).*DTau-yk*R*pdot/3)/(kappa*p);
-        first_term = (DDTau.*chi./R^2+pdot).*( K_star.*T/p*(kappa-1)/kappa);
+        U_vel = (chi/R*(kappa-1)*DTau-yk*R*pdot/3)/(kappa*p);
+        first_term = (DDTau*chi/R^2+pdot)*( K_star*T/p*kapover);
+        second_term = -DTau*((1/R)*(U_vel-yk*U));
+   
+        Taudot= first_term+second_term; 
+        Taudot(end) = 0;
+
+        % vapor concentration equation 
+        U_mix = U_vel + fom/R*((Rv_star - Ra_star)/Rmix)*DC  ;
+        one = DDC;
+        two = DC*(DTau/(K_star*T)+((Rv_star - Ra_star)/Rmix)*DC );
+        three =  (U_mix-U*yk)/R*DC; 
+
+        % concentration evolution
+        Cdot = fom/R^2*(one - two) - three;
+        Cdot(end) = 0;
+
+    elseif bubtherm 
+        % temp. field inside the bubble
+        DTau  = D_Matrix_T_C*Tau;
+        DDTau = DD_Matrix_T_C*Tau;
+        % internal pressure equation
+        pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U);
+        % temperature inside the bubble
+        U_vel = (chi/R*(kappa-1).*DTau-yk*R*pdot/3)/(kappa*p);
+        first_term = (DDTau.*chi./R^2+pdot).*( K_star.*T/p*kapover );
         second_term = -DTau.*(1/(R).*(U_vel-yk*U));
    
         Taudot= first_term+second_term; 
         Taudot(end) = 0;
 
+    else
+        % polytropic gas
+        p = p0star*(1/R)^(3*kappa);
+        pdot= -3*kappa*U/R*p;
+        pVap = Pv_star;
+    end
+
+    if medtherm
         % temp. field outside the bubble
         DTm = D_Matrix_Tm*Tm;
         DDTm = DD_Matrix_Tm*Tm;
@@ -252,46 +292,7 @@ function dXdt = SVBDODE(t,X)
         Tmdot(end) = 0; 
         % Previously calculated; 
         Tmdot(1) = 0; 
-
-    elseif bubtherm
-        % temp. field inside the bubble
-        DTau  = D_Matrix_T_C*Tau;
-        DDTau = DD_Matrix_T_C*Tau;
-        % internal pressure equation
-        pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U);
-        % temperature inside the bubble
-        U_vel = (chi/R*(kappa-1).*DTau-yk*R*pdot/3)/(kappa*p);
-        first_term = (DDTau.*chi./R^2+pdot).*( K_star.*T/p*kapover );
-        second_term = -DTau.*(1/(R).*(U_vel-yk*U));
-   
-        Taudot= first_term+second_term; 
-        Taudot(end) = 0;
-        Tmdot = zeros(-1,1);
-
-    else
-        % polytropic gas
-        p = p0star*(1/R)^(3*kappa);
-        pdot= -3*kappa*U/R*p;
-        pVap = Pv_star;
-    end
-
-    if masstrans
-        C = X((2*Nt+4):end); 
-        C(end) =  CW(T(end),P);
-        Rmix = C*Rv_star + (1-C)*Ra_star; 
-        % concentration field inside the bubble
-        DC  = D_Matrix_T_C*C; 
-        DDC = DD_Matrix_T_C*C;
-        % vapor concentration equation 
-        U_mix = U_vel + fom/R*((Rv_star - Ra_star)./Rmix).*DC  ;
-        one = DDC;
-        two = DC.*(DTau./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*DC );
-        three =  (U_mix-U.*yk)/R.*DC; 
-
-        % concentration evolution
-        Cdot = fom/R^2*(one - two) - three;
-        Cdot(end) = 0;
-    end
+    end     
 
     if stress == 0
         % no stress

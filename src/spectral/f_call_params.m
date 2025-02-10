@@ -165,6 +165,9 @@ check = 1-isnumeric(medtherm);
 if check || medtherm ~= 0 && medtherm ~= 1
     error('INPUT ERROR: medtherm must be 0 or 1');
 end
+if check || masstrans == 1 && bubtherm == 0
+    error('INPUT ERROR: bubtherm must be 1 for masstrans to be 1');
+end
 check = 1-isnumeric(stress);
 if check || stress > 5 || stress < 0
     error('INPUT ERROR: stress must be between 0 to 5');

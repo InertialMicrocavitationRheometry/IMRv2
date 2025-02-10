@@ -6,7 +6,7 @@
 % Rayleigh-Plesset equations
 function varargout =  m_imrv2_spectral(varargin)
 
-% Problem Initialization
+% problem Initialization
 [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts,... 
     wave_opts, sigma_opts, thermal_opts, mass_opts]...
     = f_call_params(varargin{:});
