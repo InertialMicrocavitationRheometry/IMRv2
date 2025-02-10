@@ -151,6 +151,10 @@ if c8set == 0
     C8 = sqrt(nstate*(P8 + GAM)/rho8); 
 end
 
+if ~medtherm && Mt >= 0
+    Mt = -1;
+    disp('RESETTING Mt = -1 for medtherm == 0');
+end
 check = 1-isnumeric(radial);
 if check || radial > 4 || radial <= 0 
     error('INPUT ERROR: radial must be 1, 2, 3, or 4');

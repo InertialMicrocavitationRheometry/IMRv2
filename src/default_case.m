@@ -3,31 +3,30 @@ radial          = 1;        % 1 : RP, 2 : K-M P, 3 : K-M E, 4 : Gil
 bubtherm        = 0;        % 0 : polytropic assumption, 1: thermal PDE in bubble
 medtherm        = 0;        % 0 : cold fluid, 1: warm fluid assumption
 stress          = 0;        % 1 : NHKV, qKV, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
-eps3            = -1;        % this value must be (0, 0.5]
+eps3            = 0;        % this value must be (0, 0.5]
 vapor           = 0;        % 0 : ignore vapor pressure, 1 : vapor pressure
 masstrans       = 0;        % mass transfer, default is no mass transfer 
     
 % solver options
-TFin            = 100e-6;     % final time (s)
+TFin            = 20e-6;     % final time (s)
 TVector         = [0 TFin];
 method          = 45;       % ode45 setting for the time stepper
 spectral        = 0;        % force spectral collocation solution
 divisions       = 0;        % minimum number of timesteps
-Nt              = 12;       % number of points in bubble, thermal PDE
-Mt              = 12;       % number of points outside of bubble, thermal PDE
+Nt              = 10;       % number of points in bubble, thermal PDE
+Mt              = 10;       % number of points outside of bubble, thermal PDE
 Nv              = 150;      % number of points outside of bubble, viscoelastic stress PDE     
 Lv              = 3;        % characteristic length for grid stretching, leave at 3
 Lt              = 3;        % characteristic length for grid stretching, leave at 3
     
 % initial conditions
-R0              = 2.447495043190468e-04;     % initial bubble radius
+R0              = 100E-6;   % initial bubble radius
 U0              = 0;        % initial velocity (m/s)
-Req             = 3.008409399929516e-05;%27E-6;   % Equilibrium radius for pre-stress bubble, see Estrada JMPS 2017    
+Req             = 50E-6;    % Equilibrium radius for pre-stress bubble, see Estrada JMPS 2017    
 
 % output options
 dimensionalout  = 0;        % output result in dimensional variables
 progdisplay     = 0;        % display progress while code running
-plotresult      = 0;        % generate figure containing results
 
 % acoustic options
 rho8            = 1064;%997;              % far-field density (kg/m^3)   

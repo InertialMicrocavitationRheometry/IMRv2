@@ -28,7 +28,10 @@ function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,
         mass = 'no mass transfer in the bubble';
     end
 
-    if stress == 1
+
+    if stress == 0 
+        const = 'no stress applied';
+    elseif stress == 1
         if Ca == Inf
             const = 'Newtonian fluid';
         else

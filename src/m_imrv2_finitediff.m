@@ -132,7 +132,7 @@ U = X(:,2);
 p = X(:,3); 
 if bubtherm
     Tau = X(:,4:(Nt+3)); 
-    T = (A_star -1 + sqrt(1+2*Tau*A_star)) / A_star; % Temp in bubble
+    T = (alpha -1 + sqrt(1+2*Tau*alpha)) / alpha; % Temp in bubble
     if medtherm
         Tm = X(:,(Nt+4):(2*Nt+3)); 
     end
@@ -203,7 +203,7 @@ function dXdt = SVBDODE(t,X)
         Tau(end) = prelim;
         T = TW(Tau);
          
-        K_star = A_star*T+B_star; 
+        K_star = alpha*T+beta; 
         pVap = (f_pvsat(T(1)*T8)/P8); 
     else
         pVap = p0star;
@@ -238,9 +238,9 @@ function dXdt = SVBDODE(t,X)
               /( T(end)*R*Rmix(end)*(1-C(end)) ) );
 
         % temperature inside the bubble
-        U_vel = (chi/R*(kappa-1)*DTau-yk*R*pdot/3)/(kappa*p);
+        U_vel = (chi/R*(kappa-1)*DTau-y*R*pdot/3)/(kappa*p);
         first_term = (DDTau*chi/R^2+pdot)*( K_star*T/p*kapover);
-        second_term = -DTau*((1/R)*(U_vel-yk*U));
+        second_term = -DTau*((1/R)*(U_vel-y*U));
    
         Taudot= first_term+second_term; 
         Taudot(end) = 0;
@@ -262,16 +262,16 @@ function dXdt = SVBDODE(t,X)
         % internal pressure equation
         pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U);
         % temperature inside the bubble
-        U_vel = (chi/R*(kappa-1).*DTau-yk*R*pdot/3)/(kappa*p);
+        U_vel = (chi/R*(kappa-1).*DTau-y*R*pdot/3)/(kappa*p);
         first_term = (DDTau.*chi./R^2+pdot).*( K_star.*T/p*kapover );
-        second_term = -DTau.*(1/(R).*(U_vel-yk*U));
+        second_term = -DTau.*(1/(R).*(U_vel-y*U));
    
         Taudot= first_term+second_term; 
         Taudot(end) = 0;
 
     else
         % polytropic gas
-        p = p0star*(1/R)^(3*kappa);
+        p = (p0star-Pv_star)*R^(-3*kappa);
         pdot= -3*kappa*U/R*p;
         pVap = Pv_star;
     end
@@ -338,7 +338,7 @@ disp('--- COMPLETED SIMULATION ---');
 
 function Tw= TW(Tauw)
     %calculates the temperature at the bubble wall as a fuction of \tau 
-    Tw = (A_star -1 + sqrt(1+2*Tauw*A_star)) / A_star;
+    Tw = (alpha -1 + sqrt(1+2*Tauw*alpha)) / alpha;
 end
 
 function Cw= CW(Tw,P)

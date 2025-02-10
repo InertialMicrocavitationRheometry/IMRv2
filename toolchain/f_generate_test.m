@@ -1,8 +1,6 @@
 clc; clear all; close all;
 
 addpath('../src');
-addpath('../src/spectral/');
-addpath('toolchain/');
 addpath('../unit_tests/');
 load('file_ids.mat');
 
@@ -13,26 +11,32 @@ teste = 4;
 for id = testb:teste
     filename = strcat('../unit_tests/',ids{id},'.dat'); 
     [ts,Rs,Us] = m_imrv2_spectral('radial',id);
-    [tf,Rf,Uf] = m_imrv2_spectral('radial',id);
+    [tf,Rf,Uf] = m_imrv2_finitediff('radial',id);
     display(filename)
     if (norm(Rs-Rf,2) < 1E-15)
-        disp('success')
+        disp('----> SUCCESS! <------')
+        save(filename,"ts","Rs","Us")
+    else
+        disp('error radial not working')
+    end
+end
+
+testb = testb + 1;
+teste = teste + 1;
+% bubtherm tests
+for id = testb:teste
+    filename = strcat('../unit_tests/',ids{id},'.dat'); 
+    [ts,Rs,Us] = m_imrv2_spectral('bubtherm',1);
+    [t,R,U] = m_imrv2_finitediff('bubtherm',1);
+    display(filename)
+    if (norm(Rs-Rf,2) < 1E-15)
+        disp('----> SUCCESS! <------')
         save(filename,"ts","Rs","Us")
     else
         disp('error radial not working')
     end
 end
 %%
-testb = testb + 1;
-teste = teste + 1;
-% bubtherm tests
-for id = testb:teste
-    filename = strcat('../unit_tests/',ids{id},'.dat'); 
-    [t,R,U] = m_imrv2_spectral('bubtherm',1);
-    display(filename)
-    save(filename,"t","R","U")
-end
-
 testb = testb + 1;
 teste = teste + 1;
 % medtherm tests
