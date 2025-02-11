@@ -68,7 +68,6 @@ function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,
     end
     
     % display run settings
-    disp('--- IMRV2 SETTINGS ---');
     disp(['Radial dynamics: ' eqn]);
     disp(['Medium rheology: ' const]);
     disp(['Thermal effects: ' therm]);

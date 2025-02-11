@@ -266,7 +266,7 @@ function dXdt = SVBDODE(t,X)
         D = kapover*(alpha*T.^2 + beta*T)/p;
 
         % vapor pressure
-        pVap = vapor*(f_pvsat(T(1)*T8)/P8);
+        pVap = vapor*f_pvsat(T(end)*T8)/P8;
 
         % bubble pressure 
         pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U);

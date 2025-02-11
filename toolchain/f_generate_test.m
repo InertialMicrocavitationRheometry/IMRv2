@@ -22,25 +22,51 @@ for id = testb:teste
 end
 
 % bubtherm tests
-tvector = linspace(0,20E-6,100);
-for id = testb
-    filename = strcat('../unit_tests/',ids{id+4},'.dat'); 
-    [ts,Rs,Us] = m_imrv2_spectral('radial',id,'bubtherm',1,'Nt',10,'tvector',tvector);
-    [tf,Rf,Uf] = m_imrv2_finitediff('radial',id,'bubtherm',1,'Nt',300,'tvector',tvector);
+tvector = linspace(0,20E-6,200);
+testb = testb+teste;
+teste = teste + 4;
+k = 1;
+for id = testb:teste
+    filename = strcat('../unit_tests/',ids{id},'.dat'); 
+    [ts,Rs,Us] = m_imrv2_spectral('radial',k,'bubtherm',1,'Nt',15,'tvector',tvector);
+    [tf,Rf,Uf] = m_imrv2_finitediff('radial',k,'bubtherm',1,'Nt',50,'tvector',tvector);
     display(filename)
     if (norm(Rs-Rf,2) < 1E-2)
         disp('----> SUCCESS! <------')
         save(filename,"ts","Rs","Us")
     else
         disp('error radial not working')
+        figure(k)
+        hold on;
+        plot(ts,Rs,'r--s')
+        plot(tf,Rf,'k-.^')
     end
-    figure(1)
-    hold on; 
-    box on;
-    plot(tf,Rf,'--^r'); 
-    plot(ts,Rs,'-.sk');
-
+    k = k + 1;
 end
+
+% bubtherm + vapor tests
+tvector = linspace(0,20E-6,200);
+testb = testb+teste;
+teste = teste + 4;
+k = 1;
+for id = testb:teste
+    filename = strcat('../unit_tests/',ids{id},'.dat'); 
+    [ts,Rs,Us] = m_imrv2_spectral('radial',k,'bubtherm',1,'Nt',15,'tvector',tvector,'vapor',1);
+    [tf,Rf,Uf] = m_imrv2_finitediff('radial',k,'bubtherm',1,'Nt',50,'tvector',tvector,'vapor',1);
+    display(filename)
+    if (norm(Rs-Rf,2) < 1E-2)
+        disp('----> SUCCESS! <------')
+        save(filename,"ts","Rs","Us")
+    else
+        disp('error radial not working')
+        figure(k)
+        hold on;
+        plot(ts,Rs,'r--s')
+        plot(tf,Rf,'k-.^')
+    end
+    k = k + 1;
+end
+
 %%
 testb = testb + 1;
 teste = teste + 1;

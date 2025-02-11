@@ -134,7 +134,7 @@ U = X(:,2);
 p = X(:,3); 
 if bubtherm
     Tau = X(:,4:(Nt+3)); 
-    T = (alpha -1 + sqrt(1+2*Tau*alpha)) / alpha; % Temp in bubble
+    T = (alpha - 1 + sqrt(1+2*Tau*alpha)) / alpha; % Temp in bubble
     if medtherm
         Tm = X(:,(Nt+4):(2*Nt+3)); 
     end
@@ -183,9 +183,9 @@ function dXdt = SVBDODE(t,X)
     R = X(1); 
     U = X(2); 
     p = X(3); 
-
+    
     % solve for boundary condition at the wall
-    if (medtherm == 1)
+    if (medtherm)
         if t/tspan_star> 0.001
             %Might need to tune 0.001 for convergence: 
             guess= -.001+tau_del(end); 
@@ -200,13 +200,17 @@ function dXdt = SVBDODE(t,X)
     
     % sets value at boundary conditions
     if bubtherm
+        % extract the temperature
         Tau = X(4:(Nt+3)); 
+        % using the previous bubble wall temperature as an initial guess for speed up
         tau_del=[tau_del prelim]; 
+        % setting the temperature at the bubble wall
         Tau(end) = prelim;
         T = TW(Tau);
-         
+        
+        % precalculation for speed up
         K_star = alpha*T+beta; 
-        pVap = (f_pvsat(T(1)*T8)/P8); 
+        pVap = vapor*(f_pvsat(T(1)*T8)/P8); 
     else
         pVap = p0star;
     end
@@ -222,7 +226,7 @@ function dXdt = SVBDODE(t,X)
     Taudot = zeros(-1,1);
     Tmdot = zeros(-1,1);
     Cdot = zeros(-1,1);
-
+    % heat and mass transfer PDE residual calculations 
     if bubtherm && masstrans
         C = X((2*Nt+4):end); 
         C(end) =  CW(T(end),P);
@@ -261,7 +265,7 @@ function dXdt = SVBDODE(t,X)
         % temp. field inside the bubble
         DTau  = D_Matrix_T_C*Tau;
         DDTau = DD_Matrix_T_C*Tau;
-
+        DTau(end) = DTau(end) - 0./(Nt-1);
         % internal pressure equation
         pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U);
 
@@ -367,7 +371,6 @@ function Tauw= Boundary(prelim)
 %     Tm_trans = Tm(2:7);
 %     T_trans = flipud(Tau(end-6:end-1));
 %     C_trans = flipud(C(end-6:end-1));
-
     Tauw =chi*(2*Km_star/L*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...
     chi*(-coeff*[prelim ;T_trans] )/deltaY + Cgrad*...
     fom*L_heat_star*P*( (CW(TW(prelim),P)*(Rv_star-Ra_star)+Ra_star))^-1 *...
