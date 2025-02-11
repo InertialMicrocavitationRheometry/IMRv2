@@ -73,8 +73,8 @@ ma0             = mass_opts(7);
 % creates finite difference matrices 
 D_Matrix_T_C = f_finite_diff_mat(Nt,1,0);
 DD_Matrix_T_C = f_finite_diff_mat(Nt,2,0);
-D_Matrix_Tm = f_finite_diff_mat(Mt,1,1);
-DD_Matrix_Tm = f_finite_diff_mat(Mt,2,1);
+D_Matrix_Tm = f_finite_diff_mat(Mt,1,0);
+DD_Matrix_Tm = f_finite_diff_mat(Mt,2,0);
 
 % create spatial nodes
 
@@ -179,7 +179,7 @@ function dXdt = SVBDODE(t,X)
     stepcount = stepcount + 1;
     if progdisplay == 1, disp(t/tfin); end
     
-    % extract standard inputs
+    % extract standard inputs   
     R = X(1); 
     U = X(2); 
     p = X(3); 
@@ -261,16 +261,17 @@ function dXdt = SVBDODE(t,X)
         % temp. field inside the bubble
         DTau  = D_Matrix_T_C*Tau;
         DDTau = DD_Matrix_T_C*Tau;
+
         % internal pressure equation
         pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U);
+
         % temperature inside the bubble
+        first_term = (DDTau.*chi./R^2+pdot).*(kapover*K_star.*T./p);
         U_vel = (chi/R*(kappa-1)*DTau-y*R*pdot/3)/(kappa*p);
-        first_term = (DDTau.*chi./R^2+pdot).*(K_star.*T./p*kapover);
         second_term = -DTau.*((1/R).*(U_vel-y*U));
-   
+
         Taudot= first_term+second_term; 
         Taudot(end) = 0;
-
     else
         % polytropic gas
         p = (p0star-Pv_star)*R^(-3*kappa);
@@ -282,6 +283,7 @@ function dXdt = SVBDODE(t,X)
         % temp. field outside the bubble
         DTm = D_Matrix_Tm*Tm;
         DDTm = DD_Matrix_Tm*Tm;
+
         % warm liquid
         first_term = (1+xi).^2./(Lt*R).*...
             (U./yT.^2.*(1-yT.^3)/2+Foh/R.*((xi+1)/(2*Lt)-1./yT)).* DTm;
@@ -340,7 +342,7 @@ disp('--- COMPLETED SIMULATION ---');
 
 function Tw= TW(Tauw)
     %calculates the temperature at the bubble wall as a fuction of \tau 
-    Tw = (alpha -1 + sqrt(1+2*Tauw*alpha)) / alpha;
+    Tw = (alpha - 1 + sqrt(1+2*Tauw*alpha)) / alpha;
 end
 
 function Cw= CW(Tw,P)

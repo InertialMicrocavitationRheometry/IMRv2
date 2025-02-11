@@ -37,7 +37,6 @@ if order == 1
             Diff_Matrix(end,end) = 3/2; 
             Diff_Matrix(end,end-1) = -2;
             Diff_Matrix(end,end-2) = 1/2;
-
         end
   
         Diff_Matrix = Diff_Matrix / deltaY ; 

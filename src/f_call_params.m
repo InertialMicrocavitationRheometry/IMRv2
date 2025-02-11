@@ -2,7 +2,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
     = f_call_params(varargin)
 
-
+disp('--- Inertial Microcavitation Rheometry Forward Solver ---')
 % check that all inputs are matched
 if mod(nargin,2) == 1
     error('input error: unmatched inputs'); 
@@ -13,7 +13,7 @@ defaultread = true;
 for n = 1:2:nargin
     if strcmpi(varargin{n},'casefile') == 1
         cfname = varargin{n+1}; 
-        disp('using given casefile',cfname);
+        disp('Case file: Using given casefile',cfname);
         try
             run(cfname);
         catch
@@ -26,7 +26,7 @@ end
 
 % otherwise, reading the default casefile
 if defaultread
-    disp('using default case file');
+    disp('Case file: Using default case file');
     run('default_case.m');
 end
 

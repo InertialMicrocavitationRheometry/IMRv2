@@ -23,10 +23,10 @@ end
 
 % bubtherm tests
 tvector = linspace(0,20E-6,100);
-for id = testb+3
+for id = testb
     filename = strcat('../unit_tests/',ids{id+4},'.dat'); 
-    [ts,Rs,Us] = m_imrv2_spectral('radial',id,'bubtherm',1,'tvector',tvector);
-    [tf,Rf,Uf] = m_imrv2_finitediff('radial',id,'bubtherm',1,'Nt',140,'tvector',tvector);
+    [ts,Rs,Us] = m_imrv2_spectral('radial',id,'bubtherm',1,'Nt',10,'tvector',tvector);
+    [tf,Rf,Uf] = m_imrv2_finitediff('radial',id,'bubtherm',1,'Nt',300,'tvector',tvector);
     display(filename)
     if (norm(Rs-Rf,2) < 1E-2)
         disp('----> SUCCESS! <------')
@@ -34,7 +34,12 @@ for id = testb+3
     else
         disp('error radial not working')
     end
-    plot(tf,Rf,'--r'); hold on; plot(ts,Rs,'ks');
+    figure(1)
+    hold on; 
+    box on;
+    plot(tf,Rf,'--^r'); 
+    plot(ts,Rs,'-.sk');
+
 end
 %%
 testb = testb + 1;

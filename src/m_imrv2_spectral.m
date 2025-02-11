@@ -256,20 +256,28 @@ function dXdt = SVBDODE(t,X)
         % extract auxiliary temperature
         SI = gA*X(ia);
         % auxiliary temperature derivatives
-        dSI = gAPd*SI; % first order derivative
-        ddSI = gAPdd*SI; % second order derivative
+
+        % first order derivative
+        dSI = gAPd*SI; 
+        % second order derivative
+        ddSI = gAPdd*SI; 
         % temperature and thermal diffusivity fields
         T = (alpha - 1 + sqrt(1+2*alpha*SI))/alpha;
-        D = kapover*(alpha*T.^2 + (1-alpha)*T)/p;
+        D = kapover*(alpha*T.^2 + beta*T)/p;
+
+        % vapor pressure
         pVap = vapor*(f_pvsat(T(1)*T8)/P8);
 
-        % new pressure and auxiliary temperature derivative
+        % bubble pressure 
         pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U);
-        
+
+        % auxiliary temperature derivative
         SIdot = pdot*D + chi/R^2*(2*D./y - kapover/p*(dSI - dSI(1)*y)).*dSI ...
             + chi*D/R^2.*ddSI;
+
         SIdot(end) = pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
             + kapover/p*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);
+
         if medtherm % warm-liquid
             % extract medium temperature
             TL = mA*X(ib);
@@ -301,7 +309,8 @@ function dXdt = SVBDODE(t,X)
     end
     
     % stress equation
-    Z1dot = 0; Z2dot = 0;
+    Z1dot = 0; 
+    Z2dot = 0;
 
         %TODO Need to add non-Newtonian behavior to JdotX 
         %((1-U/C_star)*R + ...
@@ -312,14 +321,13 @@ function dXdt = SVBDODE(t,X)
         J = 0;
         JdotX = 0;
 
-    % compute stress integral
+    % Kelvin-Voigt with neo-Hookean elasticity
     elseif stress == 1 
-        % Kelvin-Voigt with neo-Hookean elasticity
         J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
         JdotX = -2*U*(Req*(1/R)^2 + Req^4*(1/R)^5)/Ca + 4/Re8*U^2/R^2;
 
+    % quadratic Kelvin-Voigt with neo-Hookean elasticity
     elseif stress == 2
-        % quadratic Kelvin-Voigt with neo-Hookean elasticity
         J = (3*alphax-1)*(5 - (Req/R)^4 - 4*(Req/R))/(2*Ca) - 4/Re8*U/R + ...
         (2*alphax/Ca)*(27/40 + (1/8)*(Req/R)^8 + (1/5)*(Req/R)^5 + (1/2)*(Req/R)^2 - ...
         2*R/Req);
