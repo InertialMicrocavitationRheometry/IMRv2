@@ -28,8 +28,7 @@ Lv              = solve_opts(7); Lt              = solve_opts(8);
 Rzero           = init_opts(1);  Uzero           = init_opts(2); 
 p0star          = init_opts(3);  P8              = init_opts(4); 
 T8              = init_opts(5);  Pv_star         = init_opts(6); 
-Req             = init_opts(7);  S0              = init_opts(8);
-alphax          = init_opts(9);
+Req             = init_opts(7);  alphax          = init_opts(8);
 
 % time span options
 tspan = tspan_opts;

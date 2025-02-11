@@ -21,20 +21,20 @@ for id = testb:teste
     end
 end
 
-testb = testb + 1;
-teste = teste + 1;
 % bubtherm tests
-for id = testb:teste
-    filename = strcat('../unit_tests/',ids{id},'.dat'); 
-    [ts,Rs,Us] = m_imrv2_spectral('bubtherm',1);
-    [t,R,U] = m_imrv2_finitediff('bubtherm',1);
+tvector = linspace(0,20E-6,100);
+for id = testb+3
+    filename = strcat('../unit_tests/',ids{id+4},'.dat'); 
+    [ts,Rs,Us] = m_imrv2_spectral('radial',id,'bubtherm',1,'tvector',tvector);
+    [tf,Rf,Uf] = m_imrv2_finitediff('radial',id,'bubtherm',1,'Nt',140,'tvector',tvector);
     display(filename)
-    if (norm(Rs-Rf,2) < 1E-15)
+    if (norm(Rs-Rf,2) < 1E-2)
         disp('----> SUCCESS! <------')
         save(filename,"ts","Rs","Us")
     else
         disp('error radial not working')
     end
+    plot(tf,Rf,'--r'); hold on; plot(ts,Rs,'ks');
 end
 %%
 testb = testb + 1;

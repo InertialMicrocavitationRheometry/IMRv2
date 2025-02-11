@@ -28,8 +28,7 @@ Lv              = solve_opts(7); Lt              = solve_opts(8);
 Rzero           = init_opts(1);  Uzero           = init_opts(2); 
 p0star          = init_opts(3);  P8              = init_opts(4); 
 T8              = init_opts(5);  Pv_star         = init_opts(6); 
-Req             = init_opts(7);  S0              = init_opts(8);
-alphax          = init_opts(9);
+Req             = init_opts(7);  alphax          = init_opts(8);
 
 % time span options
 tspan = tspan_opts;
@@ -104,9 +103,12 @@ yT = ((2./(xi+1)-1)*Lt+1);
 T = zeros(-1,1);
 if bubtherm
     Tau0 = zeros(Nt,1);
-    Tm0 = ones(Mt ~= -1);
 else
     Tau0 = zeros(-1,1);
+end
+if medtherm
+    Tm0 = ones(Mt ~= -1);
+else
     Tm0 = zeros(-1,1);
 end
 if masstrans
@@ -239,8 +241,8 @@ function dXdt = SVBDODE(t,X)
 
         % temperature inside the bubble
         U_vel = (chi/R*(kappa-1)*DTau-y*R*pdot/3)/(kappa*p);
-        first_term = (DDTau*chi/R^2+pdot)*( K_star*T/p*kapover);
-        second_term = -DTau*((1/R)*(U_vel-y*U));
+        first_term = (DDTau*chi./R^2+pdot)*(K_star*T./p*kapover);
+        second_term = -DTau.*((1./R).*(U_vel-y.*U));
    
         Taudot= first_term+second_term; 
         Taudot(end) = 0;
@@ -262,9 +264,9 @@ function dXdt = SVBDODE(t,X)
         % internal pressure equation
         pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U);
         % temperature inside the bubble
-        U_vel = (chi/R*(kappa-1).*DTau-y*R*pdot/3)/(kappa*p);
-        first_term = (DDTau.*chi./R^2+pdot).*( K_star.*T/p*kapover );
-        second_term = -DTau.*(1/(R).*(U_vel-y*U));
+        U_vel = (chi/R*(kappa-1)*DTau-y*R*pdot/3)/(kappa*p);
+        first_term = (DDTau.*chi./R^2+pdot).*(K_star.*T./p*kapover);
+        second_term = -DTau.*((1/R).*(U_vel-y*U));
    
         Taudot= first_term+second_term; 
         Taudot(end) = 0;

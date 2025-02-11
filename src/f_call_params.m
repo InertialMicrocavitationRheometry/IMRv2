@@ -33,7 +33,8 @@ end
 % remaining parameters
 
 % viscosity variables
-[mu8,Dmu,v_a,v_nc,v_lambda] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity
+[mu8,Dmu,v_a,v_nc,v_lambda] = ...
+    f_nonNewtonian_Re(vmaterial); 
 
 % pressure variables
 Pv              = f_pvsat(T8);  
@@ -61,7 +62,6 @@ for n = 1:2:nargin
         case 'eps3',        eps3 = varargin{n+1};
         case 'vapor',       vapor = varargin{n+1};
         case 'masstrans',   masstrans = varargin{n+1};
-        case 'perturbed',   perturbed = varargin{n+1};
             
         % solver options
         case 'method',  method = varargin{n+1};
@@ -81,14 +81,10 @@ for n = 1:2:nargin
         case 'u0',      U0 = varargin{n+1};
         case 'req',     Req = varargin{n+1};
                 P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
-        case 'a0',      a0 = varargin{n+1};
-        case 'adot0',   adot0 = varargin{n+1}; 
-        case 's0',      S0 = varargin{n+1};
             
         % output options
         case 'dimout',  dimensionalout = varargin{n+1};
         case 'pdisp',   progdisplay = varargin{n+1};
-        case 'plot',    plotresult = varargin{n+1};
 
         % acoustic options
         case 'rho8',    rho8 = varargin{n+1};
@@ -111,7 +107,7 @@ for n = 1:2:nargin
         case 'g',       G = varargin{n+1};
         case 'lambda1', lambda1 = varargin{n+1};
         case 'lambda2', lambda2 = varargin{n+1};
-        case 'alphax', alphax = varargin{n+1};
+        case 'alphax',  alphax = varargin{n+1};
         case 'surft',    S = varargin{n+1};
                 P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         case 'vmaterial', vmaterial = varargin{n+1}; 
@@ -151,10 +147,6 @@ if c8set == 0
     C8 = sqrt(nstate*(P8 + GAM)/rho8); 
 end
 
-if ~medtherm && Mt >= 0
-    Mt = -1;
-    disp('RESETTING Mt = -1 for medtherm == 0');
-end
 check = 1-isnumeric(radial);
 if check || radial > 4 || radial <= 0 
     error('INPUT ERROR: radial must be 1, 2, 3, or 4');
@@ -366,7 +358,7 @@ eqns_opts = [radial bubtherm medtherm stress eps3 vapor masstrans];
 % solver options
 solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
 % dimensionless initial conditions
-init_opts = [Rzero Uzero pzero P8 T8 Pv_star Req_zero S0 alphax];
+init_opts = [Rzero Uzero pzero P8 T8 Pv_star Req_zero alphax];
 % time span options
 tspan_opts = tvector;
 % output options
