@@ -59,14 +59,20 @@ iWe             = 1/We;
 if Ca==-1; Ca=Inf; end
 
 % dimensionless thermal 
-Foh             = thermal_opts(1); Br              = thermal_opts(2); 
-alpha           = thermal_opts(3); beta            = thermal_opts(4); 
-chi             = thermal_opts(5); iota            = thermal_opts(6); 
+Foh             = thermal_opts(1);
+Br              = thermal_opts(2); 
+alpha           = thermal_opts(3); 
+beta            = thermal_opts(4); 
+chi             = thermal_opts(5); 
+iota            = thermal_opts(6); 
 
 % dimensionaless mass transfer 
-Fom             = mass_opts(1); C0              = mass_opts(2);
-Rv_star         = mass_opts(3); Ra_star         = mass_opts(4);
-L_heat_star     = mass_opts(5); mv0             = mass_opts(6);
+Fom             = mass_opts(1); 
+C0              = mass_opts(2);
+Rv_star         = mass_opts(3); 
+Ra_star         = mass_opts(4);
+L_heat_star     = mass_opts(5); 
+mv0             = mass_opts(6);
 ma0             = mass_opts(7);
 
 % pre_process
@@ -74,18 +80,18 @@ ma0             = mass_opts(7);
 % creates finite difference matrices 
 D_Matrix_T_C = f_finite_diff_mat(Nt,1,0);
 DD_Matrix_T_C = f_finite_diff_mat(Nt,2,0);
-D_Matrix_Tm = f_finite_diff_mat(Mt,1,0);
-DD_Matrix_Tm = f_finite_diff_mat(Mt,2,0);
+D_Matrix_Tm = f_finite_diff_mat(Mt,1,1);
+DD_Matrix_Tm = f_finite_diff_mat(Mt,2,1);
 
 % create spatial nodes
 
 % inside the bubble
-N = Nt -1; 
+N = Nt-1; 
 deltaY = 1/N;
 i = 1:1:N+1;
 y = ((i-1)*deltaY)';
 % outside the bubble     
-Nm =Mt-1; 
+Nm = Mt-1; 
 deltaYm = -2/Nm;
 j = 1:1:Nm+1;
 
@@ -122,7 +128,8 @@ tau_del = [];
 TL = [];
 
 % solver start
-f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM, 'finite difference');
+f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, ...
+    eps3, Re8, De, Ca, LAM, 'finite difference');
 bubble = @SVBDODE;
 [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);
 
@@ -193,7 +200,7 @@ function dXdt = SVBDODE(t,X)
             guess= -.001+tau_del(end) ;
             prelim  = fzero(@Boundary,guess);
         else
-            guess = -.001; 
+            guess = -.0001; 
             prelim  = fzero(@Boundary,guess);            
         end          
     else
@@ -266,11 +273,13 @@ function dXdt = SVBDODE(t,X)
         % temp. field inside the bubble
         DTau  = D_Matrix_T_C*Tau;
         DDTau = DD_Matrix_T_C*Tau;
-        DTau(end) = DTau(end) - 0./(Nt-1);
+
         % internal pressure equation
         pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U);
 
         % temperature inside the bubble
+
+        % first_term = (DDTau.*chi./R^2+pdot).*( K_star.*T/p*(kappa-1)/kappa);
         first_term = (DDTau.*chi./R^2+pdot).*(kapover*K_star.*T./p);
         U_vel = (chi/R*(kappa-1)*DTau-y*R*pdot/3)/(kappa*p);
         second_term = -DTau.*((1/R).*(U_vel-y*U));
@@ -283,15 +292,15 @@ function dXdt = SVBDODE(t,X)
         pdot= -3*kappa*U/R*p;
         pVap = Pv_star;
     end
-
+    
     if medtherm
         % temp. field outside the bubble
         DTm = D_Matrix_Tm*Tm;
         DDTm = DD_Matrix_Tm*Tm;
-
         % warm liquid
         first_term = (1+xi).^2./(Lt*R).*...
-            (U./yT.^2.*(1-yT.^3)/2+Foh/R.*((xi+1)/(2*Lt)-1./yT)).* DTm;
+            (U./yT.^2.*(1-yT.^3)/2+Foh/R.*((xi+1)/(2*Lt)-1./yT)).*DTm;
+        % second_term = foh/R^2.*(xk+1).^4/L^2.*DDTm/4;
         second_term = Foh/R^2.*(xi+1).^4/Lt^2.*DDTm/4;
         %third_term =  4*Br./yT.^6.*(3/Re8.*(U/R)^2);
         third_term =  4*Br./yT.^6.*(3/(Re8+DRe*fnu).*(U/R)^2);
@@ -301,7 +310,7 @@ function dXdt = SVBDODE(t,X)
         % Previously calculated; 
         Tmdot(1) = 0; 
     end     
-
+    
     if stress == 0
         % no stress
         J = 0;
@@ -328,7 +337,7 @@ function dXdt = SVBDODE(t,X)
 
     % pressure waveform
     [pf8,pf8dot] = f_pinfinity(t,pvarargin);
-    
+
     % bubble wall acceleration
     [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, R, U, ...
         J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
@@ -365,7 +374,7 @@ function Tauw= Boundary(prelim)
     coeff = [-3/2 , 2 ,-1/2 ];
     Tm_trans = Tm(2:3);
     T_trans = flipud(Tau(end-2:end-1));
-   
+
     if masstrans
         % C_trans = flipud(C(end-2:end-1));
         C_trans = flipud(C(end-6:end-1));
@@ -378,7 +387,6 @@ function Tauw= Boundary(prelim)
         Tauw = chi*(2*iota*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...
         chi*(-coeff*[prelim;T_trans])/deltaY;
     end
-
 end
 
 end

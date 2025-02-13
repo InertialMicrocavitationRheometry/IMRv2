@@ -10,14 +10,14 @@ masstrans       = 0;        % mass transfer, default is no mass transfer
 % solver options
 TFin            = 20e-6;     % final time (s)
 TVector         = [0 TFin];
-method          = 45;       % ode45 setting for the time stepper
+method          = 23;       % ode45 setting for the time stepper
 spectral        = 0;        % force spectral collocation solution
 divisions       = 0;        % minimum number of timesteps
 Nt              = 25;       % number of points in bubble, thermal PDE
 Mt              = 25;       % number of points outside of bubble, thermal PDE
 Nv              = 150;      % number of points outside of bubble, viscoelastic stress PDE     
 Lv              = 3;        % characteristic length for grid stretching, leave at 3
-Lt              = 3;        % characteristic length for grid stretching, leave at 3
+Lt              = 2;        % characteristic length for grid stretching, leave at 3
     
 % initial conditions
 R0              = 100E-6;   % initial bubble radius
@@ -29,7 +29,7 @@ dimensionalout  = 0;        % output result in dimensional variables
 progdisplay     = 0;        % display progress while code running
 
 % acoustic options
-rho8            = 1064;%997;              % far-field density (kg/m^3)   
+rho8            = 999;%997;              % far-field density (kg/m^3)   
 GAM             = 3049.13*1e5;      % state equation parameter (Pa)
 nstate          = 7.15;             % state equation parameter
 P8              = 101325;           % far-field pressure (Pa)
@@ -44,14 +44,14 @@ mn              = 0;        % power shift for waveform
 wave_type       = 2;        % wave type oscillating bubble, see f_pinfinity
     
 % stress options
-S               = 0.072;%0.056;% 0.072              % (N/m) Liquid Surface Tension 
+S               = 0.056;%0.056;% 0.072              % (N/m) Liquid Surface Tension 
 vmaterial       = 'water';
 G               = 312.5;%1E3;                % (Pa) Medium Shear Modulus 
 lambda1         = 0*0.5e-5;             % relaxation time (s)
 lambda2         = 0;            % retardation time (s)
 mu8             = 0.027606;%0.0246;%1E-3;
 alphax          = 0;        % qKV term
-S0              = 0;
+
 %(3*alphax-1)*(5 - (Req/1)^4 - 4*(Req/1))/(2*Ca) + ...
 % (2*alphax/Ca)*(27/40 + (1/8)*(Req/1)^8 + (1/5)*(Req/1)^5 + (1/2)*(Req/1)^2 - ...
 % 2*1/Req)
@@ -59,13 +59,13 @@ S0              = 0;
 % thermal options
 
 % gas properties
-kappa           = 1.4;               % Ratio of Specific Heats 
+kappa           = 1.47;               % Ratio of Specific Heats 
 % medium properties 
 AT              = 5.28e-5;            % (W/m-K^2)Thermal Conductivity coeff
 BT              = 1.165e-2;           % (W/m-K)Thermal Conductivity coeff
-T8              = 298.15;             % (K) Far field temp. 
-Km              = 0.55;%0.615;        % (W/m-K)Thermal Conductivity Medium
-Cp              = 4181;               % Specific Heat Medium J/Kg K;
+T8              = 300;                % (K) Far field temp. 
+Km              = 0.615;              % (W/m-K)Thermal Conductivity Medium
+Cp              = 3.61e3;             % Specific Heat Medium J/Kg K;
 Dm              = Km / (rho8*Cp) ;    % Thermal Diffusivity m^2/s 
 	
 % mass transfer options

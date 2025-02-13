@@ -11,14 +11,14 @@ elseif method == 23
     if divisions == 0
         options = odeset();
     else
-        options = odeset('MaxStep',tfin/divisions);%'RelTol',1e-8,'AbsTol',1e-8);
+        options = odeset('MaxStep',tfin/divisions,'RelTol',1e-8,'AbsTol',1e-8);
     end
     [t,X] = ode23tb(bubble,tspan,init,options);
 elseif method == 45
     if divisions == 0
         options = odeset('NonNegative',1,'AbsTol',1e-8,'RelTol',1e-8);
     else
-        options = odeset('NonNegative',1,'MaxStep',tfin/divisions);%'RelTol',1e-8);
+        options = odeset('NonNegative',1,'MaxStep',tfin/divisions);
     end
     [t,X] = ode45(bubble,tspan,init,options);
 else

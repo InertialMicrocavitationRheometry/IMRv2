@@ -41,7 +41,7 @@ Pv              = f_pvsat(T8);
 % P0              = Pv*vapor + ...% P8 + 2*S/R0;%
 %    (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3*kappa); % need to add Pv_sat at room temp  
 P0              = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
-    
+
 % overrides defaults with options and dimensional inputs %
 
 % load inputs
@@ -111,8 +111,8 @@ for n = 1:2:nargin
         case 'surft',    S = varargin{n+1};
                 P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         case 'vmaterial', vmaterial = varargin{n+1}; 
-                visflag = visflag + 1;
-               [mu8,Dmu,v_a,v_nc,v_lambda,vmat] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity    
+            visflag = visflag + 1;
+            [mu8,Dmu,v_a,v_nc,v_lambda,vmat] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity    
             
         % thermal options
         case 't8',      T8 = varargin{n+1};
@@ -141,7 +141,7 @@ end
 
 if p0set == 0
     % need to add Pv_sat at room temp  
-    P0 = (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3*kappa);
+    P0 = (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3);
 end
 if c8set == 0 
     C8 = sqrt(nstate*(P8 + GAM)/rho8); 
@@ -204,7 +204,7 @@ Pref    = P8;
 t0      = R0/Uc;                    % characteristic time (s) 
 % dimensionless vapor and infinity pressure
 Pv_star = vapor*Pv/Pref;
-P0_star = P0/Pref;                   
+P0_star = P0/Pref;
 
 % TODO
 % When we assume water vapor undergoes infinitely fast mass diffusion
@@ -373,9 +373,9 @@ wave_opts = [om ee tw dt mn wave_type];
 % dimensionless viscoelastic
 sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA vmat v_lambda_star];
 % dimensionless thermal 
-thermal_opts = [Fom Br alpha beta chi iota];
+thermal_opts = [Foh Br alpha beta chi iota];
 % dimensionaless mass transfer
-mass_opts = [Foh C0 Rv_star Ra_star L_heat_star mv0 ma0];
+mass_opts = [Fom C0 Rv_star Ra_star L_heat_star mv0 ma0];
 
 end
 
