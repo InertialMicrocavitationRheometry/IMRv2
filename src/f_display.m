@@ -43,6 +43,12 @@ function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,
             const = 'neo-Hookean Kelvin-Voigt';
         end
     elseif stress == 2
+        if Ca == Inf
+            const = 'Newtonian fluid';
+        else
+            const = 'quadratic neo-Hookean Kelvin-Voigt';
+        end
+    elseif stress == 3
         if Ca ~= Inf && LAM == 0
             const = 'linear Zener';
         elseif Ca == Inf && LAM == 0
@@ -52,7 +58,7 @@ function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,
         else
             const = 'Kelvin-yangChurch series';
         end
-    elseif stress == 3
+    elseif stress == 4
         if Ca ~= Inf && LAM == 0
             const = 'upper-convective Zener';
         elseif Ca == Inf && LAM == 0
@@ -60,7 +66,7 @@ function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,
         elseif Ca == Inf && LAM ~= 0
             const = 'Oldroyd-B';
         end
-    elseif stress == 4 
+    elseif stress == 5 
         const = 'Phan-Thien-Tanner';
     else 
         const = ['Giesekus(' num2str(eps3) ')'];

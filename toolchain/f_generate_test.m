@@ -11,6 +11,7 @@ for radial = 1:4
     for vapor = 0:1
         for bubtherm = 0:1
             for medtherm = 0:1
+                for stress = 0:4
             filename = strcat('../unit_tests/',ids{count},'.dat'); 
             varin = {'radial',radial,'bubtherm',bubtherm,'tvector',tvector,...
                 'vapor',vapor,'medtherm',medtherm};
