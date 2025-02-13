@@ -138,7 +138,6 @@ if bubtherm
     if medtherm
         Tm = X(:,(Nt+4):(2*Nt+3)); 
     end
-
 end
 if masstrans
     C = X(:,(2*Nt+4):end); 
@@ -186,7 +185,9 @@ function dXdt = SVBDODE(t,X)
     
     % solve for boundary condition at the wall
     if (medtherm)
-        if t/tspan_star> 0.001
+        Tau = X(4:(Nt+3)); 
+        Tm = X((Mt+4):(2*Mt+3));
+        if t/tfin > 0.001
             %Might need to tune 0.001 for convergence: 
             guess= -.001+tau_del(end); 
             prelim  = fzero(@Boundary,guess);
@@ -216,7 +217,6 @@ function dXdt = SVBDODE(t,X)
     end
     if medtherm
         Tm(1) = T(end);
-        Tm = X((Mt+4):(2*Mt+3));
     end 
 
     % updating the viscous forces/Reynolds number    

@@ -83,8 +83,8 @@ for n = 1:2:nargin
                 P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
             
         % output options
-        case 'dimout',  dimensionalout = varargin{n+1};
-        case 'pdisp',   progdisplay = varargin{n+1};
+        case 'dimout',     dimensionalout = varargin{n+1};
+        case 'progdisplay',   progdisplay = varargin{n+1};
 
         % acoustic options
         case 'rho8',    rho8 = varargin{n+1};

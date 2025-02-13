@@ -98,21 +98,7 @@ Udot = 0;
 % precomputations for viscous dissipation
 zT = 1 - 2./(1 + (yT - 1)/Lv);
 ZZT = cos(acos(zT)*(1:Nv)) - 1;
-
-% compute or load integral coefficients
-switch Lv
-    case 3, load('eNstore3','eNN'); cdd = eNN(1:Nv)';
-    case 4, load('eNstore4','eNN4'); cdd = eNN4(1:Nv)';
-    case 5, load('eNstore5','eNN5'); cdd = eNN5(1:Nv)';
-    case 6, load('eNstore6','eNN6'); cdd = eNN6(1:Nv)';
-    case 10, load('eNstore10','eNN10'); cdd = eNN10(1:Nv)';
-    case 20, load('eNstore20','eNN20'); cdd = eNN20(1:Nv)';
-    case 0.1, load('eNstorep1','eNNp1'); cdd = eNNp1(1:Nv)';
-    case 0.01, load('eNstorep01','eNNp01'); cdd = eNNp01(1:Nv)';
-    case 0.3, load('eNstorep3','eNNp3'); cdd = eNNp3(1:Nv)';
-    case 0.5, load('eNstorep5','eNNp5'); cdd = eNNp5(1:Nv)';
-    otherwise, cdd = preStressInt(Lv,Nv);
-end
+cdd = preStressInt(Lv,Nv);
 
 % index management
 if stress == 1
