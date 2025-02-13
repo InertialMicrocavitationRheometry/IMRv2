@@ -14,18 +14,18 @@ for radial = 1:4
             filename = strcat('../unit_tests/',ids{count},'.dat'); 
             varin = {'radial',radial,'bubtherm',bubtherm,'tvector',tvector,...
                 'vapor',vapor,'medtherm',medtherm};
-            [ts,Rs,Us] = m_imrv2_spectral(varin{:},'Nt',15);
-            [tf,Rf,Uf] = m_imrv2_finitediff(varin{:},'Nt',50);
+            [ts,Rs,Us] = m_imrv2_spectral(varin{:},'Nt',10,'Mt',10);
+            [tf,Rf,Uf] = m_imrv2_finitediff(varin{:},'Nt',150,'Mt',150);
             display(filename)
             if (norm(Rs-Rf,2) < 1E-2)
-                disp('----> SUCCESS! <------')
-                save(filename,"ts","Rs","Us")
+                disp('----> SUCCESS! <------');
+                save(filename,"ts","Rs","Us");
             else
                 disp('error radial not working')
                 figure(count)
                 hold on;
-                plot(ts,Rs,'r--s')
-                plot(tf,Rf,'k-.^')
+                plot(ts,Rs,'r--s');
+                plot(tf,Rf,'k-.^');
             end
             count = count + 1;
             end

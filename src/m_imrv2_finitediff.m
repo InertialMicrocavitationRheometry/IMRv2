@@ -53,7 +53,8 @@ We              = sigma_opts(1); Re8             = sigma_opts(2);
 DRe             = sigma_opts(3); v_a             = sigma_opts(4); 
 v_nc            = sigma_opts(5); Ca              = sigma_opts(6); 
 LAM             = sigma_opts(7); De              = sigma_opts(8); 
-JdotA           = sigma_opts(9); v_lambda_star   = sigma_opts(10); 
+JdotA           = sigma_opts(9); vmaterial       = sigma_opts(10);
+v_lambda_star   = sigma_opts(11);
 iWe             = 1/We;
 if Ca==-1; Ca=Inf; end
 
@@ -107,7 +108,7 @@ else
     Tau0 = zeros(-1,1);
 end
 if medtherm
-    Tm0 = ones(Mt ~= -1);
+    Tm0 = ones(Mt,1);
 else
     Tm0 = zeros(-1,1);
 end
@@ -121,8 +122,7 @@ tau_del = [];
 TL = [];
 
 % solver start
-f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM);
-stepcount = 0;
+f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM, 'finite difference');
 bubble = @SVBDODE;
 [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);
 
@@ -175,8 +175,9 @@ end
 
 % solver function
 function dXdt = SVBDODE(t,X)
-    stepcount = stepcount + 1;
-    if progdisplay == 1, disp(t/tfin); end
+    if progdisplay == 1
+        disp(t/tfin); 
+    end
     
     % extract standard inputs   
     R = X(1); 
@@ -189,10 +190,10 @@ function dXdt = SVBDODE(t,X)
         Tm = X((Mt+4):(2*Mt+3));
         if t/tfin > 0.001
             %Might need to tune 0.001 for convergence: 
-            guess= -.001+tau_del(end); 
+            guess= -.001+tau_del(end) ;
             prelim  = fzero(@Boundary,guess);
         else
-            guess = -.0001; 
+            guess = -.001; 
             prelim  = fzero(@Boundary,guess);            
         end          
     else
@@ -220,8 +221,8 @@ function dXdt = SVBDODE(t,X)
     end 
 
     % updating the viscous forces/Reynolds number    
-    % [fnu,intfnu,dintfnu,ddintfnu] = ...
-    %     f_nonNewtonian_integrals(vmodel,U,R,v_a,v_nc,v_lambda);
+    [fnu,intfnu,dintfnu,ddintfnu] = ...
+        f_nonNewtonian_integrals(vmaterial,U,R,v_a,v_nc,v_lambda_star);
 
     Taudot = zeros(-1,1);
     Tmdot = zeros(-1,1);
@@ -252,13 +253,13 @@ function dXdt = SVBDODE(t,X)
         Taudot(end) = 0;
 
         % vapor concentration equation 
-        U_mix = U_vel + fom/R*((Rv_star - Ra_star)/Rmix)*DC  ;
+        U_mix = U_vel + Fom/R*((Rv_star - Ra_star)/Rmix)*DC  ;
         one = DDC;
         two = DC*(DTau/(K_star*T)+((Rv_star - Ra_star)/Rmix)*DC );
         three =  (U_mix-U*yk)/R*DC; 
 
         % concentration evolution
-        Cdot = fom/R^2*(one - two) - three;
+        Cdot = Fom/R^2*(one - two) - three;
         Cdot(end) = 0;
 
     elseif bubtherm 
@@ -364,18 +365,20 @@ function Tauw= Boundary(prelim)
     coeff = [-3/2 , 2 ,-1/2 ];
     Tm_trans = Tm(2:3);
     T_trans = flipud(Tau(end-2:end-1));
-    C_trans = flipud(C(end-2:end-1));
-    
-    % sixth order    
-%     coeff= [-49/20 ,6	,-15/2	,20/3	,-15/4	,6/5	,-1/6]; %Sixth order coeff 
-%     Tm_trans = Tm(2:7);
-%     T_trans = flipud(Tau(end-6:end-1));
-%     C_trans = flipud(C(end-6:end-1));
-    Tauw =chi*(2*Km_star/L*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...
-    chi*(-coeff*[prelim ;T_trans] )/deltaY + Cgrad*...
-    fom*L_heat_star*P*( (CW(TW(prelim),P)*(Rv_star-Ra_star)+Ra_star))^-1 *...
-    (TW(prelim) * (1-CW(TW(prelim),P))  ).^(-1).*...
-    (-coeff*[CW(TW(prelim),P); C_trans] )/deltaY; 
+   
+    if masstrans
+        % C_trans = flipud(C(end-2:end-1));
+        C_trans = flipud(C(end-6:end-1));
+        Tauw = chi*(2*iota*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...
+        chi*(-coeff*[prelim;T_trans])/deltaY + ...
+        Fom*L_heat_star*P*( (CW(TW(prelim),P)*(Rv_star-Ra_star)+Ra_star))^-1 *...
+        (TW(prelim) * (1-CW(TW(prelim),P))  ).^(-1).*...
+        (-coeff*[CW(TW(prelim),P); C_trans])/deltaY; 
+    else
+        Tauw = chi*(2*iota*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...
+        chi*(-coeff*[prelim;T_trans])/deltaY;
+    end
+
 end
 
 end

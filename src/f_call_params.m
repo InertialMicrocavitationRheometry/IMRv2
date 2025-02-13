@@ -33,8 +33,8 @@ end
 % remaining parameters
 
 % viscosity variables
-[mu8,Dmu,v_a,v_nc,v_lambda] = ...
-    f_nonNewtonian_Re(vmaterial); 
+[mu8,Dmu,v_a,v_nc,v_lambda,vmat] = ...
+     f_nonNewtonian_Re(vmaterial); 
 
 % pressure variables
 Pv              = f_pvsat(T8);  
@@ -112,7 +112,7 @@ for n = 1:2:nargin
                 P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         case 'vmaterial', vmaterial = varargin{n+1}; 
                 visflag = visflag + 1;
-               [mu8,Dmu,v_a,v_nc,v_lambda] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity    
+               [mu8,Dmu,v_a,v_nc,v_lambda,vmat] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity    
             
         % thermal options
         case 't8',      T8 = varargin{n+1};
@@ -371,15 +371,15 @@ acos_opts = [Cstar GAMa kappa nstate];
 % dimensionless waveform parameters
 wave_opts = [om ee tw dt mn wave_type];
 % dimensionless viscoelastic
-sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA v_lambda_star];
+sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA vmat v_lambda_star];
 % dimensionless thermal 
 thermal_opts = [Fom Br alpha beta chi iota];
-% dimensionaless mass transfer 
+% dimensionaless mass transfer
 mass_opts = [Foh C0 Rv_star Ra_star L_heat_star mv0 ma0];
 
 end
 
-function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)
+function [mu8,Dmu,a,nc,lambda,vmat] = f_nonNewtonian_Re(vmaterial)
 %F_NONNEWTONIAN Outputs the Reynolds number that is dynamically changes
 % with the shear rate. Note: Re = P8*R0/(m8*Uc). Units are in Pascal
 % seconds.
@@ -387,9 +387,11 @@ function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)
     if strcmp('water',vmaterial)==1
         mu8 = 8.3283e-4;
         muo = 8.3283e-4;
+        vmat = 1;
     elseif strcmp('blood_infinity', vmaterial) == 1
         mu8 = 0.00345; 
         muo = mu8; 
+        vmat = 2;
     elseif strcmp('blood_zero', vmaterial) == 1
         mu8 = 0.056; 
         muo = mu8; 

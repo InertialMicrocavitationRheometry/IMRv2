@@ -130,7 +130,7 @@ Sp = zeros(2*(Nv - 1)*(spectral == 1) + 2,1);
 init = [Rzero; Uzero; p0star; Tau0; Tm0; Tm1; Sp; 0]; 
 
 % solver 
-f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM);
+f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM, 'spectral');
 stepcount = 0;
 bubble = @SVBDODE;
 [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);

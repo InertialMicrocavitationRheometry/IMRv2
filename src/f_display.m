@@ -1,4 +1,9 @@
-function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM)
+% file f_display.m
+% brief contains function f_display
+
+% brief This function features the display output on the command window
+
+function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM, mode)
 
 % Command window display
 
@@ -68,6 +73,7 @@ function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,
     end
     
     % display run settings
+    disp(['Mode: ' mode]);
     disp(['Radial dynamics: ' eqn]);
     disp(['Medium rheology: ' const]);
     disp(['Thermal effects: ' therm]);
