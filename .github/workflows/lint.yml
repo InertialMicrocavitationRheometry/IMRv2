@@ -33,4 +33,5 @@ jobs:
         uses: matlab-actions/run-command@v2
         with:
           command: |
-             run toolchain/s_lint.m;
+             cd toolchain;
+             s_lint;

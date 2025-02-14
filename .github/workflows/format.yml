@@ -29,7 +29,8 @@ jobs:
         uses: matlab-actions/run-command@v2
         with:
           command: | 
-            run toolchain/s_format.m;
+            cd toolchain;
+            s_format;
 
       - name: Check for uncommitted changes
         run: |
