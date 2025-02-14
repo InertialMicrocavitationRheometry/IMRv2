@@ -1,3 +1,12 @@
+% file f_call_params.m
+% brief contains function f_call_params
+
+% brief This function sets up the simulation environment. The function can
+% receive an input file. The input file must be in the formatted similar to
+% the default_case.m file. Otherwise, if no input file is provided, the
+% code will read in the default case. The default case can be altered based 
+% on the input arguments when invoking either the finite difference or 
+% spectral module. 
 function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
     = f_call_params(varargin)
@@ -17,7 +26,7 @@ for n = 1:2:nargin
         try
             run(cfname);
         catch
-            error('failed to read the give file');
+            error('failed to read the given file');
         end
         defaultread = false;
         break;
@@ -185,7 +194,7 @@ if TVector == 0
 end
 
 % check for physical viscoelastic parameters
-if (lambda1 > mu8/G && (stress == 1)) || abs(eps3 - 0.25) > 0.25
+if (lambda1 > mu8/G && (stress == 1 || stress == 2)) || abs(eps3 - 0.25) > 0.25
     error('INPUT ERROR: Unphysical viscoelastic parameters');
 end
 
@@ -303,9 +312,7 @@ if bubtherm == 0, medtherm = 0; end
 if medtherm == 1, bubtherm = 1; masstrans = 0; end
 
 % 1 : N-H, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
-if stress == 1
-    spectral = 0;
-elseif stress == 2
+if stress == 1 || stress == 2
     spectral = 0;
 elseif stress == 3
     Ca = -1; 
@@ -315,15 +322,20 @@ elseif stress == 5
     Ca = -1; spectral = 1;
 end
 
-if stress == 1 
+if stress == 1 || stress == 2
     JdotA = 4/Re8;
-elseif stress == 2 || stress == 3 
+elseif stress == 3 || stress == 4
     JdotA = 4*LAM/Re8;
 else
     JdotA = 0;
 end
 if spectral == 1
     JdotA = 0; 
+end
+if stress == 0 || stress == 1 || stress == 2
+    zeNO = 0; 
+else 
+    zeNO = 1; 
 end
 
 % TODO
@@ -371,7 +383,7 @@ acos_opts = [Cstar GAMa kappa nstate];
 % dimensionless waveform parameters
 wave_opts = [om ee tw dt mn wave_type];
 % dimensionless viscoelastic
-sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA vmat v_lambda_star];
+sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA vmat v_lambda_star zeNO];
 % dimensionless thermal 
 thermal_opts = [Foh Br alpha beta chi iota];
 % dimensionaless mass transfer

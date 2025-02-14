@@ -1,3 +1,10 @@
+% file f_nonNewtonian_integrals.m
+% brief contains function f_nonNewtonian_integrals
+
+% brief This function computes the nonNewtonian integrals and accounts for
+% Newtonian, Carreau, Carreau-Yasuda, Powell-Eyring, modified
+% Powell-Eyring, Cross, simplified Cross, and modified Cross
+
 function [f,intf,dintf,ddintf] = ...
     f_nonNewtonian_integrals(vmodel,U,R,a,nc,lambda)
 %F_NONNEWTONIAN_INTEGRALS Summary of this function goes here
@@ -52,9 +59,8 @@ function [f,intf,dintf,ddintf] = ...
             f = sf_modified_cross(a,nc,lambda,gammadot_R);
     end    
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%NON NEWTONIAN MODEL EVALUATIONS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%non-Newtonian model evaluations
 function intf = sf_carreau_d(r,nc,lambda,gammadot_num)
     gammadot = gammadot_num./r.^3;
     % additional r in the denominator is from the stress integral

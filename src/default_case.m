@@ -29,7 +29,7 @@ dimensionalout  = 0;        % output result in dimensional variables
 progdisplay     = 0;        % display progress while code running
 
 % acoustic options
-rho8            = 999;%997;              % far-field density (kg/m^3)   
+rho8            = 1000;%997;              % far-field density (kg/m^3)   
 GAM             = 3049.13*1e5;      % state equation parameter (Pa)
 nstate          = 7.15;             % state equation parameter
 P8              = 101325;           % far-field pressure (Pa)
@@ -46,11 +46,11 @@ wave_type       = 2;        % wave type oscillating bubble, see f_pinfinity
 % stress options
 S               = 0.056;%0.056;% 0.072              % (N/m) Liquid Surface Tension 
 vmaterial       = 'water';
-G               = 312.5;%1E3;                % (Pa) Medium Shear Modulus 
+G               = 1E3;                % (Pa) Medium Shear Modulus 
 lambda1         = 0*0.5e-5;             % relaxation time (s)
 lambda2         = 0;            % retardation time (s)
 mu8             = 0.027606;%0.0246;%1E-3;
-alphax          = 0;        % qKV term
+alphax          = 0.25;        % qKV term
 
 %(3*alphax-1)*(5 - (Req/1)^4 - 4*(Req/1))/(2*Ca) + ...
 % (2*alphax/Ca)*(27/40 + (1/8)*(Req/1)^8 + (1/5)*(Req/1)^5 + (1/2)*(Req/1)^2 - ...

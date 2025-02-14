@@ -1,3 +1,9 @@
+% file f_pinfinity.m
+% brief contains function f_pinfinity
+
+% brief This function the time-dependent external pressure in the
+% surrounding material that drives the bubble oscillations. The function
+% features wave types: histotripsy, Gaussian, and impulse
 function [p8,p8dot] = f_pinfinity(t,vararg)
 %F_PINFINITY Summary of this function goes here
 %   Detailed explanation goes here

@@ -1,4 +1,12 @@
-function [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, R, U, J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA )
+% file f_radial_eq.m
+% brief contains function f_radial_eq
+
+% brief This function features the spherical radial bubble dynamics
+% equations used to compute the bubble wall acceleration. The radial models
+% Rayleigh-Plesset, Keller-Miksis in pressure and enthalpy, and Gilmore are
+% available in the solver.
+function [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, ...
+    R, U, J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA )
 
     % Rayleigh-Plesset 
     if radial == 1

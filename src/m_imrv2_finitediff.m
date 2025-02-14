@@ -54,25 +54,17 @@ DRe             = sigma_opts(3); v_a             = sigma_opts(4);
 v_nc            = sigma_opts(5); Ca              = sigma_opts(6); 
 LAM             = sigma_opts(7); De              = sigma_opts(8); 
 JdotA           = sigma_opts(9); vmaterial       = sigma_opts(10);
-v_lambda_star   = sigma_opts(11);
+v_lambda_star   = sigma_opts(11);zeNO            = sigma_opts(12);
 iWe             = 1/We;
 if Ca==-1; Ca=Inf; end
-
 % dimensionless thermal 
-Foh             = thermal_opts(1);
-Br              = thermal_opts(2); 
-alpha           = thermal_opts(3); 
-beta            = thermal_opts(4); 
-chi             = thermal_opts(5); 
-iota            = thermal_opts(6); 
-
+Foh             = thermal_opts(1); Br              = thermal_opts(2); 
+alpha           = thermal_opts(3); beta            = thermal_opts(4); 
+chi             = thermal_opts(5); iota            = thermal_opts(6); 
 % dimensionaless mass transfer 
-Fom             = mass_opts(1); 
-C0              = mass_opts(2);
-Rv_star         = mass_opts(3); 
-Ra_star         = mass_opts(4);
-L_heat_star     = mass_opts(5); 
-mv0             = mass_opts(6);
+Fom             = mass_opts(1); C0              = mass_opts(2);
+Rv_star         = mass_opts(3); Ra_star         = mass_opts(4);
+L_heat_star     = mass_opts(5); mv0             = mass_opts(6);
 ma0             = mass_opts(7);
 
 % pre_process
@@ -102,6 +94,8 @@ no = (nstate-1)/nstate;
 kapover = (kappa-1)/kappa;
 xi = (1+(j-1)*deltaYm)';
 yT = ((2./(xi+1)-1)*Lt+1);
+ic = zeros(-1,1);
+id = zeros(-1,1);
 
 % initial condition assembly
 
@@ -303,7 +297,7 @@ function dXdt = SVBDODE(t,X)
         % second_term = foh/R^2.*(xk+1).^4/L^2.*DDTm/4;
         second_term = Foh/R^2.*(xi+1).^4/Lt^2.*DDTm/4;
         %third_term =  4*Br./yT.^6.*(3/Re8.*(U/R)^2);
-        third_term =  4*Br./yT.^6.*(3/(Re8+DRe*fnu).*(U/R)^2);
+        third_term =  4*Br./yT.^6.*(3/(Re8+0*DRe*fnu).*(U/R)^2);
         Tmdot = first_term+second_term+third_term;
         % Sets boundary condition on temp        
         Tmdot(end) = 0; 
@@ -311,29 +305,9 @@ function dXdt = SVBDODE(t,X)
         Tmdot(1) = 0; 
     end     
     
-    if stress == 0
-        % no stress
-        J = 0;
-        JdotX = 0;
-        %TODO Need to add non-Newtonian behavior to JdotX 
-        %((1-U/C_star)*R + ...
-        %  4/Re8/C_star - 6*ddintfnu*iDRe/C_star);
-    elseif stress == 1 
-        % Kelvin-Voigt with neo-Hookean elasticity
-        J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
-        % JdotX = -2*U*(Req*(1/R)^2 + Req^4*(1/R)^5)/Ca + 4/Re8*U^2/R^2;
-    elseif stress == 2
-        % quadratic Kelvin-Voigt with neo-Hookean elasticity
-        J = (3*alphax-1)*(5 - (Req/R)^4 - 4*(Req/R))/(2*Ca) - 4/Re8*U/R + ...
-        (2*alphax/Ca)*(27/40 + (1/8)*(Req/R)^8 + (1/5)*(Req/R)^5 + (1/2)*(Req/R)^2 - ...
-        2*R/Req);
-        JdotX = ((3*alphax-1)/(2*Ca))*((4*Req^4*U/R^5) + (4*Req*U/R^2)) + ...
-        4*(U^2)/(Re8*R^2) - (2*alphax/Ca)*(2*U/Req + Req^8*U/R^9 + ...
-        Req^5*U/R^6 + Req^2*U/R^3);       
-    else
-        % TODO ADD ADDITIONAL STRESS MODELS
-        error('stress setting is not available');
-    end
+    % stress equation
+    [J,JdotX,Z1dot,Z2dot] = ...
+        f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO);
 
     % pressure waveform
     [pf8,pf8dot] = f_pinfinity(t,pvarargin);
@@ -344,7 +318,7 @@ function dXdt = SVBDODE(t,X)
 
     % stress integral rate
     % TODO ADD STRESS MODELS
-    % Jdot = JdotX - JdotA*Udot/R;
+    Jdot = JdotX - JdotA*Udot/R;
 
     % output assembly
     dXdt = [U; Udot; pdot; Taudot; Tmdot; Cdot];
@@ -387,6 +361,62 @@ function Tauw= Boundary(prelim)
         Tauw = chi*(2*iota*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...
         chi*(-coeff*[prelim;T_trans])/deltaY;
     end
+end
+
+function [Diff_Matrix ] = f_finite_diff_mat(Nodes,order,Tm_check)
+% Creates finite diffrence matrices
+% Nodes: Number of nodes  
+% order: order of differentiation ( 1st derivitive vs 2nd deriv) 
+% Tm_check: 0 not for external temp , 1 used for ext. temp 
+
+if Tm_check == 0 
+    N = Nodes-1; 
+    deltaY = 1/N;
+    K = 1:1:N+1;
+    yk = (K-1)*deltaY; 
+elseif Tm_check == 1 
+    N = Nodes-1; 
+    deltaY = -2/N;
+    K = 1:1:N+1;
+    yk = 1+(K-1)*deltaY; 
+end 
+
+Diff_Matrix = zeros(Nodes,1);
+
+if order == 1
+    for counter=2:N  %in between
+        Diff_Matrix(counter,counter+1) = 1 ;
+        Diff_Matrix(counter,counter-1) = -1 ;
+    end
+    if Tm_check == 0 
+        Diff_Matrix(end,end) = 3; 
+        Diff_Matrix(end,end-1) = -4;
+        Diff_Matrix(end,end-2) = 1;
+    end
+    Diff_Matrix = 0.5 * Diff_Matrix / deltaY ; 
+elseif order == 2 
+    if Tm_check == 0 
+        for counter=2:N  %in between
+            Diff_Matrix(counter,counter+1) = 1 + deltaY/yk(counter);
+            Diff_Matrix(counter,counter)   = -2;
+            Diff_Matrix(counter,counter-1) = 1 - deltaY/yk(counter);
+        end
+    elseif Tm_check == 1
+        for counter=2:N  %in between
+            Diff_Matrix(counter,counter+1) = 1 ;
+            Diff_Matrix(counter,counter)   = -2 ;
+            Diff_Matrix(counter,counter-1) = 1 ;
+        end
+    end
+    if Tm_check == 0     
+        Diff_Matrix(1,1)= -6; 
+        Diff_Matrix(1,2) = 6;
+    end
+    Diff_Matrix = Diff_Matrix / (deltaY^2) ;
+end
+
+Diff_Matrix = sparse(Diff_Matrix);    
+
 end
 
 end

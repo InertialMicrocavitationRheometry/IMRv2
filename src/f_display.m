@@ -2,8 +2,8 @@
 % brief contains function f_display
 
 % brief This function features the display output on the command window
-
-function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM, mode)
+function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, ...
+    spectral, eps3, Re8, De, Ca, LAM, mode)
 
 % Command window display
 

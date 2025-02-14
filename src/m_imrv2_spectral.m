@@ -47,12 +47,14 @@ tw              = wave_opts(3); dt              = wave_opts(4);
 mn              = wave_opts(5); wave_type       = wave_opts(6); 
 
 pvarargin = [om,ee,tw,dt,mn,wave_type];
+
 % dimensionless viscoelastic
 We              = sigma_opts(1); Re8             = sigma_opts(2); 
 DRe             = sigma_opts(3); v_a             = sigma_opts(4); 
 v_nc            = sigma_opts(5); Ca              = sigma_opts(6); 
 LAM             = sigma_opts(7); De              = sigma_opts(8); 
-JdotA           = sigma_opts(9); v_lambda_star   = sigma_opts(10); 
+JdotA           = sigma_opts(9); vmaterial       = sigma_opts(10);
+v_lambda_star   = sigma_opts(11);zeNO            = sigma_opts(12);
 iWe             = 1/We;
 if Ca==-1; Ca=Inf; end
 % dimensionless thermal 
@@ -101,11 +103,6 @@ ZZT = cos(acos(zT)*(1:Nv)) - 1;
 cdd = preStressInt(Lv,Nv);
 
 % index management
-if stress == 1
-    zeNO = 0; 
-else 
-    zeNO = 1; 
-end
 if spectral == 0, Nv = 1; end
 if bubtherm == 0, Nt = -1; Mt = -1; qdot = []; end
 if medtherm == 0, Mt = -1; end
@@ -129,8 +126,9 @@ Tm1 = zeros(Mt,1);
 Sp = zeros(2*(Nv - 1)*(spectral == 1) + 2,1);  
 init = [Rzero; Uzero; p0star; Tau0; Tm0; Tm1; Sp; 0]; 
 
-% solver 
-f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, eps3, Re8, De, Ca, LAM, 'spectral');
+% solver start
+f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
+    eps3, Re8, De, Ca, LAM, 'spectral');
 stepcount = 0;
 bubble = @SVBDODE;
 [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);
@@ -276,7 +274,7 @@ function dXdt = SVBDODE(t,X)
             % include viscous heating
             if spectral == 1
                 TLdot = TLdot - 2*Br*U./(R*yT.^3).*(ZZT*(X(ic) - X(id)));    
-            elseif stress == 1
+            else %if stress == 1
                 TLdot = TLdot + 4*Br./yT.^6*(U/R*(1-1/R^3)/Ca + 3/Re8*(U/R)^2); 
             end
             % enforce boundary condition and solve
@@ -295,86 +293,8 @@ function dXdt = SVBDODE(t,X)
     end
     
     % stress equation
-    Z1dot = 0; 
-    Z2dot = 0;
-
-        %TODO Need to add non-Newtonian behavior to JdotX 
-        %((1-U/C_star)*R + ...
-        %  4/Re8/C_star - 6*ddintfnu*iDRe/C_star);
-
-    % no stress
-    if stress == 0
-        J = 0;
-        JdotX = 0;
-
-    % Kelvin-Voigt with neo-Hookean elasticity
-    elseif stress == 1 
-        J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
-        JdotX = -2*U*(Req*(1/R)^2 + Req^4*(1/R)^5)/Ca + 4/Re8*U^2/R^2;
-
-    % quadratic Kelvin-Voigt with neo-Hookean elasticity
-    elseif stress == 2
-        J = (3*alphax-1)*(5 - (Req/R)^4 - 4*(Req/R))/(2*Ca) - 4/Re8*U/R + ...
-        (2*alphax/Ca)*(27/40 + (1/8)*(Req/R)^8 + (1/5)*(Req/R)^5 + (1/2)*(Req/R)^2 - ...
-        2*R/Req);
-        JdotX = ((3*alphax-1)/(2*Ca))*((4*Req^4*U/R^5) + (4*Req*U/R^2)) + ...
-        4*(U^2)/(Re8*R^2) - (2*alphax/Ca)*(2*U/Req + Req^8*U/R^9 + ...
-        Req^5*U/R^6 + Req^2*U/R^3);
-
-    % Giesekus, PTT, or forced spectral             
-    elseif spectral
-        % extract stress spectrum
-        c = X(ic); d = X(id); 
-        % inverse Chebyshev transforms and derivatives
-        [trr,dtrr,t00,dt00] = stressdiff(c,d);
-        % new spectral coefficient derivatives
-        exptau = exp(ptt*Re8*De*(trr + 2*t00));            
-        Z1dot = stresssolve(-(exptau/De + zeNO*4*U./(yV.^3*R) ...
-            + eps3*Re8*trr).*trr ...
-            + (1-ze).^2*U/(2*Lv*R).*(yV - zeNO./yV.^2).*dtrr ...
-            - 4./yV.^3*((1-(Req/R)^3)/(3*Ca) + U/(Re8*R) ...
-            + LDR*(2*U^2/R^2 + Udot/R))/De - zeNO*4*LAM/Re8*(U/R)^2./yV.^6);
-        Z2dot = stresssolve(-(exptau/De - zeNO*2*U./(yV.^3*R) ...
-            + eps3*Re8*t00).*t00 ...
-            + (1-ze).^2*U/(2*Lv*R).*(yV - zeNO./yV.^2).*dt00 ...
-            + 2./yV.^3*((1-(Req/R)^3)/(3*Ca) + U/(Re8*R) ...
-            + LDR*(2*U^2/R^2 + Udot/R))/De - zeNO*10*LAM/Re8*(U/R)^2./yV.^6);
-        % compute stress integral
-        J = 2*sum(cdd.*(c-d));
-        JdotX = 2*sum(cdd.*(Z1dot - Z2dot));   
-
-    % linear Maxwell, linear Jeffreys, linear Zener        
-    elseif stress == 3 
-        % extract
-        Z1 = X(ic);
-        J = Z1/R^3 - 4*LAM/Re8*U/R;
-        Ze = R^3*((3*alphax-1)*(5 - (Req/R)^4 - 4*(Req/R))/(2*Ca) + ...
-        (2*alphax/Ca)*(27/40 + (1/8)*(Req/R)^8 + (1/5)*(Req/R)^5 + (1/2)*(Req/R)^2 - ...
-        2*R/Req));
-        ZdotSqNH = 3*R^2*U*((3*alphax-1)*(5 - (Req/R)^4 - 4*(Req/R))/(2*Ca) + ...
-        (2*alphax/Ca)*(27/40 + (1/8)*(Req/R)^8 + (1/5)*(Req/R)^5 + (1/2)*(Req/R)^2 - ...
-        2*R/Req)) + R^3*(((3*alphax-1)/(2*Ca))*((4*Req^4*U/R^5) + (4*Req*U/R^2)) - ...
-        (2*alphax/Ca)*(2*U/Req + Req^8*U/R^9 + ...
-        Req^5*U/R^6 + Req^2*U/R^3)); % ddt(R^3 S_qKV)
-        % ZdotNH = -1/(2*Ca)*(3*R^2*U*(5-(Req/R)^4-4*Req/R)+ ...
-            % R^2*U*(4*(Req/R)^5+4*Req/R));
-        % ZdotYC = - 4*(R^3-Req^3)/(3*Ca*De);
-        % stress integral derivative
-        Z1dot = -(Z1-Ze)/De + ZdotSqNH + (3*U/R)*(Z1-Ze) + 4*(LAM-1)/(Re8*De)*R^2*U ;
-        JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re8*U^2/R^2;
-
-    % upper-convected Maxwell, OldRoyd-B
-    elseif stress == 4 
-        % extract stress sub-integrals
-        Z1 = X(ic); Z2 = X(id);
-        % compute new derivatives
-        Z1dot = -(1/De - 2*U/R)*Z1 + 2*(LAM-1)/(Re8*De)*R^2*U;
-        Z2dot = -(1/De + 1*U/R)*Z2 + 2*(LAM-1)/(Re8*De)*R^2*U;
-        J = (Z1 + Z2)/R^3 - 4*LAM/Re8*U/R;
-        JdotX = (Z1dot+Z2dot)/R^3 - 3*U/R^4*(Z1+Z2) + 4*LAM/Re8*U^2/R^2;        
-    else
-        error('stress setting is not available');
-    end
+    [J,JdotX,Z1dot,Z2dot] = ...
+        f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO);
 
     % pressure waveform
     [pf8,pf8dot] = f_pinfinity(t,pvarargin);
