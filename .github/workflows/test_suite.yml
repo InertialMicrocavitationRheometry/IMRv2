@@ -32,6 +32,10 @@ jobs:
           release: latest
           products: "MATLAB"
 
+      - name: Debug MATLAB Test Selection (Optional)
+        run: matlab -batch "disp('Detected Tests:'), disp(runtests);"
+
       - name: Run MATLAB Unit Tests
         run: 
-         matlab -batch "results = runtests('toolchain/m_test_suite.m'); disp(results);" 
+         matlab -batch "addpath('toolchain'); results = runtests('toolchain/m_test_suite.m'); disp(results);"
+
