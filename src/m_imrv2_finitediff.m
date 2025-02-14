@@ -374,7 +374,7 @@ function varargout =  m_imrv2_finitediff(varargin)
     % functions called by solver
     
     function Tw= TW(Tauw)
-        %calculates the temperature at the bubble wall as a fuction of \tau
+        %calculates the temperature at the bubble wall as a function of \tau
         Tw = (alpha - 1 + sqrt(1+2*Tauw*alpha)) / alpha;
     end
     
@@ -410,9 +410,9 @@ function varargout =  m_imrv2_finitediff(varargin)
     end
     
     function [Diff_Matrix ] = f_finite_diff_mat(Nodes,order,Tm_check)
-        % Creates finite diffrence matrices
+        % Creates finite difference matrices
         % Nodes: Number of nodes
-        % order: order of differentiation ( 1st derivitive vs 2nd deriv)
+        % order: order of differentiation ( 1st derivative vs 2nd derivative)
         % Tm_check: 0 not for external temp , 1 used for ext. temp
         
         if Tm_check == 0

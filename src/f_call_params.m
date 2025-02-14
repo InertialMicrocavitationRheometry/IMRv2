@@ -206,7 +206,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     
     % intermediate calculated variables
     K8      = AT*T8+BT;                 % far-field thermal conductivity (W/(m K))
-    Rnondim = P8/(rho8*T8);             % dimenisonal parameter for gas constants
+    Rnondim = P8/(rho8*T8);             % dimensional parameter for gas constants
     Uc      = sqrt(P8/rho8);            % characteristic velocity (m/s)
     theta   = Rv/Ra*(P0-Pv)/Pv;         % mass air / mass vapor
     C0      = 1/(1+theta);              % initial vapor concentration
@@ -355,7 +355,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             % if  (Pext_type == 'IC')
             %     Pv = f_pvsat(1*T_inf)/P_inf;
             %     P0_star = Pext_Amp_Freq(1)/P_inf + Cgrad*f_pvsat(1*T_inf)/P_inf;
-            %     % Need to recalculate intital concentration
+            %     % Need to recalculate initial concentration
             %     thetha = Rv_star/Ra_star*(P0_star-Pv)/Pv; % masp air / mass vapor
             %     C0 = 1/(1+thetha);
             %     Ma0 = (P0_star-Pv)/Ra_star;
@@ -371,7 +371,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             % end
             %
             % if  (Pext_type == 'RC')
-            %     U0_star = -1*(Pext_Amp_Freq(1)/P_inf)/(C_star); % Intitial velocity
+            %     U0_star = -1*(Pext_Amp_Freq(1)/P_inf)/(C_star); % Initial velocity
             %      %Plesset & Prosperetti, ARFM 1977, p166
             % end
             
