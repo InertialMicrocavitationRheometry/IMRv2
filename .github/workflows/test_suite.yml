@@ -32,10 +32,7 @@ jobs:
       - name: Run MATLAB Unit Tests
         uses: matlab-actions/run-tests@v2
         with: 
-          sourceFolder: ./toolchain
+          sourceFolder: ./toolchain/tests
           testResultsJUnit: test-results/results.xml
           codeCoverageCobertura: coverage/coverage.xml
         
-      - name: Verifying L2 norm errors
-        run: |
-          matlab -batch "m_test_suite"

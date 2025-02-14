@@ -1,8 +1,7 @@
 % MATLAB script to check L2 norm errors after unit tests
 clc; clear;
-addpath('../src');
-% addpath('../unit_tests/');
-load('file_ids.mat');
+addpath('../../src');
+load('../file_ids.mat');
 
 num_tests = 4*2*2*2*3;
 errors_fd = zeros(num_tests,1);
@@ -20,8 +19,8 @@ for radial = 1:4
         for bubtherm = 0:1
             for medtherm = 0:1
                 for stress = 0:2
-                    filename1 = strcat('../unit_tests/',ids{count+0},'.mat'); 
-                    filename2 = strcat('../unit_tests/',ids{count+1},'.mat'); 
+                    filename1 = strcat('../../unit_tests/',ids{count+0},'.mat'); 
+                    filename2 = strcat('../../unit_tests/',ids{count+1},'.mat'); 
                     load(filename1);
                     load(filename2);
                     varin = {'radial',radial,'bubtherm',bubtherm,'tvector',tvector,...
