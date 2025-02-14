@@ -32,7 +32,7 @@ jobs:
       - name: Run MATLAB Unit Tests
         uses: matlab-actions/run-tests@v2
         with: 
-          sourceFolder: tests
-          testResultsJUnit: test-results/results.xml
-          codeCoverageCobertura: coverage/coverage.xml
+          sourceFolder: ./tests
+          testResultsJUnit: tests/results.xml
+          codeCoverageCobertura: tests/coverage.xml
         
