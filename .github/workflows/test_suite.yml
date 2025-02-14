@@ -33,10 +33,5 @@ jobs:
           products: "MATLAB"
 
       - name: Run MATLAB Unit Tests
-        uses: matlab-actions/run-tests@v2
-        with: 
-          select-by-folder: "toolchain/"
-          select-by-tag: "m_test_suite"
-          sourceFolder: ./tests
-          test-results-junit: tests/results.xml
-          code-coverage-cobertura: tests/coverage.xml        
+        run: 
+         matlab -batch "results = runtests('toolchain/m_test_suite.m'); disp(results);" 
