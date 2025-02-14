@@ -12,7 +12,7 @@ jobs:
 
   spellcheck:
 
-    name: Check Spelling
+    name: Check spelling of src and toolchain
     runs-on: ubuntu-latest
 
     continue-on-error: true  # Does not stop other workflows
@@ -26,4 +26,4 @@ jobs:
         run: pip install codespell
 
       - name: Run Codespell on MATLAB Files
-        run: codespell --ignore-words-list="te,nd" --skip="*.git,*.md,*.yml,*.json" --quiet-level=2
+        run: codespell toolchain src --ignore-words-list="te,nd" --skip="*.git,*.md,*.yml,*.json" --quiet-level=2

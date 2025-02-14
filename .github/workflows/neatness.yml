@@ -14,7 +14,7 @@ jobs:
 
   lint:
 
-    name: Linter
+    name: Linter for toolchain and src
     runs-on: ubuntu-latest
     continue-on-error: true
 
@@ -31,12 +31,12 @@ jobs:
 
       - name: Run MATLAB Code Analysis (mlint)
         run: |
-          matlab -batch "
-          files = [dir('toolchain/**/*.m'); dir('src/**/*.m')]; 
-          for f = files'
-              fprintf('Checking: %s\n', fullfile(f.folder, f.name)); 
-              mlint(fullfile(f.folder, f.name)); 
-          end"
+          matlab -batch "files = [dir('toolchain'); dir('src')]; 
+                         files = arrayfun(@(x) fullfile(x.folder, x.name), files, 'UniformOutput', false);
+                         for i = 1:length(files)
+                             fprintf('Checking: %s\n', files{i});
+                             mlint(files{i});
+                         end"
 
       - name: Debug - List Repository Files
         run: ls -R       
