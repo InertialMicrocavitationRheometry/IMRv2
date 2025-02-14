@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: Test Suite
 
 # Controls when the workflow will run
 on:
@@ -35,10 +35,9 @@ jobs:
           products: "MATLAB"
 
       - name: Run Only `m_test_suite.m`
-        uses: matlab-actions/run-tests@v2
+        uses: matlab-actions/run-command@v2
         with:
-          source-folder: "toolchain"
-          test-results-junit: tests/results.xml
-          code-coverage-cobertura: tests/coverage.xml
-
+          command: | 
+            addpath('toolchain');
+            m_test_suite;
 
