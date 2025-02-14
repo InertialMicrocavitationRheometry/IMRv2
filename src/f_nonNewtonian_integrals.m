@@ -6,7 +6,7 @@
 % Powell-Eyring, Cross, simplified Cross, and modified Cross
 
 function [f,intf,dintf,ddintf] = ...
-    f_nonNewtonian_integrals(vmodel,U,R,a,nc,lambda)
+        f_nonNewtonian_integrals(vmodel,U,R,a,nc,lambda)
     %F_NONNEWTONIAN_INTEGRALS Summary of this function goes here
     % Setting default values
     f = 0;
@@ -17,7 +17,8 @@ function [f,intf,dintf,ddintf] = ...
     gammadot_num = -2*U*R*R;
     dgammadot    = -4*U*U*R;
     ddgammadot   = -2*R*R; %the Udot that is calculated in m_cavitation
-    abstol = 1E-8; reltol = 1E-8;
+    abstol = 1E-8;
+    reltol = 1E-8;
     % Setting the parameters and calculating integrals
     switch vmodel
         case 'newtonian'
@@ -30,14 +31,14 @@ function [f,intf,dintf,ddintf] = ...
         % calculating the stress integral for a non-Newtonian model,
         % goes directly into the E term in the Keller-Miksis equation
         I1 = integral(@(r) sf_carreau_d(r,nc,lambda,gammadot_num),...
-        R,Inf,'RelTol',reltol,'AbsTol',abstol);
+            R,Inf,'RelTol',reltol,'AbsTol',abstol);
         % calculating the time derivative of the stress integral for
         % a non-Newtonian model, this integral has to two coefficients.
         % One of the terms is in the E_primber term in m_cavitation,
         % the other goes in the denominator of the U_dot solution to
         % account for the Rddot term
         I2 = integral(@(r) sf_carreau_dd(r,nc,lambda,gammadot_num),R,Inf,...
-        'RelTol',reltol,'AbsTol',abstol);
+            'RelTol',reltol,'AbsTol',abstol);
         intf = gammadot_num*I1;
         % note the additional h term is to account for the Leibniz
         % integration rule correction

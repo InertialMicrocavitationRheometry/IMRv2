@@ -3,78 +3,78 @@
 
 % brief This function features the display output on the command window
 function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, ...
-    spectral, eps3, Re8, De, Ca, LAM, mode)
+        spectral, eps3, Re8, De, Ca, LAM, mode)
     
     % Command window display
     
     if radial == 1
         eqn = 'Rayleigh Plesset equation';
-        elseif radial == 2
+    elseif radial == 2
         eqn = 'Keller-Miksis pressure';
-        elseif radial == 3
+    elseif radial == 3
         eqn = 'Keller-Miksis enthalpy';
-        else
+    else
         eqn = 'Gilmore';
     end
     const = 'none';
     
     if bubtherm == 1
         if medtherm == 1, therm = 'full';
-            else
+        else
             therm = 'cold-medium approximation';
         end
-        else
+    else
         therm = 'polytropic approximation';
     end
     
     if masstrans == 1
         mass = 'mass transfer in the bubble';
-        else
+    else
         mass = 'no mass transfer in the bubble';
     end
     
     
     if stress == 0
         const = 'no stress applied';
-        elseif stress == 1
+    elseif stress == 1
         if Ca == Inf
             const = 'Newtonian fluid';
-            else
+        else
             const = 'neo-Hookean Kelvin-Voigt';
         end
-        elseif stress == 2
+    elseif stress == 2
         if Ca == Inf
             const = 'Newtonian fluid';
-            else
+        else
             const = 'quadratic neo-Hookean Kelvin-Voigt';
         end
-        elseif stress == 3
+    elseif stress == 3
         if Ca ~= Inf && LAM == 0
             const = 'linear Zener';
-            elseif Ca == Inf && LAM == 0
+        elseif Ca == Inf && LAM == 0
             const = 'linear Maxwell';
-            elseif Ca == Inf && LAM ~= 0
+        elseif Ca == Inf && LAM ~= 0
             const = 'linear Jeffreys';
-            else
+        else
             const = 'Kelvin-yangChurch series';
         end
-        elseif stress == 4
+    elseif stress == 4
         if Ca ~= Inf && LAM == 0
             const = 'upper-convective Zener';
-            elseif Ca == Inf && LAM == 0
+        elseif Ca == Inf && LAM == 0
             const = 'upper-convective Maxwell';
-            elseif Ca == Inf && LAM ~= 0
+        elseif Ca == Inf && LAM ~= 0
             const = 'Oldroyd-B';
         end
-        elseif stress == 5
+    elseif stress == 5
         const = 'Phan-Thien-Tanner';
-        else
+    else
         const = ['Giesekus(' num2str(eps3) ')'];
     end
     
     if spectral == 1
         solut = 'spectral method';
-        else
+    else
         solut = 'ODE formulation';
     end
     

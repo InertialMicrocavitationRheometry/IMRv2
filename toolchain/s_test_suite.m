@@ -1,5 +1,6 @@
 % MATLAB script to check L2 norm errors after unit tests
-clc; clear;
+clc;
+clear;
 addpath('../src');
 load('file_ids.mat');
 
@@ -24,7 +25,7 @@ for radial = 1:4
                     load(filename1);
                     load(filename2);
                     varin = {'radial',radial,'bubtherm',bubtherm,'tvector',tvector,...
-                    'vapor',vapor,'medtherm',medtherm,'stress',stress};
+                        'vapor',vapor,'medtherm',medtherm,'stress',stress};
                     [~,Rf_test] = m_imrv2_finitediff(varin{:},'Nt',100,'Mt',100);
                     [~,Rs_test] = m_imrv2_spectral(varin{:},'Nt',12,'Mt',12);
                     errors_fd(count) = norm(Rf-Rf_test,2);
@@ -47,7 +48,7 @@ end
 if isempty(failed_tests)
     fprintf('✅ All tests PASSED.\n');
     exit(0); % Success
-    else
+else
     fprintf('❌ Tests FAILED at indices: %s\n', num2str(failed_tests));
     exit(1); % Fail the workflow
 end

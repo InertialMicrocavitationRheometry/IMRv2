@@ -1,5 +1,6 @@
 % toolchain/lint.m - MATLAB Lint Script
-files = [dir('../toolchain/**/*.m'); dir('../src/**/*.m')];
+files = [dir('../toolchain/**/*.m');
+dir('../src/**/*.m')];
 
 errorFound = false; % Track if any issues are detected
 
@@ -23,6 +24,6 @@ end
 if errorFound
     fprintf('Linting issues detected. Failing the workflow.\n');
     exit(1); % This makes GitHub Actions fail
-    else
+else
     fprintf('No linting issues found. Passing the workflow.\n');
 end

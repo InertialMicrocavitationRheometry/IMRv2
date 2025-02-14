@@ -1,7 +1,8 @@
 function [] = f_multirun_official()
     
     %% Clear everything
-    close all; clear all; clc;
+    close all;
+    clear all; clc;
     %%
     N = 8^4;
     addpath('./src/spectral/')
@@ -68,7 +69,7 @@ cell3param = reshape(gridPoints3,[1,numel(gridPoints3)]);
 parfor i = 1:N
 percent = i/N
 [t,R] = f_imrv2('oldb',1,'mu',cell3param{i}(1),'g',cell3param{i}(2),...
-'lambda1',cell3param{i}(3)*cell3param{i}(1)/cell3param{i}(2),'lambda2',0);
+    'lambda1',cell3param{i}(3)*cell3param{i}(1)/cell3param{i}(2),'lambda2',0);
 ucm{i} = [t,R];
 end
 ucm = reshape(ucm,[length(mu_range3), length(G_range3), length(lambda1_range3)]);
@@ -82,16 +83,16 @@ G_range4 = logspace(-6,-1,N^(1/4));
 lambda1_range4 = logspace(-6,-1,N^(1/4));
 lambda2_range4 = logspace(-6,-1,N^(1/4));
 [mu4, G4, lambda14, lambda24] = ndgrid(mu_range4,G_range4,lambda1_range4, ...
-lambda2_range4);
+    lambda2_range4);
 gridPoints4 = cell(length(mu_range4), length(G_range4), length(lambda1_range4), ...
-length(lambda2_range4));
+    length(lambda2_range4));
 
 for i = 1:length(mu_range4)
     for j = 1:length(G_range4)
         for k = 1:length(lambda1_range4)
             for l = 1:length(lambda2_range4)
                 gridPoints4{i,j,k,l} = [mu4(i,j,k,l), G4(i,j,k,l), ...
-                lambda14(i,j,k,l), lambda24(i,j,k,l)];
+                    lambda14(i,j,k,l), lambda24(i,j,k,l)];
             end
         end
     end
@@ -100,12 +101,12 @@ cell4param = reshape(gridPoints4,[1,numel(gridPoints4)]);
 parfor i = 1:N
 percent = i/N
 [t,R] = f_imrv2('oldb',1,'mu',cell4param{i}(1),'g',cell4param{i}(2),...
-'lambda1',cell4param{i}(3)*cell4param{i}(1)/cell4param{i}(2),...
+    'lambda1',cell4param{i}(3)*cell4param{i}(1)/cell4param{i}(2),...
 'lambda2',cell4param{i}(4)*cell4param{i}(1)/cell4param{i}(2));
 oldb{i} = [t,R];
 end
 oldb = reshape(oldb,[length(mu_range4), length(G_range4), ...
-length(lambda1_range4), length(lambda2_range4)]);
+    length(lambda1_range4), length(lambda2_range4)]);
 
 
 

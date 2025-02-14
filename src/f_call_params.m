@@ -8,7 +8,7 @@
 % on the input arguments when invoking either the finite difference or
 % spectral module.
 function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
-    acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
+        acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
     = f_call_params(varargin)
     
     disp('--- Inertial Microcavitation Rheometry Forward Solver ---')
@@ -25,7 +25,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             disp('Case file: Using given casefile',cfname);
             try
                 run(cfname);
-                catch
+            catch
                 error('failed to read the given file');
             end
             defaultread = false;
@@ -43,7 +43,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     
     % viscosity variables
     [mu8,Dmu,v_a,v_nc,v_lambda,vmat] = ...
-    f_nonNewtonian_Re(vmaterial);
+        f_nonNewtonian_Re(vmaterial);
     
     % pressure variables
     Pv              = f_pvsat(T8);
@@ -54,7 +54,8 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     % overrides defaults with options and dimensional inputs %
     
     % load inputs
-    misscount = 0; p0set = 0; c8set = 0; tflag = 0; visflag = 0;
+    misscount = 0;
+    p0set = 0; c8set = 0; tflag = 0; visflag = 0;
     for n = 1:2:nargin
         if strcmpi(varargin{n},'p0') == 1
             p0set = 1;
@@ -82,7 +83,8 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             case 'lv',      Lv = varargin{n+1};
             case 'lt',      Lt = varargin{n+1};
             case 'tfin',    TFin = varargin{n+1};
-            tflag = tflag + 1; %TVector = 0;
+            tflag = tflag + 1;
+            %TVector = 0;
             
             % initial options
             case 'r0',      R0 = varargin{n+1};
@@ -142,7 +144,8 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
             case 'p0',      P0 = varargin{n+1};
             case 'tvector', TVector = varargin{n+1};
-            tflag = tflag + 1; TFin = 0;
+            tflag = tflag + 1;
+            TFin = 0;
             otherwise, misscount = misscount + 1;
             
         end
@@ -231,7 +234,8 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     GAMa    = GAM/P8;                   % bulk liquid stiffness
     Cstar   = C8/Uc;                    % speed of sound
     % thermal properties
-    chi     = T8*K8/(P8*R0*Uc);% T8*K8/(P0*R0*Uc);
+    chi     = T8*K8/(P8*R0*Uc);
+    % T8*K8/(P0*R0*Uc);
     iota    = Km/(K8*Lt);
     Foh     = Dm/(Uc*R0);
     alpha   = AT*T8/K8;              % we do not need beta = BT/K8, we do for diffusion
@@ -249,7 +253,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     Re8     = Pref*R0/(mu8*Uc);        % this is the Reynolds number
     if Dmu ~= 0
         DRe = Pref*R0/(Dmu*Uc);
-        else
+    else
         DRe = 0;
     end
     
@@ -309,138 +313,142 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     
     % final setting adjustments
     if bubtherm == 0, medtherm = 0; end
-        if medtherm == 1, bubtherm = 1; masstrans = 0; end
-            
-            % 1 : N-H, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
-            if stress == 1 || stress == 2
-                spectral = 0;
-                elseif stress == 3
-                Ca = -1;
-                elseif stress == 4
-                Ca = -1; spectral = 1;
-                elseif stress == 5
-                Ca = -1; spectral = 1;
-            end
-            
-            if stress == 1 || stress == 2
-                JdotA = 4/Re8;
-                elseif stress == 3 || stress == 4
-                JdotA = 4*LAM/Re8;
-                else
-                JdotA = 0;
-            end
-            if spectral == 1
-                JdotA = 0;
-            end
-            if stress == 0 || stress == 1 || stress == 2
-                zeNO = 0;
-                else
-                zeNO = 1;
-            end
-            
-            % TODO
-            
-            % need to modify initial conditions for the Out-of-Equilibrium Rayleigh
-            % collapse:
-            % if  (Pext_type == 'IC')
-            %     Pv = f_pvsat(1*T_inf)/P_inf;
-            %     P0_star = Pext_Amp_Freq(1)/P_inf + Cgrad*f_pvsat(1*T_inf)/P_inf;
-            %     % Need to recalculate intital concentration
-            %     thetha = Rv_star/Ra_star*(P0_star-Pv)/Pv; % masp air / mass vapor
-            %     C0 = 1/(1+thetha);
-            %     Ma0 = (P0_star-Pv)/Ra_star;
-            %     % Need to calculate the equilibrium radii for initial
-            %     % stress state:
-            %     [REq] = f_calc_Req(R0, Tgrad ,Cgrad,Pext_Amp_Freq(1),vmaterial);
-            %     %REq = 1;
-            %     C0 = C0*ones(1,NT);
-            %     U0_star = -(1-P0_star)/(C_star); % Initial velocity
-            %     %Plesset & Prosperetti, ARFM 1977, p166
-            %     else
-            %     U0_star = 0;
-            % end
-            %
-            % if  (Pext_type == 'RC')
-            %     U0_star = -1*(Pext_Amp_Freq(1)/P_inf)/(C_star); % Intitial velocity
-            %      %Plesset & Prosperetti, ARFM 1977, p166
-            % end
-            
-            % equation settings
-            eqns_opts = [radial bubtherm medtherm stress eps3 vapor masstrans];
-            % solver options
-            solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
-            % dimensionless initial conditions
-            init_opts = [Rzero Uzero pzero P8 T8 Pv_star Req_zero alphax];
-            % time span options
-            tspan_opts = tvector;
-            % output options
-            out_opts = [dimensionalout progdisplay];
-            
-            % physical parameters
-            
-            % acoustic parameters
-            acos_opts = [Cstar GAMa kappa nstate];
-            % dimensionless waveform parameters
-            wave_opts = [om ee tw dt mn wave_type];
-            % dimensionless viscoelastic
-            sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA vmat v_lambda_star zeNO];
-            % dimensionless thermal
-            thermal_opts = [Foh Br alpha beta chi iota];
-            % dimensionaless mass transfer
-            mass_opts = [Fom C0 Rv_star Ra_star L_heat_star mv0 ma0];
-            
+        if medtherm == 1, bubtherm = 1;
+        masstrans = 0; end
+        
+        % 1 : N-H, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
+        if stress == 1 || stress == 2
+            spectral = 0;
+        elseif stress == 3
+            Ca = -1;
+        elseif stress == 4
+            Ca = -1;
+            spectral = 1;
+        elseif stress == 5
+            Ca = -1;
+            spectral = 1;
         end
         
-        function [mu8,Dmu,a,nc,lambda,vmat] = f_nonNewtonian_Re(vmaterial)
-            %F_NONNEWTONIAN Outputs the Reynolds number that is dynamically changes
-            % with the shear rate. Note: Re = P8*R0/(m8*Uc). Units are in Pascal
-            % seconds.
-            a = 0; nc = 0; lambda = 0;
-            if strcmp('water',vmaterial)==1
-                mu8 = 8.3283e-4;
-                muo = 8.3283e-4;
-                vmat = 1;
-                elseif strcmp('blood_infinity', vmaterial) == 1
-                mu8 = 0.00345;
-                muo = mu8;
-                vmat = 2;
-                elseif strcmp('blood_zero', vmaterial) == 1
-                mu8 = 0.056;
-                muo = mu8;
-                elseif strcmp('blood_combined', vmaterial) == 1
-                mu8 = 0.00345;
-                muo = 0.056;
-                nc = 0.384;
-                lambda = 5.61;
-                elseif strcmp('blood_biro', vmaterial) == 1
-                mu8 = 0.00345;
-                muo = 0.056;
-                nc = 0.3568;
-                lambda = 2.96;
-                elseif strcmp('blood_merrill', vmaterial) == 1
-                mu8 = 0.00345;
-                muo = 0.056;
-                nc = 0.205;
-                lambda = 9.67;
-                elseif strcmp('blood_skalak', vmaterial) == 1
-                mu8 = 0.00345;
-                muo = 0.056;
-                nc = 0.218;
-                lambda = 4.58;
-                elseif strcmp('polystyrene', vmaterial) ==1
-                mu8 = 0;
-                muo = 4*10^6;
-                elseif strcmp('aluminum soap', vmaterial) == 1
-                mu8 = 0.01;
-                muo = 89.6;
-                elseif strcmp('p-oxide', vmaterial) == 1
-                mu8 = 0;
-                muo = 15.25;
-                elseif strcmp('h-cellulose', vmaterial) == 1
-                mu8 = 0;
-                muo = 0.22;
-                else
-                error('INPUT ERROR: No viscosity model specified in f_call_parameters, exiting');
-            end
-            Dmu = muo-mu8;
+        if stress == 1 || stress == 2
+            JdotA = 4/Re8;
+        elseif stress == 3 || stress == 4
+            JdotA = 4*LAM/Re8;
+        else
+            JdotA = 0;
         end
+        if spectral == 1
+            JdotA = 0;
+        end
+        if stress == 0 || stress == 1 || stress == 2
+            zeNO = 0;
+        else
+            zeNO = 1;
+        end
+        
+        % TODO
+        
+        % need to modify initial conditions for the Out-of-Equilibrium Rayleigh
+        % collapse:
+        % if  (Pext_type == 'IC')
+        %     Pv = f_pvsat(1*T_inf)/P_inf;
+        %     P0_star = Pext_Amp_Freq(1)/P_inf + Cgrad*f_pvsat(1*T_inf)/P_inf;
+        %     % Need to recalculate intital concentration
+        %     thetha = Rv_star/Ra_star*(P0_star-Pv)/Pv; % masp air / mass vapor
+        %     C0 = 1/(1+thetha);
+        %     Ma0 = (P0_star-Pv)/Ra_star;
+        %     % Need to calculate the equilibrium radii for initial
+        %     % stress state:
+        %     [REq] = f_calc_Req(R0, Tgrad ,Cgrad,Pext_Amp_Freq(1),vmaterial);
+        %     %REq = 1;
+        %     C0 = C0*ones(1,NT);
+        %     U0_star = -(1-P0_star)/(C_star); % Initial velocity
+        %     %Plesset & Prosperetti, ARFM 1977, p166
+        %     else
+        %     U0_star = 0;
+        % end
+        %
+        % if  (Pext_type == 'RC')
+        %     U0_star = -1*(Pext_Amp_Freq(1)/P_inf)/(C_star); % Intitial velocity
+        %      %Plesset & Prosperetti, ARFM 1977, p166
+        % end
+        
+        % equation settings
+        eqns_opts = [radial bubtherm medtherm stress eps3 vapor masstrans];
+        % solver options
+        solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
+        % dimensionless initial conditions
+        init_opts = [Rzero Uzero pzero P8 T8 Pv_star Req_zero alphax];
+        % time span options
+        tspan_opts = tvector;
+        % output options
+        out_opts = [dimensionalout progdisplay];
+        
+        % physical parameters
+        
+        % acoustic parameters
+        acos_opts = [Cstar GAMa kappa nstate];
+        % dimensionless waveform parameters
+        wave_opts = [om ee tw dt mn wave_type];
+        % dimensionless viscoelastic
+        sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA vmat v_lambda_star zeNO];
+        % dimensionless thermal
+        thermal_opts = [Foh Br alpha beta chi iota];
+        % dimensionaless mass transfer
+        mass_opts = [Fom C0 Rv_star Ra_star L_heat_star mv0 ma0];
+        
+    end
+    
+    function [mu8,Dmu,a,nc,lambda,vmat] = f_nonNewtonian_Re(vmaterial)
+        %F_NONNEWTONIAN Outputs the Reynolds number that is dynamically changes
+        % with the shear rate. Note: Re = P8*R0/(m8*Uc). Units are in Pascal
+        % seconds.
+        a = 0;
+        nc = 0; lambda = 0;
+        if strcmp('water',vmaterial)==1
+            mu8 = 8.3283e-4;
+            muo = 8.3283e-4;
+            vmat = 1;
+        elseif strcmp('blood_infinity', vmaterial) == 1
+            mu8 = 0.00345;
+            muo = mu8;
+            vmat = 2;
+        elseif strcmp('blood_zero', vmaterial) == 1
+            mu8 = 0.056;
+            muo = mu8;
+        elseif strcmp('blood_combined', vmaterial) == 1
+            mu8 = 0.00345;
+            muo = 0.056;
+            nc = 0.384;
+            lambda = 5.61;
+        elseif strcmp('blood_biro', vmaterial) == 1
+            mu8 = 0.00345;
+            muo = 0.056;
+            nc = 0.3568;
+            lambda = 2.96;
+        elseif strcmp('blood_merrill', vmaterial) == 1
+            mu8 = 0.00345;
+            muo = 0.056;
+            nc = 0.205;
+            lambda = 9.67;
+        elseif strcmp('blood_skalak', vmaterial) == 1
+            mu8 = 0.00345;
+            muo = 0.056;
+            nc = 0.218;
+            lambda = 4.58;
+        elseif strcmp('polystyrene', vmaterial) ==1
+            mu8 = 0;
+            muo = 4*10^6;
+        elseif strcmp('aluminum soap', vmaterial) == 1
+            mu8 = 0.01;
+            muo = 89.6;
+        elseif strcmp('p-oxide', vmaterial) == 1
+            mu8 = 0;
+            muo = 15.25;
+        elseif strcmp('h-cellulose', vmaterial) == 1
+            mu8 = 0;
+            muo = 0.22;
+        else
+            error('INPUT ERROR: No viscosity model specified in f_call_parameters, exiting');
+        end
+        Dmu = muo-mu8;
+    end

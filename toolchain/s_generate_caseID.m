@@ -1,4 +1,5 @@
-clc; clear all; close all;
+clc;
+clear all; close all;
 s = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 %find number of random characters to choose from
 numRands = length(s);

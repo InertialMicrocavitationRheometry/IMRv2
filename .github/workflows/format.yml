@@ -1,4 +1,4 @@
-name: Auto indent check
+name: Format check
 
 on:
   push:
@@ -11,8 +11,13 @@ on:
 jobs:
 
   auto-indent:
-    name: Check MATLAB Code Formatting
+
+    name: Code formatting
+
     runs-on: ubuntu-latest
+
+    continue-on-error: true  # Does not stop other workflows
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -23,12 +28,14 @@ jobs:
       - name: Run Auto Indentation
         uses: matlab-actions/command@v2
         with:
-          command: run('toolchain/auto_indent.m')
+          command: | 
+            cd toolchain;
+            s_format.m;
 
       - name: Check for uncommitted changes
         run: |
           if ! git diff --quiet; then
-            echo "Code formatting issues detected. Please run auto-indent and commit the changes."
+            echo "Code formatting issues detected. You did not write clean code. Please run toolchain/s_format.m and commit the changes."
             exit 1
           fi
 

@@ -34,4 +34,4 @@ jobs:
         with:
           command: |
              cd toolchain;
-             lint.m;
+             s_lint.m;

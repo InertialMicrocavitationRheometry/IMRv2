@@ -28,16 +28,16 @@ function [p8,p8dot] = f_pinfinity(t,vararg)
     function [p,pdot] = histo(t)
         if t < dt - pi/om
             p = 0;
-            elseif t > dt + pi/om
+        elseif t > dt + pi/om
             p = 0;
-            else
+        else
             p = ee*(0.5 + 0.5*cos(om*(t - dt))).^mn;
         end
         if t < dt - pi/om
             pdot = 0;
-            elseif t > dt + pi/om
+        elseif t > dt + pi/om
             pdot = 0;
-            else
+        else
             pdot = -ee*mn*(0.5+0.5*cos(om*(t-dt))).^(mn-1)*0.5*om.*sin(om*(t-dt));
         end
     end
@@ -74,7 +74,7 @@ end
 % if (Pext_type == 'sn')
 %     Pext =  -Pext_Amp_Freq(1)/P_inf*sin(2*pi*Pext_Amp_Freq(2)*t*t0) ;
 %     P_ext_prime = -2*pi*Pext_Amp_Freq(2)*t0*Pext_Amp_Freq(1)/P_inf...
-%         *cos(2*pi*Pext_Amp_Freq(2)*t*t0) ;
+    %         *cos(2*pi*Pext_Amp_Freq(2)*t*t0) ;
 %
 % elseif (Pext_type == 'RC')
 %
@@ -95,7 +95,7 @@ end
 % elseif (Pext_type == 'ip')
 %
 %     Pext = -Pext_Amp_Freq(1)/P_inf*...
-%     (1-heaviside(t-Pext_Amp_Freq(2)/t0)) ;
+    %     (1-heaviside(t-Pext_Amp_Freq(2)/t0)) ;
 %     P_ext_prime = 0;
 %
 %  elseif (Pext_type == 'IC')
