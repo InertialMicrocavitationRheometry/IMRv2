@@ -1,0 +1,35 @@
+name: Auto indent check
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+
+  auto-indent:
+    name: Check MATLAB Code Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v2
+
+      - name: Run Auto Indentation
+        uses: matlab-actions/command@v2
+        with:
+          command: run('toolchain/auto_indent.m')
+
+      - name: Check for uncommitted changes
+        run: |
+          if ! git diff --quiet; then
+            echo "Code formatting issues detected. Please run auto-indent and commit the changes."
+            exit 1
+          fi
+
+

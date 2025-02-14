@@ -41,5 +41,5 @@ jobs:
           command: | 
             addpath('toolchain');
             cd toolchain;
-            m_test_suite;
+            s_test_suite;
 

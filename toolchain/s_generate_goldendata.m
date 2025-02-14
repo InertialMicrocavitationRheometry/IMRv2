@@ -12,17 +12,17 @@ for radial = 1:4
         for bubtherm = 0:1
             for medtherm = 0:1
                 for stress = 0:2
-                    filename1 = strcat('../unit_tests/',ids{count+0},'.mat'); 
-                    filename2 = strcat('../unit_tests/',ids{count+1},'.mat'); 
+                    filename1 = strcat('../unit_tests/',ids{count+0},'.mat');
+                    filename2 = strcat('../unit_tests/',ids{count+1},'.mat');
                     varin = {'radial',radial,'bubtherm',bubtherm,'tvector',tvector,...
-                        'vapor',vapor,'medtherm',medtherm,'stress',stress};
+                    'vapor',vapor,'medtherm',medtherm,'stress',stress};
                     [tf,Rf,Uf] = m_imrv2_finitediff(varin{:},'Nt',100,'Mt',100);
-                    [ts,Rs,Us] = m_imrv2_spectral(varin{:},'Nt',12,'Mt',12);          
+                    [ts,Rs,Us] = m_imrv2_spectral(varin{:},'Nt',12,'Mt',12);
                     if (norm(Rs-Rf,2) < 1E-2)
                         disp('----> SUCCESS! <------');
                         save(filename1,"tf","Rf");
                         save(filename2,"ts","Rs");
-                    else
+                        else
                         disp('error radial not working')
                         figure(count)
                         hold on;

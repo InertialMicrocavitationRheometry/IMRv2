@@ -19,24 +19,24 @@ for radial = 1:4
         for bubtherm = 0:1
             for medtherm = 0:1
                 for stress = 0:2
-                    filename1 = strcat('../unit_tests/',ids{count+0},'.mat'); 
-                    filename2 = strcat('../unit_tests/',ids{count+1},'.mat'); 
+                    filename1 = strcat('../unit_tests/',ids{count+0},'.mat');
+                    filename2 = strcat('../unit_tests/',ids{count+1},'.mat');
                     load(filename1);
                     load(filename2);
                     varin = {'radial',radial,'bubtherm',bubtherm,'tvector',tvector,...
-                        'vapor',vapor,'medtherm',medtherm,'stress',stress};
+                    'vapor',vapor,'medtherm',medtherm,'stress',stress};
                     [~,Rf_test] = m_imrv2_finitediff(varin{:},'Nt',100,'Mt',100);
                     [~,Rs_test] = m_imrv2_spectral(varin{:},'Nt',12,'Mt',12);
                     errors_fd(count) = norm(Rf-Rf_test,2);
                     errors_sp(count) = norm(Rs-Rs_test,2);
                     fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
                     fprintf('Test %d: L2 norm error = %.6e\n', count+1, errors_sp(count));
-                    if (errors_fd(count) > threshold)                      
+                    if (errors_fd(count) > threshold)
                         failed_tests = [failed_tests, count];
                     end
-                    if (errors_sp(count) > threshold)                      
+                    if (errors_sp(count) > threshold)
                         failed_tests = [failed_tests, count+1];
-                    end                    
+                    end
                     count = count + 2;
                 end
             end
@@ -47,7 +47,7 @@ end
 if isempty(failed_tests)
     fprintf('✅ All tests PASSED.\n');
     exit(0); % Success
-else
+    else
     fprintf('❌ Tests FAILED at indices: %s\n', num2str(failed_tests));
     exit(1); % Fail the workflow
 end
