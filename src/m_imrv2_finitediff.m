@@ -156,7 +156,8 @@ function varargout =  m_imrv2_finitediff(varargin)
     Uzero;
     p0star;
     Tau0;
-    Tm0; C0];
+    Tm0;
+    C0];
     tau_del = [];
     TL = [];
     
@@ -364,7 +365,8 @@ function varargout =  m_imrv2_finitediff(varargin)
         Udot;
         pdot;
         Taudot;
-        Tmdot; Cdot];
+        Tmdot;
+        Cdot];
         
     end
     % end of solver
