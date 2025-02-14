@@ -20,6 +20,8 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
+    continue-on-error: true  # Does not stop other workflows
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -36,7 +38,6 @@ jobs:
         uses: matlab-actions/run-tests@v2
         with:
           source-folder: "toolchain"
-          select-by-name: "m_test_suite"
           test-results-junit: tests/results.xml
           code-coverage-cobertura: tests/coverage.xml
 

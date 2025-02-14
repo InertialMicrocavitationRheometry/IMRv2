@@ -1,0 +1,27 @@
+name: MATLAB Code Spellcheck
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  spellcheck:
+
+    name: Check Spelling in MATLAB Files
+    runs-on: ubuntu-latest
+
+    continue-on-error: true  # Does not stop other workflows
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Codespell
+        run: pip install codespell
+
+      - name: Run Codespell on MATLAB Files
+        run: codespell --ignore-words-list="te,nd" --skip="*.git,*.md,*.yml,*.json" --quiet-level=2
