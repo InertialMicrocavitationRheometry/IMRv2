@@ -20,8 +20,8 @@ for radial = 1:4
         for bubtherm = 0:1
             for medtherm = 0:1
                 for stress = 0:2
-                    filename1 = strcat('../golden_data/',ids{count+0},'.mat');
-                    filename2 = strcat('../golden_data/',ids{count+1},'.mat');
+                    filename1 = strcat('../tests/',ids{count+0},'.mat');
+                    filename2 = strcat('../tests/',ids{count+1},'.mat');
                     load(filename1);
                     load(filename2);
                     varin = {'radial',radial,'bubtherm',bubtherm,'tvector',tvector,...
