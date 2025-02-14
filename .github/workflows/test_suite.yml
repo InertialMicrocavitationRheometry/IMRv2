@@ -28,11 +28,15 @@ jobs:
 
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@v2
+        with: 
+          release: latest
+          products: "MATLAB"
 
       - name: Run MATLAB Unit Tests
         uses: matlab-actions/run-tests@v2
         with: 
+          select-by-folder: "toolchain/"
+          select-by-tag: "m_test_suite"
           sourceFolder: ./tests
-          testResultsJUnit: tests/results.xml
-          codeCoverageCobertura: tests/coverage.xml
-        
+          test-results-junit: tests/results.xml
+          code-coverage-cobertura: tests/coverage.xml        

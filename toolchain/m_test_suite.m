@@ -1,7 +1,7 @@
 % MATLAB script to check L2 norm errors after unit tests
 clc; clear;
 addpath('../src');
-load('../toolchain/file_ids.mat');
+load('file_ids.mat');
 
 num_tests = 4*2*2*2*3;
 errors_fd = zeros(num_tests,1);
