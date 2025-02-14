@@ -39,6 +39,6 @@ jobs:
         with:
           command: | 
             addpath('toolchain');
-            cd toolchain/tests;
+            cd toolchain;
             m_test_suite;
 
