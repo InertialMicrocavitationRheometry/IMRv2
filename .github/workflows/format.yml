@@ -35,7 +35,7 @@ jobs:
       - name: Check for uncommitted changes
         run: |
           if ! git diff --quiet; then
-            echo "Code formatting issues detected. You did not write clean code. Please run toolchain/s_format.m and commit the changes."
+            echo "Code formatting issues detected. Please run toolchain/s_format.m and commit the changes."
             exit 1
           fi
 

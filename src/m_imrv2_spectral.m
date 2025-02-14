@@ -174,7 +174,9 @@ function varargout =  m_imrv2_spectral(varargin)
     p0star;
     Tau0;
     Tm0;
-    Tm1; Sp; 0];
+    Tm1;
+    Sp;
+    0];
     
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
@@ -365,7 +367,8 @@ function varargout =  m_imrv2_spectral(varargin)
             pdot;
             qdot;
             Z1dot;
-            Z2dot; Jdot];
+            Z2dot;
+            Jdot];
             
         end
         % end of solver
