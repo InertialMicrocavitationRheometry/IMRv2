@@ -1,4 +1,4 @@
-name: MATLAB Code Neatness Check
+name: Neatness Check
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
@@ -14,7 +14,7 @@ jobs:
 
   lint:
 
-    name: Run MATLAB Code Linter
+    name: Linter
     runs-on: ubuntu-latest
     continue-on-error: true
 
@@ -31,7 +31,13 @@ jobs:
 
       - name: Run MATLAB Code Analysis (mlint)
         run: |
-          matlab -batch "files = dir('**/*.m'); for f = files', fprintf('Checking: %s\n', f.name); mlint(f.name); end"
+          matlab -batch "
+          files = [dir('toolchain/**/*.m'); dir('src/**/*.m')]; 
+          for f = files'
+              fprintf('Checking: %s\n', fullfile(f.folder, f.name)); 
+              mlint(fullfile(f.folder, f.name)); 
+          end"
 
       - name: Debug - List Repository Files
-        run: ls -R
+        run: ls -R       
+

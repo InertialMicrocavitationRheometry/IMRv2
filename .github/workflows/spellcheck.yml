@@ -1,4 +1,4 @@
-name: MATLAB Code Spellcheck
+name: Code Spellcheck
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
 
   spellcheck:
 
-    name: Check Spelling in MATLAB Files
+    name: Check Spelling
     runs-on: ubuntu-latest
 
     continue-on-error: true  # Does not stop other workflows
