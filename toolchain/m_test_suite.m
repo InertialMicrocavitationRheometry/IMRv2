@@ -1,61 +1,54 @@
-clc; clear all; close all;
+% MATLAB script to check L2 norm errors after unit tests
+clc; clear;
+addpath('../src');
+% addpath('../unit_tests/');
+load('file_ids.mat');
 
-addpath('../goldendata');
-%find number of random characters to choose from
-filename = strcat('../goldendata/','0VwpAlX'); 
-load(filename);
-[~,Rtest,Utest] = f_imrv2('r0',10E-6,'req',1E-6,'tvector',[0 5E-6],'radial',1,...
-    'vapor',0,'plot',0);
-deltaR = sum(abs(R-Rtest));
-deltaU = sum(abs(U-Utest));
-if deltaR > 1E-12
-    error('TEST 1 FAILS RAD: not within tolerance');
-elseif deltaU > 1E-12
-    error('TEST 1 FAILS VEL: not within tolerance');
-else
-    disp('TEST 1 PASSED');
+num_tests = 4*2*2*2*3;
+errors_fd = zeros(num_tests,1);
+errors_sp = zeros(num_tests,1);
+failed_tests = [];
+threshold = 1E-2; % Define threshold
+
+fprintf('Checking L2 norm errors...\n');
+
+% equation options
+tvector = linspace(0,20E-6,200);
+count = 1;
+for radial = 1:4
+    for vapor = 0:1
+        for bubtherm = 0:1
+            for medtherm = 0:1
+                for stress = 0:2
+                    filename1 = strcat('../unit_tests/',ids{count+0},'.mat'); 
+                    filename2 = strcat('../unit_tests/',ids{count+1},'.mat'); 
+                    load(filename1);
+                    load(filename2);
+                    varin = {'radial',radial,'bubtherm',bubtherm,'tvector',tvector,...
+                        'vapor',vapor,'medtherm',medtherm,'stress',stress};
+                    [~,Rf_test] = m_imrv2_finitediff(varin{:},'Nt',100,'Mt',100);
+                    [~,Rs_test] = m_imrv2_spectral(varin{:},'Nt',12,'Mt',12);
+                    errors_fd(count) = norm(Rf-Rf_test,2);
+                    errors_sp(count) = norm(Rs-Rs_test,2);
+                    fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
+                    fprintf('Test %d: L2 norm error = %.6e\n', count+1, errors_sp(count));
+                    if (errors_fd(count) > threshold)                      
+                        failed_tests = [failed_tests, count];
+                    end
+                    if (errors_sp(count) > threshold)                      
+                        failed_tests = [failed_tests, count+1];
+                    end                    
+                    count = count + 2;
+                end
+            end
+        end
+    end
 end
 
-filename = strcat('../goldendata/','4AcacvT'); 
-load(filename);
-[~,Rtest,Utest] = f_imrv2('r0',10E-6,'req',1E-6,'tvector',[0 5E-6],'radial',2,...
-    'vapor',0,'plot',0);
-deltaR = sum(abs(R-Rtest));
-deltaU = sum(abs(U-Utest));
-if deltaR > 1E-12
-    error('TEST 2 FAILS RAD: not within tolerance');
-elseif deltaU > 1E-12
-    error('TEST 2 FAILS VEL: not within tolerance');
+if isempty(failed_tests)
+    fprintf('✅ All tests PASSED.\n');
+    exit(0); % Success
 else
-    disp('TEST 2 PASSED');
+    fprintf('❌ Tests FAILED at indices: %s\n', num2str(failed_tests));
+    exit(1); % Fail the workflow
 end
-
-filename = strcat('../goldendata/','wdCKsdJ'); 
-load(filename);
-[~,Rtest,Utest] = f_imrv2('r0',10E-6,'req',1E-6,'tvector',[0 5E-6],'radial',3,...
-    'vapor',0,'plot',0);
-deltaR = sum(abs(R-Rtest));
-deltaU = sum(abs(U-Utest));
-if deltaR > 1E-12
-    error('TEST 3 FAILS RAD: not within tolerance');
-elseif deltaU > 1E-12
-    error('TEST 3 FAILS VEL: not within tolerance');
-else
-    disp('TEST 3 PASSED');
-end
-
-filename = strcat('../goldendata/','VlLtP4Q'); 
-load(filename);
-[~,Rtest,Utest] = f_imrv2('r0',10E-6,'req',1E-6,'tvector',[0 5E-6],'radial',4,...
-    'vapor',0,'plot',0);
-deltaR = sum(abs(R-Rtest));
-deltaU = sum(abs(U-Utest));
-if deltaR > 1E-12
-    error('TEST 4 FAILS RAD: not within tolerance');
-elseif deltaU > 1E-12
-    error('TEST 4 FAILS VEL: not within tolerance');
-else
-    disp('TEST 4 PASSED');
-end
-
-clear;

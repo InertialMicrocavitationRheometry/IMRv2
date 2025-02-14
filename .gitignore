@@ -1,6 +1,6 @@
 *.asv
-*.mat
 *.txt
 *.csv
 *.png
 */.ipynb_checkpoints
+data/*
