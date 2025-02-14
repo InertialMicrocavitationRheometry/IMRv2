@@ -30,7 +30,7 @@ jobs:
         run: matlab -batch "disp('MATLAB is installed and ready');"
 
       - name: Run MATLAB Linting
-        uses: matlab-actions/command@v2
+        uses: matlab-actions/run-command@v2
         with:
           command: |
              cd toolchain;
