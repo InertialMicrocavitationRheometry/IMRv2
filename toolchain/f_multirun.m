@@ -2,7 +2,8 @@ function [] = f_multirun_official()
     
     %% Clear everything
     close all;
-    clear all; clc;
+    clear all;
+    clc;
     %%
     N = 8^4;
     addpath('./src/spectral/')

@@ -153,7 +153,10 @@ function varargout =  m_imrv2_finitediff(varargin)
         C0 = zeros(-1,1);
     end
     init = [Rzero;
-    Uzero; p0star; Tau0; Tm0; C0];
+    Uzero;
+    p0star;
+    Tau0;
+    Tm0; C0];
     tau_del = [];
     TL = [];
     
@@ -358,10 +361,13 @@ function varargout =  m_imrv2_finitediff(varargin)
         
         % output assembly
         dXdt = [U;
-        Udot; pdot; Taudot; Tmdot; Cdot];
+        Udot;
+        pdot;
+        Taudot;
+        Tmdot; Cdot];
         
     end
-    disp('--- COMPLETED SIMULATION ---');
+    % end of solver
     
     % functions called by solver
     

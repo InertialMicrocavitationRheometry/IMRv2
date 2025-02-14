@@ -53,7 +53,8 @@ G               = 1E3;                % (Pa) Medium Shear Modulus
 lambda1         = 0*0.5e-5;             % relaxation time (s)
 lambda2         = 0;            % retardation time (s)
 mu8             = 0.027606;
-%0.0246;%1E-3;
+%0.0246;
+%1E-3;
 alphax          = 0.25;        % qKV term
 
 %(3*alphax-1)*(5 - (Req/1)^4 - 4*(Req/1))/(2*Ca) + ...
@@ -77,6 +78,7 @@ Dm              = Km / (rho8*Cp) ;    % Thermal Diffusivity m^2/s
 D0              = 24.2e-6;            % Diffusion Coeff m^2/s
 L_heat          = 2264.76e3;          % (J/Kg) Latent heat of evaporation
 Ru              = 8.3144598;
-% (J/mol-K) Universal Gas Constant % Ru/(18.01528e-3);%Ru/(28.966e-3);
+% (J/mol-K) Universal Gas Constant % Ru/(18.01528e-3);
+%Ru/(28.966e-3);
 Rv              = Ru/(18.01528e-3);   % (J/Kg-K) Gas constant vapor
 Ra              = 438.275;            % (J/Kg-K)Gas constant air

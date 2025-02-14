@@ -1,5 +1,6 @@
 clc;
-clear all; close all;
+clear all;
+close all;
 
 addpath('../src');
 addpath('../unit_tests/');

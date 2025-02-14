@@ -1,12 +1,13 @@
 % toolchain/s_lint.m - MATLAB Lint Script for GitHub Actions
-clc; clear;
+clc;
+clear;
 
 repoRoot = fileparts(mfilename('fullpath')); % Get script location
 toolchainPath = fullfile(repoRoot, '..', 'toolchain');
 srcPath = fullfile(repoRoot, '..', 'src');
 
 files = [dir(fullfile(toolchainPath, '**', '*.m'));
-         dir(fullfile(srcPath, '**', '*.m'))];
+dir(fullfile(srcPath, '**', '*.m'))];
 
 errorFound = false; % Track if any issues are detected
 
