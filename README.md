@@ -8,12 +8,6 @@
   <a href="https://doi.org/10.1016/j.jmps.2017.12.006" target="_blank">
     <img src="https://zenodo.org/badge/doi/10.1016/j.jmps.2017.12.006.svg" />
   </a>
-  <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions">
-    <img src="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/test.yml/badge.svg" />
-  </a>
-  <a href="https://join.slack.com/t/imr/shared_invite">
-    <img src="https://img.shields.io/badge/slack-IMR-purple.svg?logo=slack" />
-  </a>
   <a href="https://www.gnu.org/licenses/gpl-3.0.html">
     <img src="https://img.shields.io/badge/License-GPLv3-blue.svg" />
   </a>
