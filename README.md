@@ -17,7 +17,7 @@
 
 IMRv2 is an advanced computational tool for **Inertial Microcavitation Rheometry (IMR)**, enabling the characterization of soft materials under high strain-rate conditions. IMR correlates the evolution of bubble pressure and stress fields in a material with kinematic observations obtained from high-speed videography.
 
-IMR originated from the **Franck Lab at the University of Wisconsin-Madison** and is now actively developed by researchers at multiple institutions:
+IMRv2 originated from the **Computational Flow Group at Brown University** and is now actively developed by researchers at multiple institutions:
 - [Christian Franck](https://directory.engr.wisc.edu/me/Faculty/Franck_Christian/) (University of Wisconsin-Madison)
 - [David Henann](https://vivo.brown.edu/display/dhenann) (Brown University)
 - [Eric Johnsen](https://me.engin.umich.edu/people/faculty/eric-johnsen/) (University of Michigan)
@@ -77,7 +77,7 @@ For additional examples, see the `examples/` directory.
 
 ## Documentation
 
-Comprehensive documentation, including a user guide, can be found in the `docs/` folder and on the [IMR website](https://imr.org/documentation).
+Comprehensive documentation, including a user guide, can be found in the `docs/` folder and on the IMRv2 website.
 
 ## Citation
 
