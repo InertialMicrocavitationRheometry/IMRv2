@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://imr.org">
-    <img src="docs/res/readme.png" alt="IMR Banner" width="500"/>
+    <img src="docs/imr.jfif" alt="IMR Banner" width="500"/>
   </a>
 </p>
 
