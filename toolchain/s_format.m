@@ -1,7 +1,7 @@
 % toolchain/auto_indent.m - Command-line MATLAB Auto-Indentation (No Editor)
 folders = ["../toolchain", "../src"];
-fileList = {}; % Store file paths
-
+fileList = cell(500,1); % Store file paths
+count = 1;
 % Get the name of this script to avoid modifying itself
 thisScriptFile = strcat('s_format', '.m'); % e.g., 'auto_indent.m'
 
@@ -18,7 +18,12 @@ for folder = folders
             continue;
         end
         
-        fileList{end+1} = filePath; % Append file paths to cell array
+        fileList{count} = filePath; % Append file paths to cell array
+        % Find the last non-empty cell index
+        lastNonEmptyIdx = find(~cellfun(@isempty, fileList), 1, 'last');
+
+        % Truncate the array, keeping empty cells within range
+        fileList = fileList(1:lastNonEmptyIdx);
     end
 end
 
@@ -29,16 +34,23 @@ for i = 1:length(fileList)
     try
         % Read file contents
         fid = fopen(filePath, 'r');
-        lines = {};
+        lines = cell(2000,1);
+        count = 1;
         while ~feof(fid)
             line = fgetl(fid);
-            lines{end+1} = strtrim(line); % Trim whitespace
+            lines{count} = strtrim(line); % Trim whitespace
+            count = count + 1;
         end
         fclose(fid);
+        % Find the last non-empty cell index
+        lastNonEmptyIdx = find(~cellfun(@isempty, lines), 1, 'last');
+        % Truncate the array, keeping empty cells within range
+        lines = lines(1:lastNonEmptyIdx);
         
         % Reconstruct the script with proper indentation
         indentLevel = 0;
-        formattedLines = {};
+        formattedLines = cell(2000,1);
+        count = 1;
         indentStep = '    '; % Define indentation as 4 spaces (adjustable)
         multiLineContinuation = false; % Track if last line ended in "..."
 
@@ -47,8 +59,9 @@ for i = 1:length(fileList)
 
             % Check if previous line was a continuation
             if multiLineContinuation
-                formattedLines{end+1} = [repmat(indentStep, 1, indentLevel + 1), line]; % Add extra indent
+                formattedLines{count} = [repmat(indentStep, 1, indentLevel + 1), line]; % Add extra indent
                 multiLineContinuation = false; % Reset flag
+                count = count + 1;
                 continue;
             end
 
@@ -65,11 +78,11 @@ for i = 1:length(fileList)
                 newLine2 = strtrim(line(semicolonIdx(1) + 1:end)); % Everything after the first semicolon
                 
                 % Store first part normally
-                formattedLines{end+1} = [repmat(indentStep, 1, indentLevel), newLine1];
+                formattedLines{count} = [repmat(indentStep, 1, indentLevel), newLine1];
                 
                 % Add remaining commands as new lines with proper indentation
                 if ~isempty(newLine2)
-                    formattedLines{end+1} = [repmat(indentStep, 1, indentLevel), newLine2];
+                    formattedLines{count} = [repmat(indentStep, 1, indentLevel), newLine2];
                 end
                 continue; % Skip normal line storage since we manually split it
             end
@@ -77,9 +90,9 @@ for i = 1:length(fileList)
             % Check if line is "else" or "catch" and adjust indent level
             isElseOrCatch = any(startsWith(line, ["else", "catch"]));
             if isElseOrCatch
-                formattedLines{end+1} = [repmat(indentStep, 1, max(indentLevel - 1, 0)), line];
+                formattedLines{count} = [repmat(indentStep, 1, max(indentLevel - 1, 0)), line];
             else
-                formattedLines{end+1} = [repmat(indentStep, 1, indentLevel), line];
+                formattedLines{count} = [repmat(indentStep, 1, indentLevel), line];
             end
 
             % Increase indent level **after** processing "if", "for", "while", etc.
@@ -92,6 +105,9 @@ for i = 1:length(fileList)
                 multiLineContinuation = true;
             end
         end
+        % Find the last non-empty cell index
+        lastNonEmptyIdx = find(~cellfun(@isempty, formattedLines), 1, 'last');
+        formattedLines = formattedLines(1:lastNonEmptyIdx);
         
         % Write back the formatted content
         fid = fopen(filePath, 'w');

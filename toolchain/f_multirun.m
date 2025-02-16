@@ -1,8 +1,8 @@
-function [] = f_multirun_official()
+function [] = f_multirun()
     
     %% Clear everything
     close all;
-    clear all;
+    clear;
     clc;
     %%
     N = 8^4;
