@@ -29,10 +29,10 @@ function varargout =  m_imrv2_finitediff(varargin)
     method          = solve_opts(1);
     spectral        = solve_opts(2);
     divisions       = solve_opts(3);
-    % Nv              = solve_opts(4);
+    Nv              = solve_opts(4);
     Nt              = solve_opts(5);
     Mt              = solve_opts(6);
-    % Lv              = solve_opts(7);
+    Lv              = solve_opts(7);
     Lt              = solve_opts(8);
     
     % dimensionless initial conditions
@@ -131,6 +131,10 @@ function varargout =  m_imrv2_finitediff(varargin)
     yT = ((2./(xi+1)-1)*Lt+1);
     ic = zeros(-1,1);
     id = zeros(-1,1);
+    
+    % precomputations for viscous dissipation
+    % zT = 1 - 2./(1 + (yT - 1)/Lv);
+    cdd = preStressInt(Lv,Nv);
     
     % initial condition assembly
     
@@ -263,8 +267,8 @@ function varargout =  m_imrv2_finitediff(varargin)
         
         % updating the viscous forces/Reynolds number
         % [fnu,intfnu,dintfnu,ddintfnu] = ...
-        % [fnu,~,~,~] = ...
-            % f_nonNewtonian_integrals(vmaterial,U,R,v_a,v_nc,v_lambda_star);
+            % [fnu,~,~,~] = ...
+        % f_nonNewtonian_integrals(vmaterial,U,R,v_a,v_nc,v_lambda_star);
         
         Taudot = zeros(-1,1);
         Tmdot = zeros(-1,1);
@@ -348,8 +352,8 @@ function varargout =  m_imrv2_finitediff(varargin)
         
         % stress equation
         % [J,JdotX,Z1dot,Z2dot] = ...
-        [J,JdotX,~,~] = ...
-            f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO);
+            [J,JdotX,~,~] = ...
+        f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO,cdd);
         
         % pressure waveform
         [pf8,pf8dot] = f_pinfinity(t,pvarargin);
@@ -468,3 +472,26 @@ function varargout =  m_imrv2_finitediff(varargin)
     end
     
 end
+
+function cdd = preStressInt(L,N)
+    
+    cdd = L*N*0;
+    
+end
+
+
+% function cdd = StressInt(L,N,varargin)
+%
+%     if nargin == 2
+%         k = 1;
+%     else
+%         k = varargin{1};
+%     end
+%     syms x;
+%     cdd = zeros(N-k+1,1);
+%
+%     for n = k:N
+%         cdd(n-k+1) = subs(2*L*int((cos(n*acos(x))-1)/((L*(2/(1-x)-1)+1)*(1-x)^2),-1,1));
+%     end
+%
+% end

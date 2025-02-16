@@ -291,9 +291,9 @@ function varargout =  m_imrv2_spectral(varargin)
             
             % updating the viscous forces/Reynolds number
             % [fnu,intfnu,dintfnu,ddintfnu] = ...
-            % [fnu,~,~,~] = ...
+                % [fnu,~,~,~] = ...
             % f_nonNewtonian_integrals(vmaterial,U,R,v_a,v_nc,v_lambda_star);
-
+            
             % non-condensible gas pressure and temperature
             if bubtherm
                 % extract auxiliary temperature
@@ -377,7 +377,7 @@ function varargout =  m_imrv2_spectral(varargin)
             
         end
         % end of solver
-                
+        
         % function Cw= CW(Tw,P)
         %   % Calculates the concentration at the bubble wall
         %   %Function of P and temp at the wall
@@ -495,7 +495,6 @@ function varargout =  m_imrv2_spectral(varargin)
         cdd = store.(Lstr)(1:N)';
         
     end
-    
     
     function cdd = StressInt(L,N,varargin)
         

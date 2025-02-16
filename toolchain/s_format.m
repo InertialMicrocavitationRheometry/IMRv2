@@ -1,4 +1,7 @@
 % toolchain/auto_indent.m - Command-line MATLAB Auto-Indentation (No Editor)
+close; 
+clear;
+clc;
 folders = ["../toolchain", "../src"];
 fileList = cell(100,1); % Store file paths
 count = 1;
