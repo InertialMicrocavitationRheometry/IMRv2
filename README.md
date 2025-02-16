@@ -1,38 +1,117 @@
-## Welcome to the Inertial Microcavitation Rheometry Version 2
+<p align="center">
+  <a href="https://imr.org">
+    <img src="docs/res/readme.png" alt="IMR Banner" width="500"/>
+  </a>
+</p>
 
-### Developer(s): 
-* Mauro Rodriguez, mauro_rodriguez@brown.edu
-* Victor Sanchez, victor_sanchez@brown.edu
+<p align="center">
+  <a href="https://doi.org/10.1016/j.jmps.2017.12.006" target="_blank">
+    <img src="https://zenodo.org/badge/doi/10.1016/j.jmps.2017.12.006.svg" />
+  </a>
+  <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions">
+    <img src="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/test.yml/badge.svg" />
+  </a>
+  <a href="https://join.slack.com/t/imr/shared_invite">
+    <img src="https://img.shields.io/badge/slack-IMR-purple.svg?logo=slack" />
+  </a>
+  <a href="https://www.gnu.org/licenses/gpl-3.0.html">
+    <img src="https://img.shields.io/badge/License-GPLv3-blue.svg" />
+  </a>
+</p>
 
-## Description: 
-This code is a reduced version of the IMR code taken from Estrada et al. (2018) JMPS. 
-Additional physics have been added including the Keller-Miksis with enthalpy and non-Newtonian viscosity.
+# Welcome to IMRv2
 
-## Inputs:
-* tspan - time to run simulation
-* R0 - Initial Radii
-* NT - number of nodes for temperature and concentration fields
-* NTM - number of nodes for temperature in the medium
-* Pext_type - type of external pressure ('sn' = sine, 'RC' = Rayleigh collapse, 'RG' = Rayleigh growth, impulse 'ip', non-equlibrium initial conditions (laser caviation and Flynn(1975) ) 'IC'
-* Pext_Amp_Freq - amplitude and frequency of external pressure [amp w]
+IMRv2 is an advanced computational tool for **Inertial Microcavitation Rheometry (IMR)**, enabling the characterization of soft materials under high strain-rate conditions. IMR correlates the evolution of bubble pressure and stress fields in a material with kinematic observations obtained from high-speed videography.
 
-Note: For this code the out-of-equilibrium Rayleigh Collapse the intial mass in the bubble and radii are specified
+IMR originated from the **Franck Lab at the University of Wisconsin-Madison** and is now actively developed by researchers at multiple institutions:
+- [Christian Franck](https://directory.engr.wisc.edu/me/Faculty/Franck_Christian/) (University of Wisconsin-Madison)
+- [David Henann](https://vivo.brown.edu/display/dhenann) (Brown University)
+- [Eric Johnsen](https://me.engin.umich.edu/people/faculty/eric-johnsen/) (University of Michigan)
+- [Jon Estrada](https://me.engin.umich.edu/people/faculty/jon-estrada/) (University of Michigan)
+- [Mauro Rodriguez](https://vivo.brown.edu/display/mrodri97) (Brown University) - **Lead Developer**
+- [Spencer Bryngelson](https://comp-physics.group/) (Georgia Tech)
+- [Jin Yang](https://sites.utexas.edu/yang) (University of Texas at Austin)
 
-## FOR THE FOLLOWING INPUTS 0 = FALSE AND 1 = TRUE
-* disptime - Displays elapsed time on the command window
-* Tgrad - Models temperature gradients in the buuble
-* Tmgrad- Models temperature gradients outside the buuble
-* Cgrad - Models concentration gradients in the buuble
+For questions, contact [Mauro Rodriguez](mailto:mrodri97@brown.edu) or request to join the IMR Slack workspace.
 
-## Outputs:
-* t - time vector
-* T_Bubble - Temperature inside the bubble
-* T_Medium - Temperature outside the bubble
-* R - Bubble Radius
-* U - Bubble velocity
-* P - Internal bubble pressure
-* C - Vapor Concentration in the bubble
-* Tm - Temperature in the medium
-* Dim - outputs variables in dimensional form
-* Comp - 0 (ignores compressibility effects) or 1 (uses Keller- Miksis)
-* Reduced - 0 utilizes full model or 1 uses Preston's reduced order model
+## Features
+
+IMRv2 offers several key capabilities for modeling and analyzing inertial microcavitation:
+
+- **Bubble Dynamics Simulation**: Implements both finite difference and spectral methods for discretizing partial differential equations, as detailed in:
+  - Estrada et al., "High Strain-rate Soft Material Characterization via Inertial Cavitation," [Journal of the Mechanics and Physics of Solids, 2017](https://doi.org/10.1016/j.jmps.2017.12.006).
+  - Warnez and Johnsen, "Numerical modeling of bubble dynamics in viscoelastic media with relaxation," [Physics of Fluids, 2015](https://doi.org/10.1063/1.4928860).
+- **High Strain-rate Characterization**: Analyzes high-speed video data to extract material properties under dynamic loading.
+- **MATLAB Integration**: Provides scripts and functions for simulation control, data analysis, and visualization.
+- **Experimental Validation Support**: Facilitates comparison between simulation results and experimental observations.
+
+## Getting Started
+
+### Prerequisites
+
+IMRv2 is implemented in **MATLAB** and requires the following dependencies:
+
+- MATLAB (version R2021a or newer recommended)
+- Optimization Toolbox (optional but recommended for parameter fitting)
+- Image Processing Toolbox (for analyzing high-speed video data)
+
+### Installation
+
+Clone the repository and navigate to the IMRv2 directory:
+
+```bash
+git clone https://github.com/InertialMicrocavitationRheometry/IMRv2.git
+cd IMRv2
+```
+
+Add IMRv2 to your MATLAB path:
+
+```matlab
+addpath(genpath('IMRv2'))
+savepath
+```
+
+### Running an Example
+
+To run a basic simulation of bubble dynamics, execute the following command in MATLAB:
+
+```matlab
+run_example.m
+```
+
+For additional examples, see the `examples/` directory.
+
+## Documentation
+
+Comprehensive documentation, including a user guide, can be found in the `docs/` folder and on the [IMR website](https://imr.org/documentation).
+
+## Citation
+
+If you use IMRv2 in your research, please cite:
+
+```bibtex
+@article{Estrada_2017,
+  title   = {High Strain-rate Soft Material Characterization via Inertial Cavitation},
+  author  = {J. B. Estrada and C. Barajas and D. L. Henann and E. Johnsen and C. Franck},
+  journal = {Journal of the Mechanics and Physics of Solids},
+  year    = {2017},
+  volume  = {112},
+  pages   = {291–317},
+  doi     = {10.1016/j.jmps.2017.12.006}
+}
+```
+
+For additional references, see the **IMR Bibliography** section above.
+
+## License
+
+IMRv2 is released under the [GNU General Public License v3.0](LICENSE).
+
+## Acknowledgments
+
+IMRv2 development has been supported by funding from the National Science Foundation (NSF), the Department of Defense (DOD), and other research institutions.
+
+## Contact
+
+For issues, bug reports, or feature requests, please open an issue on GitHub or contact the maintainers.
+
