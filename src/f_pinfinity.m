@@ -8,11 +8,11 @@ function [p8,p8dot] = f_pinfinity(t,vararg)
     %F_PINFINITY Summary of this function goes here
     %   Detailed explanation goes here
     
-    om =        vararg(1);
-    ee =        vararg(2);
-    tw =        vararg(3);
-    dt =        vararg(4);
-    mn =        vararg(5);
+    om = vararg(1);
+    ee = vararg(2);
+    tw = vararg(3);
+    dt = vararg(4);
+    mn = vararg(5);
     wave_type =  vararg(6);
     
     switch wave_type
@@ -116,4 +116,3 @@ end
 %     P_ext_prime = ppval(dp_ML,t);
 %
 % end
-
