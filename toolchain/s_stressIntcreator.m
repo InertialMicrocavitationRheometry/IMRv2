@@ -1,6 +1,6 @@
-clear all;
+clear;
 clc;
-close all;
+close;
 Nv = 200;
 Lvec = [3,4,5,6,7,10,20,0.1,0.01,0.3,0.5];
 

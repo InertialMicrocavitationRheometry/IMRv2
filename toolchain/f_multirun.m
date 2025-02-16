@@ -1,7 +1,7 @@
 function [] = f_multirun()
     
     %% Clear everything
-    close all;
+    close;
     clear;
     clc;
     %%

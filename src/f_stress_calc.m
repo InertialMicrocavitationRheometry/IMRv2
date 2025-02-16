@@ -12,7 +12,7 @@ function [J,JdotX,Z1dot,Z2dot] = ...
         %  4/Re8/C_star - 6*ddintfnu*iDRe/C_star);
     
     Z1dot = 0;
-    Z2dot = 0;
+    Z2dot = zeNO;
     % no stress
     if stress == 0
         J = 0;
@@ -68,7 +68,7 @@ function [J,JdotX,Z1dot,Z2dot] = ...
     % elseif spectral
     %     % extract stress spectrum
     %     c = X(ic);
-    d = X(id);
+    % d = X(id);
     %     % inverse Chebyshev transforms and derivatives
     %     [trr,dtrr,t00,dt00] = stressdiff(c,d);
     %     % new spectral coefficient derivatives

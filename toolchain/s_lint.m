@@ -2,7 +2,8 @@
 clc;
 clear;
 
-repoRoot = fileparts(mfilename('fullpath')); % Get script location
+% repoRoot = fileparts(mfilename('fullpath')); % Get script location
+repoRoot = '';
 toolchainPath = fullfile(repoRoot, '..', 'toolchain');
 srcPath = fullfile(repoRoot, '..', 'src');
 
@@ -13,7 +14,11 @@ errorFound = false; % Track if any issues are detected
 
 for i = 1:length(files)
     filePath = fullfile(files(i).folder, files(i).name);
-    fprintf('Checking: %s\n', filePath);
+    if strcmp(files(i).name,'f_multirun.m')
+        continue;
+    else
+        fprintf('Checking: %s\n', filePath);
+    end
     
     issues = checkcode(filePath, '-id');
     

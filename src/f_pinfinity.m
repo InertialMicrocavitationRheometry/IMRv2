@@ -10,7 +10,7 @@ function [p8,p8dot] = f_pinfinity(t,vararg)
     
     om = vararg(1);
     ee = vararg(2);
-    tw = vararg(3);
+    % tw = vararg(3);
     dt = vararg(4);
     mn = vararg(5);
     wave_type =  vararg(6);

@@ -52,7 +52,7 @@ vmaterial       = 'water';
 G               = 1E3;                % (Pa) Medium Shear Modulus
 lambda1         = 0*0.5e-5;             % relaxation time (s)
 lambda2         = 0;            % retardation time (s)
-mu8             = 0.027606;
+% mu8             = 0.027606;
 %0.0246;
 %1E-3;
 alphax          = 0.25;        % qKV term
@@ -82,3 +82,12 @@ Ru              = 8.3144598;
 %Ru/(28.966e-3);
 Rv              = Ru/(18.01528e-3);   % (J/Kg-K) Gas constant vapor
 Ra              = 438.275;            % (J/Kg-K)Gas constant air
+
+% viscosity variables
+[mu8,Dmu,v_a,v_nc,v_lambda,vmat] = f_nonNewtonian_Re(vmaterial);
+
+% pressure variables
+Pv              = f_pvsat(T8);
+% P0              = Pv*vapor + ...% P8 + 2*S/R0;%
+%    (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3*kappa); % need to add Pv_sat at room temp
+P0              = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));

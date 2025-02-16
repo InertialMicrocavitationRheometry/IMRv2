@@ -7,7 +7,7 @@ load('file_ids.mat');
 num_tests = 4*2*2*2*3;
 errors_fd = zeros(num_tests,1);
 errors_sp = zeros(num_tests,1);
-failed_tests = [];
+failed_tests = zeros(size(errors_sp));
 threshold = 1E-2; % Define threshold
 
 fprintf('Checking L2 norm errors...\n');
@@ -33,10 +33,10 @@ for radial = 1:4
                     fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
                     fprintf('Test %d: L2 norm error = %.6e\n', count+1, errors_sp(count));
                     if (errors_fd(count) > threshold)
-                        failed_tests = [failed_tests, count];
+                        failed_tests(count) = count;
                     end
                     if (errors_sp(count) > threshold)
-                        failed_tests = [failed_tests, count+1];
+                        failed_tests(count+1) = count+1;
                     end
                     count = count + 2;
                 end
@@ -44,6 +44,10 @@ for radial = 1:4
         end
     end
 end
+% Find the last non-empty cell index
+lastNonEmptyIdx = find(failed_tests ~= 0, 1, 'last');
+% Truncate the array, keeping empty cells within range
+failed_tests = failed_tests(1:lastNonEmptyIdx);
 
 if isempty(failed_tests)
     fprintf('✅ All tests PASSED.\n');
