@@ -19,11 +19,11 @@ function varargout =  m_imrv2_spectral(varargin)
     eps3            = eqns_opts(5);
     vapor           = eqns_opts(6);
     masstrans       = eqns_opts(7);
-    if (stress == 4)
-        ptt = 1;
-    else
-        tt = 0;
-    end
+    % if (stress == 4)
+    %     ptt = 1;
+    % else
+    %     ptt = 0;
+    % end
     
     % solver options
     method          = solve_opts(1);
@@ -72,15 +72,15 @@ function varargout =  m_imrv2_spectral(varargin)
     % dimensionless viscoelastic
     We              = sigma_opts(1);
     Re8             = sigma_opts(2);
-    DRe             = sigma_opts(3);
-    v_a             = sigma_opts(4);
-    v_nc            = sigma_opts(5);
+    % DRe             = sigma_opts(3);
+    % v_a             = sigma_opts(4);
+    % v_nc            = sigma_opts(5);
     Ca              = sigma_opts(6);
     LAM             = sigma_opts(7);
     De              = sigma_opts(8);
     JdotA           = sigma_opts(9);
-    vmaterial       = sigma_opts(10);
-    v_lambda_star   = sigma_opts(11);
+    % vmaterial       = sigma_opts(10);
+    % v_lambda_star   = sigma_opts(11);
     zeNO            = sigma_opts(12);
     iWe             = 1/We;
     if Ca==-1
@@ -94,43 +94,43 @@ function varargout =  m_imrv2_spectral(varargin)
     chi             = thermal_opts(5);
     iota            = thermal_opts(6);
     % dimensionaless mass transfer
-    Fom             = mass_opts(1);
+    % Fom             = mass_opts(1);
     C0              = mass_opts(2);
-    Rv_star         = mass_opts(3);
-    Ra_star         = mass_opts(4);
-    L_heat_star     = mass_opts(5);
-    mv0             = mass_opts(6);
-    ma0             = mass_opts(7);
+    % Rv_star         = mass_opts(3);
+    % Ra_star         = mass_opts(4);
+    % L_heat_star     = mass_opts(5);
+    % mv0             = mass_opts(6);
+    % ma0             = mass_opts(7);
     
     % pre_process code
     
     % collocation point construction
     y = cos(pi*(0:Nt)'/(2*Nt));
     xi = cos(pi*(0:Mt)'/Mt);
-    ze = cos(pi*(1:Nv)'/Nv);
+    % ze = cos(pi*(1:Nv)'/Nv);
     % collocation matrix construction
     [gA,gAI,~,~,gAPd,gAPdd] = dcdmtxe(Nt);
     [mA,~,~,~,mAPd,mAPdd] = dcdmtx(Mt);
-    [gC,gCI,~,~,~,~] = dcdmtxe(Nt);
+    % [gC,gCI,~,~,~,~] = dcdmtxe(Nt);
     Q = [gA(2:end,:) zeros(Nt,Mt+1);
     zeros(Mt,Nt+1) mA(2:end,:);
     2*(0:Nt).^2 iota*(0:Mt).^2];
     Q = sparse(Q);
-    [sCA,sCI,sCAd,~,~,~] = dcdmtx(Nv);
-    sCA = sCA(2:end,2:end) - 1;
-    sCI = sCI(2:end,2:end);
-    sCAd = sCAd(2:end,2:end);
+    % [sCA,sCI,sCAd,~,~,~] = dcdmtx(Nv);
+    % sCA = sCA(2:end,2:end) - 1;
+    % sCI = sCI(2:end,2:end);
+    % sCAd = sCAd(2:end,2:end);
     
     % precomputations
-    LDR = LAM*De/Re8;
+    % LDR = LAM*De/Re8;
     sam = 1 - Pv_star + GAMa;
     no = (nstate-1)/nstate;
     kapover = (kappa-1)/kappa;
     yT = 2*Lt./(1+xi) - Lt + 1;
-    yV = 2*Lv./(1-ze) - Lv + 1;
+    % yV = 2*Lv./(1-ze) - Lv + 1;
     nn = ((-1).^(0:Nt).*(0:Nt).^2)';
     nn = sparse(nn);
-    Udot = 0;
+    Udot = 0*C0; %TODO Change this!
     
     % precomputations for viscous dissipation
     zT = 1 - 2./(1 + (yT - 1)/Lv);
@@ -198,7 +198,7 @@ function varargout =  m_imrv2_spectral(varargin)
     b = X(:,ib)';
     c = X(:,ic)';
     d = X(:,id)';
-    e = X(:,ie)';
+    % e = X(:,ie)';
     I = X(:,ie+1);
     if bubtherm
         T = (alpha-1+sqrt(1+2*alpha*gA*a))/alpha;
@@ -208,9 +208,9 @@ function varargout =  m_imrv2_spectral(varargin)
     else
         T = R.^(-3*kappa);
     end
-    if masstrans
-        C = gC*e;
-    end
+    % if masstrans
+    %     C = gC*e;
+    % end
     
     pA = zeros(size(t));
     for n = 1:length(t)
@@ -235,10 +235,10 @@ function varargout =  m_imrv2_spectral(varargin)
         T = T*T8;
         %pA = pA*p0;
         I = I*p0;
-        c = c*p0;
-        d = d*p0;
-        e = e*C0;
-        C = C*C0;
+        % c = c*p0;
+        % d = d*p0;
+        % e = e*C0;
+        % C = C*C0;
         Udot = Udot*uc/tc;
         if spectral == 1
             trr = trr*p0;
@@ -289,6 +289,11 @@ function varargout =  m_imrv2_spectral(varargin)
             p = X(3);
             qdot = [];
             
+            % updating the viscous forces/Reynolds number
+            % [fnu,intfnu,dintfnu,ddintfnu] = ...
+            % [fnu,~,~,~] = ...
+            % f_nonNewtonian_integrals(vmaterial,U,R,v_a,v_nc,v_lambda_star);
+
             % non-condensible gas pressure and temperature
             if bubtherm
                 % extract auxiliary temperature
@@ -349,7 +354,7 @@ function varargout =  m_imrv2_spectral(varargin)
             
             % stress equation
             [J,JdotX,Z1dot,Z2dot] = ...
-                f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO);
+                f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO,cdd);
             
             % pressure waveform
             [pf8,pf8dot] = f_pinfinity(t,pvarargin);
@@ -372,56 +377,7 @@ function varargout =  m_imrv2_spectral(varargin)
             
         end
         % end of solver
-        
-        % functions called by solver
-        
-        % stress differentiator
-        function [trr,dtrr,t00,dt00] = stressdiff(c,d)
-            if Nv < 650
-                trr = sCA*c;
-                dtrr = sCAd*c;
-                t00 = sCA*d;
-                dt00 = sCAd*d;
-            else
-                [trr,dtrr] = fctdShift(c);
-                [t00,dt00] = fctdShift(d);
-            end
-        end
-        
-        % stress solver
-        function s = stresssolve(x)
-            if Nv < 650
-                s = sCI*x;
-            else
-                s = fctShift(x);
-            end
-        end
-        
-        % fast Chebyshev transform
-        function a = fctShift(v)
-            v = v(:);
-            v = [0;
-            v;
-            flipud(v(1:Nv-1))];
-            a = real(fft(v))/Nv;
-            a = [a(2:Nv);
-            a(Nv+1)/2];
-        end
-        
-        % fast Chebyshev transform and differentiate
-        function [v,w] = fctdShift(a)
-            M = Nv + 1;
-            a = a(:)';
-            dd = Nv*[0 a(1:Nv-1) a(Nv)*2 fliplr(a(1:Nv-1))];
-            v = ifft(dd);
-            v = v(2:M)' - sum(a);
-            n2b = (0:M-2).^2.*dd(1:Nv);
-            cc = imag(ifft([0:M-2 0 2-M:-1].*dd));
-            w = zeros(Nv,1);
-            w(1:Nv-1) = csc(pi/Nv*(1:M-2)).*cc(2:Nv);
-            w(Nv) = sum((-1).^(1:Nv).*n2b)/Nv + 0.5*(-1)^M*Nv*dd(M);
-        end
-        
+                
         % function Cw= CW(Tw,P)
         %   % Calculates the concentration at the bubble wall
         %   %Function of P and temp at the wall

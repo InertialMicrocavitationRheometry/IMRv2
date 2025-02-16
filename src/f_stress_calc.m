@@ -6,13 +6,13 @@
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear
 % Jeffreys, linear Zener, UCM and Oldroyd-B
 function [J,JdotX,Z1dot,Z2dot] = ...
-        f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO)
+        f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO,cdd)
     % TODO Need to add non-Newtonian behavior to JdotX
     % ((1-U/C_star)*R + ...
         %  4/Re8/C_star - 6*ddintfnu*iDRe/C_star);
     
     Z1dot = 0;
-    Z2dot = zeNO;
+    Z2dot = zeNO + cdd*0;
     % no stress
     if stress == 0
         J = 0;
@@ -87,4 +87,54 @@ function [J,JdotX,Z1dot,Z2dot] = ...
     %     J = 2*sum(cdd.*(c-d));
     %     JdotX = 2*sum(cdd.*(Z1dot - Z2dot));
     
+        %  functions called by solver
+        % 
+        % % stress differentiator
+        % function [trr,dtrr,t00,dt00] = stressdiff(c,d)
+        %     if Nv < 650
+        %         trr = sCA*c;
+        %         dtrr = sCAd*c;
+        %         t00 = sCA*d;
+        %         dt00 = sCAd*d;
+        %     else
+        %         [trr,dtrr] = fctdShift(c);
+        %         [t00,dt00] = fctdShift(d);
+        %     end
+        % end
+        % 
+        % % stress solver
+        % function s = stresssolve(x)
+        %     if Nv < 650
+        %         s = sCI*x;
+        %     else
+        %         s = fctShift(x);
+        %     end
+        % end
+        % 
+        % % fast Chebyshev transform
+        % function a = fctShift(v)
+        %     v = v(:);
+        %     v = [0;
+        %     v;
+        %     flipud(v(1:Nv-1))];
+        %     a = real(fft(v))/Nv;
+        %     a = [a(2:Nv);
+        %     a(Nv+1)/2];
+        % end
+        % 
+        % % fast Chebyshev transform and differentiate
+        % function [v,w] = fctdShift(a)
+        %     M = Nv + 1;
+        %     a = a(:)';
+        %     dd = Nv*[0 a(1:Nv-1) a(Nv)*2 fliplr(a(1:Nv-1))];
+        %     v = ifft(dd);
+        %     v = v(2:M)' - sum(a);
+        %     n2b = (0:M-2).^2.*dd(1:Nv);
+        %     cc = imag(ifft([0:M-2 0 2-M:-1].*dd));
+        %     w = zeros(Nv,1);
+        %     w(1:Nv-1) = csc(pi/Nv*(1:M-2)).*cc(2:Nv);
+        %     w(Nv) = sum((-1).^(1:Nv).*n2b)/Nv + 0.5*(-1)^M*Nv*dd(M);
+        % end
+
+
 end

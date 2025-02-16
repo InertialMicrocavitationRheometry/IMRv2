@@ -19,20 +19,20 @@ function varargout =  m_imrv2_finitediff(varargin)
     eps3            = eqns_opts(5);
     vapor           = eqns_opts(6);
     masstrans       = eqns_opts(7);
-    if (stress == 4)
-        ptt = 1;
-    else
-        ptt = 0;
-    end
+    % if (stress == 4)
+    %     ptt = 1;
+    % else
+    %     ptt = 0;
+    % end
     
     % solver options
     method          = solve_opts(1);
     spectral        = solve_opts(2);
     divisions       = solve_opts(3);
-    Nv              = solve_opts(4);
+    % Nv              = solve_opts(4);
     Nt              = solve_opts(5);
     Mt              = solve_opts(6);
-    Lv              = solve_opts(7);
+    % Lv              = solve_opts(7);
     Lt              = solve_opts(8);
     
     % dimensionless initial conditions
@@ -72,15 +72,15 @@ function varargout =  m_imrv2_finitediff(varargin)
     % dimensionless viscoelastic
     We              = sigma_opts(1);
     Re8             = sigma_opts(2);
-    DRe             = sigma_opts(3);
-    v_a             = sigma_opts(4);
-    v_nc            = sigma_opts(5);
+    % DRe             = sigma_opts(3);
+    % v_a             = sigma_opts(4);
+    % v_nc            = sigma_opts(5);
     Ca              = sigma_opts(6);
     LAM             = sigma_opts(7);
     De              = sigma_opts(8);
     JdotA           = sigma_opts(9);
-    vmaterial       = sigma_opts(10);
-    v_lambda_star   = sigma_opts(11);
+    % vmaterial       = sigma_opts(10);
+    % v_lambda_star   = sigma_opts(11);
     zeNO            = sigma_opts(12);
     iWe             = 1/We;
     if Ca==-1
@@ -99,8 +99,8 @@ function varargout =  m_imrv2_finitediff(varargin)
     Rv_star         = mass_opts(3);
     Ra_star         = mass_opts(4);
     L_heat_star     = mass_opts(5);
-    mv0             = mass_opts(6);
-    ma0             = mass_opts(7);
+    % mv0             = mass_opts(6);
+    % ma0             = mass_opts(7);
     
     % pre_process
     
@@ -262,8 +262,9 @@ function varargout =  m_imrv2_finitediff(varargin)
         end
         
         % updating the viscous forces/Reynolds number
-        [fnu,intfnu,dintfnu,ddintfnu] = ...
-            f_nonNewtonian_integrals(vmaterial,U,R,v_a,v_nc,v_lambda_star);
+        % [fnu,intfnu,dintfnu,ddintfnu] = ...
+        % [fnu,~,~,~] = ...
+            % f_nonNewtonian_integrals(vmaterial,U,R,v_a,v_nc,v_lambda_star);
         
         Taudot = zeros(-1,1);
         Tmdot = zeros(-1,1);
@@ -336,8 +337,8 @@ function varargout =  m_imrv2_finitediff(varargin)
                 (U./yT.^2.*(1-yT.^3)/2+Foh/R.*((xi+1)/(2*Lt)-1./yT)).*DTm;
             % second_term = foh/R^2.*(xk+1).^4/L^2.*DDTm/4;
             second_term = Foh/R^2.*(xi+1).^4/Lt^2.*DDTm/4;
-            %third_term =  4*Br./yT.^6.*(3/Re8.*(U/R)^2);
-            third_term =  4*Br./yT.^6.*(3/(Re8+0*DRe*fnu).*(U/R)^2);
+            third_term =  4*Br./yT.^6.*(3/Re8.*(U/R)^2);
+            %third_term =  4*Br./yT.^6.*(3/(Re8+DRe*fnu).*(U/R)^2);
             Tmdot = first_term+second_term+third_term;
             % Sets boundary condition on temp
             Tmdot(end) = 0;
@@ -346,7 +347,8 @@ function varargout =  m_imrv2_finitediff(varargin)
         end
         
         % stress equation
-        [J,JdotX,Z1dot,Z2dot] = ...
+        % [J,JdotX,Z1dot,Z2dot] = ...
+        [J,JdotX,~,~] = ...
             f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO);
         
         % pressure waveform
@@ -358,7 +360,7 @@ function varargout =  m_imrv2_finitediff(varargin)
         
         % stress integral rate
         % TODO ADD STRESS MODELS
-        Jdot = JdotX - JdotA*Udot/R;
+        % Jdot = JdotX - JdotA*Udot/R;
         
         % output assembly
         dXdt = [U;
