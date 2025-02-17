@@ -13,11 +13,11 @@
   </a>
 </p>
 
-# Welcome to IMRv2
+# Welcome to IMR
 
-IMRv2 is an advanced computational tool for **Inertial Microcavitation Rheometry (IMR)**, enabling the characterization of soft materials under high strain-rate conditions. IMR correlates the evolution of bubble pressure and stress fields in a material with kinematic observations obtained from high-speed videography.
+IMR is an advanced computational tool for **Inertial Microcavitation Rheometry (IMR)**, enabling the characterization of soft materials under high strain-rate conditions. IMR correlates the evolution of bubble pressure and stress fields in a material with kinematic observations obtained from high-speed videography.
 
-IMRv2 originated from the **Computational Flow Group at Brown University** and is now actively developed by researchers at multiple institutions:
+IMR is actively developed by researchers at multiple institutions:
 - [Christian Franck](https://directory.engr.wisc.edu/me/Faculty/Franck_Christian/) (University of Wisconsin-Madison)
 - [David Henann](https://vivo.brown.edu/display/dhenann) (Brown University)
 - [Eric Johnsen](https://me.engin.umich.edu/people/faculty/eric-johnsen/) (University of Michigan)
@@ -30,7 +30,7 @@ For questions, contact [Mauro Rodriguez](mailto:mrodri97@brown.edu) or request t
 
 ## Features
 
-IMRv2 offers several key capabilities for modeling and analyzing inertial microcavitation:
+IMR offers several key capabilities for modeling and analyzing inertial microcavitation:
 
 - **Bubble Dynamics Simulation**: Implements both finite difference and spectral methods for discretizing partial differential equations, as detailed in:
   - Estrada et al., "High Strain-rate Soft Material Characterization via Inertial Cavitation," [Journal of the Mechanics and Physics of Solids, 2017](https://doi.org/10.1016/j.jmps.2017.12.006).
@@ -43,7 +43,7 @@ IMRv2 offers several key capabilities for modeling and analyzing inertial microc
 
 ### Prerequisites
 
-IMRv2 is implemented in **MATLAB** and requires the following dependencies:
+IMR is implemented in **MATLAB** and requires the following dependencies:
 
 - MATLAB (version R2021a or newer recommended)
 - Optimization Toolbox (optional but recommended for parameter fitting)
@@ -51,14 +51,14 @@ IMRv2 is implemented in **MATLAB** and requires the following dependencies:
 
 ### Installation
 
-Clone the repository and navigate to the IMRv2 directory:
+Clone the repository and navigate to the IMR directory:
 
 ```bash
 git clone https://github.com/InertialMicrocavitationRheometry/IMRv2.git
 cd IMRv2
 ```
 
-Add IMRv2 to your MATLAB path:
+Add IMR to your MATLAB path:
 
 ```matlab
 addpath(genpath('IMRv2'))
