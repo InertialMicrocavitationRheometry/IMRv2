@@ -17,13 +17,13 @@
 
 IMR is an advanced computational tool for **Inertial Microcavitation Rheometry (IMR)**, enabling the characterization of soft materials under high strain-rate conditions. IMR correlates the evolution of bubble pressure and stress fields in a material with kinematic observations obtained from high-speed videography.
 
-IMR is actively developed by researchers at multiple institutions:
+IMR is actively developed by researchers at multiple institutions (alphabetical):
+- [Spencer Bryngelson](https://comp-physics.group/) (Georgia Tech)
+- [Jon Estrada](https://me.engin.umich.edu/people/faculty/jon-estrada/) (University of Michigan)
 - [Christian Franck](https://directory.engr.wisc.edu/me/Faculty/Franck_Christian/) (University of Wisconsin-Madison)
 - [David Henann](https://vivo.brown.edu/display/dhenann) (Brown University)
 - [Eric Johnsen](https://me.engin.umich.edu/people/faculty/eric-johnsen/) (University of Michigan)
-- [Jon Estrada](https://me.engin.umich.edu/people/faculty/jon-estrada/) (University of Michigan)
 - [Mauro Rodriguez](https://vivo.brown.edu/display/mrodri97) (Brown University) - **Lead Developer**
-- [Spencer Bryngelson](https://comp-physics.group/) (Georgia Tech)
 - [Jin Yang](https://sites.utexas.edu/yang) (University of Texas at Austin)
 
 For questions, contact [Mauro Rodriguez](mailto:mrodri97@brown.edu) or request to join the IMR Slack workspace.
