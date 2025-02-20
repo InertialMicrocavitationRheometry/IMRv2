@@ -165,7 +165,7 @@ function varargout =  m_imrv2_finitediff(varargin)
     Tm0;
     C0];
     
-    % thermal auxilary variable for boundary conditions
+    % thermal auxiliary variable for boundary conditions
     tau_del = [];
     TL = [];
     
