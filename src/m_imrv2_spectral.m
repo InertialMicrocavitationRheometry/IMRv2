@@ -347,9 +347,8 @@ function varargout =  m_imrv2_spectral(varargin)
                 end
             else
                 % polytropic approximation
-                p = (p0star-Pv_star)*R^(-3*kappa);
+                pVap = vapor*Pv_star;                
                 pdot = -3*kappa*U/R*p;
-                pVap = Pv_star;
             end
             
             % stress equation

@@ -340,8 +340,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
         zeNO = 1;
     end
     
-    % TODO
-    
+    % TODO  
     % need to modify initial conditions for the Out-of-Equilibrium Rayleigh
     % collapse:
     % if  (Pext_type == 'IC')
@@ -366,7 +365,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     %     U0_star = -1*(Pext_Amp_Freq(1)/P_inf)/(C_star); % Initial velocity
     %      %Plesset & Prosperetti, ARFM 1977, p166
     % end
-    
+
     % equation settings
     eqns_opts = [radial bubtherm medtherm stress eps3 vapor masstrans];
     % solver options

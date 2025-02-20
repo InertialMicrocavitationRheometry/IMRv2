@@ -1,8 +1,7 @@
 % close all;clc;
- clear all;
 warning('off','all')
 
-%% Load Data
+% Load Data
 % load('C:\Users\bachi\Dropbox (University of Michigan)\Bachir\ODV\Data\PA_Calibrated.mat')
 % load('/Users/bachirabeid/Dropbox (University of Michigan)/Bachir/ODV/Data/All_Combined.mat')
 % load('matlab2.mat')
@@ -25,7 +24,7 @@ nruns = 3; % 2x3
 
 % Generate save name:
 
-%% Define pre-load & spatial mesh (for Maxwell/FD)
+% Define pre-load & spatial mesh (for Maxwell/FD)
 
 npre = 40;
 %IX = zeros(npre,4); % MATLAB recommended against pre-allocation ... 
@@ -45,7 +44,7 @@ end
 % Load meshing
 load mesh.mat % Get 'RMesh'
 
-%% Other basic parameters
+% Other basic parameters
 % (We can directly treat them here ...)
 P_inf = 101325; % (Pa) Atmospheric Pressure
 rho = 1064; % (Kg/m^3) Material Density: PA - 998.2
@@ -56,14 +55,14 @@ Uc = sqrt(P_inf/rho); % Characteristic velocity
 gam_st = 0.072; % (N/m) Water Surface Tension (Called "S" in other function)
 T_inf = 298.15; % (K) Far field temp. 
 
-Tgrad = 0; %1 Temperature transfer bt bubble and material
+Tgrad = 1; %1 Temperature transfer bt bubble and material
 Cgrad = 0;%1;  %1 Vapor-non-condensible gas diffusion
 Tmgrad = 0; %0 Off means cold liquid assumption
 
 % Note: P_guess depends on bubble size, so we will treat it inside solver
 % loop ...
 
-%% Run IMR
+% Run IMR
 FigName ='Collapse_time_PA_F_6um_pfp';
 range = [181:191,170:180];%[78:98,99:105];%;
 % 
@@ -196,11 +195,11 @@ lp = [188,189,220]/255;
 % saveas(gcf,fullfile(savePng,[fileName,'.png']))
 end
 % close all
-%%
+%
 hold on
 % plot(t2*1e6/(23.05),R2/2.4475e-4)
-plot(t2/(R0/Uc),R2/R0)
+plot(t2/(R0/Uc),R2/R0,'s')
 
-%%
+%
 
 % t_collapse_Plots;

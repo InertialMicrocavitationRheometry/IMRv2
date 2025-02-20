@@ -259,7 +259,7 @@ function varargout =  m_imrv2_finitediff(varargin)
             K_star = alpha*T+beta;
             pVap = vapor*(f_pvsat(T(1)*T8)/P8);
         else
-            pVap = p0star;
+            pVap = vapor*p0star;
         end
         if medtherm
             Tm(1) = T(end);
@@ -327,9 +327,7 @@ function varargout =  m_imrv2_finitediff(varargin)
             Taudot(end) = 0;
         else
             % polytropic gas
-            p = (p0star-Pv_star)*R^(-3*kappa);
             pdot= -3*kappa*U/R*p;
-            pVap = Pv_star;
         end
         
         if medtherm
@@ -352,8 +350,9 @@ function varargout =  m_imrv2_finitediff(varargin)
         
         % stress equation
         % [J,JdotX,Z1dot,Z2dot] = ...
-            [J,JdotX,~,~] = ...
-        f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO,cdd);
+
+        [J,JdotX,~,~] = ...
+            f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO,cdd);
         
         % pressure waveform
         [pf8,pf8dot] = f_pinfinity(t,pvarargin);

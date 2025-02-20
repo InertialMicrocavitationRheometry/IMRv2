@@ -8,14 +8,14 @@ function [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin)
     
     if method == 15
         if divisions == 0
-            options = odeset();
+            options = odeset('RelTol',1e-8,'AbsTol',1e-8);
         else
             options = odeset('MaxStep',tfin/divisions,'RelTol',1e-8);
         end
         [t,X] = ode15s(bubble,tspan,init,options);
     elseif method == 23
         if divisions == 0
-            options = odeset();
+            options = odeset('RelTol',1e-8,'AbsTol',1e-8);
         else
             options = odeset('MaxStep',tfin/divisions,'RelTol',1e-8,'AbsTol',1e-8);
         end

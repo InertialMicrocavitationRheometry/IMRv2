@@ -93,12 +93,33 @@ function [t,R,U,P,S,T,C,Tm,tdel,Tdel,Cdel] = IMRsolver(model,G,G1,mu,tspan,R0,NT
 %***************************************
 % Load Parameters :
 Pmt = IMRcall_parameters(R0,G,G1,mu); % Calls parameters script
-k = Pmt(1); chi = Pmt(2); fom = Pmt(3); foh = Pmt(4); Ca = Pmt(5);
-Re = Pmt(6); We = Pmt(7); Br = Pmt(8); A_star = Pmt(9); B_star = Pmt(10);
-Rv_star = Pmt(11); Ra_star = Pmt(12); P0_star = Pmt(13); t0 = Pmt(14);
-C0 = Pmt(15); L = Pmt(16); L_heat_star = Pmt(17); Km_star = Pmt(18);
-P_inf = Pmt(19); T_inf = Pmt(20); C_star = Pmt(21); De = Pmt(22); alpha = Pmt(23);
-CaY = Pmt(24); Ze = Pmt(25); afd = Pmt(26);
+k = Pmt(1); 
+chi = Pmt(2) ;
+fom = Pmt(3) ;
+foh = Pmt(4); 
+Ca = Pmt(5);
+Re = Pmt(6) ;
+We = Pmt(7) ;
+Br = Pmt(8); 
+A_star = Pmt(9) ;
+B_star = Pmt(10);
+Rv_star = Pmt(11); 
+Ra_star = Pmt(12) ;
+P0_star = Pmt(13) ;
+t0 = Pmt(14);
+C0 = Pmt(15) ;
+L = Pmt(16) ;
+L_heat_star = Pmt(17) ;
+Km_star = Pmt(18);
+P_inf = Pmt(19) ;
+T_inf = Pmt(20) ;
+C_star = Pmt(21) ;
+De = Pmt(22) ;
+alpha = Pmt(23);
+CaY = Pmt(24) ;
+Ze = Pmt(25) ;
+afd = Pmt(26);
+
 
 % Zhiren Notes: Ze is "Zener #" = (Ca^(1-afd))*(Re^(1-afd)) in FD springpot
 %****************************************
@@ -442,8 +463,7 @@ Cdel = [];
 % March equations in time
 %options = odeset('RelTol',1e-10);
 
-trange = [0 tspan_star]; % This allows us to force truncation at certain temporal positions, if needed
-
+trange = linspace(0,tspan_star,1000); % This allows us to force truncation at certain temporal positions, if needed
 % Set up temporal checking points:
 tplus = 0.3*t0; %3E-5; % absolute time
 tcheck = tplus;
@@ -474,7 +494,8 @@ if fdkv == 1 || zzzen == 1 || fdmax == 1
     %[t , X] = ode23tb_spit(@bubble, trange, X0,opts0);
     [t , X] = ode23tb(@bubble, trange, X0, opts0);
 else
-    [t , X] = ode23tb(@bubble, trange, X0);
+    opts1 = odeset('RelTol',1e-8,'AbsTol',1e-8); % Define option for ODE solver
+    [t , X] = ode23tb(@bubble, trange, X0, opts1);
     %[t , X] = ode23tb_spit(@bubble, trange, X0); % See if this messes things up
 end
 
@@ -504,7 +525,7 @@ if (Dim == 1)
 end
 %***********************
 
-%%
+
 %*************************************************************************
 % Nested function; ODE Solver calls to march governing equations in time
 % This function has acess to all parameters above
@@ -601,7 +622,7 @@ end
         %***************************************
         % Internal pressure equation
         pdot = 3/R*(Tgrad*chi*(k-1)*DTau(end)/R - k*P*U +...
-            + Cgrad*k*P*fom*Rv_star*DC(end)/( T(end)*R* Rmix(end)* (1-C(end)) ) );
+              + Cgrad*k*P*fom*Rv_star*DC(end)/( T(end)*R* Rmix(end)* (1-C(end)) ) );
         % *****************************************
         
         %***************************************
@@ -899,7 +920,7 @@ end
             else
                 Rst = R;    % ZZ: Double check if this is correct. Did not check carefully since we are interested in Flynn collapse.
             end 
-                
+
             if afd == 0
                 S = -(1/(2*Ca)+1/(2*Ze))*(5-Rst^(-4)-4/Rst);
                 Sdot = -2*(U/R)*(Rst^(-4)+1/Rst)*((1/Ca)+(1/Ze));
@@ -920,15 +941,14 @@ end
         % Equations of motion
         rdot = U;
         
-        %         if (Tgrad == 0)
-        %             P = P0_star*(1/R)^(3*k);
-        %             pdot = -3*k*U/R*P;
-        %         end
+        if (Tgrad == 0)
+            pdot = -3*k*U/R*P;
+        end
         
-        Pv = (Pvsat(T(end)*T_inf)/P_inf);
+        Pv = 0*(Pvsat(T(end)*T_inf)/P_inf);
         if comp == 0
             %Rayleigh-Plesset equation
-            udot = (P + abs(1-Cgrad)*Pv  - 1 - Pext + S -1/(We*R) -1.5*U^2)/R;
+            udot = (P + abs(1-Cgrad)*Pv  - 1 - Pext + S - 1/(We*R) -1.5*U^2)/R;
         else
             % Keller-Miksis equation
             if linkv==1 || neoHook==1 || Yeoh==1
@@ -954,9 +974,9 @@ end
                 
             else  % Original expression
                  udot = ((1+U/C_star)...
-                    *(P  + abs(1-Cgrad)*Pv -1/(We*R) + S - 1 - Pext)  ...
-                    + R/C_star*(pdot+ U/(We*R^2) + Sdot -P_ext_prime ) ...
-                    - 1.5*(1-U/(3*C_star))*U^2)/((1-U/C_star)*R);%+JdotA/(C_star));
+                    *(P  + 0*abs(1-Cgrad)*Pv -1/(We*R) + S - 1 - Pext)  ...
+                    + R/C_star*(pdot+ U/(We*R^2) + Sdot - P_ext_prime ) ...
+                    - 1.5*(1-U/(3*C_star))*U^2)/((1-U/C_star)*R); % +JdotA/(C_star));
             end
         end
         % ****************************************

@@ -23,8 +23,9 @@ function [J,JdotX,Z1dot,Z2dot] = ...
         JdotX = 0;
         % Kelvin-Voigt with neo-Hookean elasticity
     elseif stress == 1
-        J = (4*(Req/R) + (Req/R)^4 - 5)/(2*Ca) - 4/Re8*U/R;
-        JdotX = -2*U*(Req*(1/R)^2 + Req^4/R^5)/Ca + 4/Re8*U^2/R^2;
+        Rst = R/Req;
+        J = -(5 - 4/Rst - 1/Rst^4)/(2*Ca) - 4/Re8*U/R;
+        JdotX = -2*U/R*(1/Rst + 1/Rst^4)/Ca + 4/Re8*(U/R)^2;
         % quadratic Kelvin-Voigt with neo-Hookean elasticity
     elseif stress == 2
         J = (3*alphax-1)*(5 - (Req/R)^4 - 4*(Req/R))/(2*Ca) - 4/Re8*U/R + ...

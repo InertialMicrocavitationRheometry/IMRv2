@@ -77,9 +77,7 @@ Dm              = Km / (rho8*Cp) ;    % Thermal Diffusivity m^2/s
 % mass transfer options
 D0              = 24.2e-6;            % Diffusion Coeff m^2/s
 L_heat          = 2264.76e3;          % (J/Kg) Latent heat of evaporation
-Ru              = 8.3144598;
-% (J/mol-K) Universal Gas Constant % Ru/(18.01528e-3);
-%Ru/(28.966e-3);
+Ru              = 8.3144598;          % (J/mol-K) Universal Gas Constant 
 Rv              = Ru/(18.01528e-3);   % (J/Kg-K) Gas constant vapor
 Ra              = 438.275;            % (J/Kg-K)Gas constant air
 
