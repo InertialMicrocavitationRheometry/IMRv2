@@ -94,30 +94,30 @@ function [t,R,U,P,S,T,C,Tm,tdel,Tdel,Cdel] = IMRsolver(model,G,G1,mu,tspan,R0,NT
 % Load Parameters :
 Pmt = IMRcall_parameters(R0,G,G1,mu); % Calls parameters script
 k = Pmt(1); 
-chi = Pmt(2) ;
-fom = Pmt(3) ;
+chi = Pmt(2);
+fom = Pmt(3);
 foh = Pmt(4); 
 Ca = Pmt(5);
-Re = Pmt(6) ;
-We = Pmt(7) ;
+Re = Pmt(6);
+We = Pmt(7);
 Br = Pmt(8); 
-A_star = Pmt(9) ;
+A_star = Pmt(9);
 B_star = Pmt(10);
 Rv_star = Pmt(11); 
-Ra_star = Pmt(12) ;
-P0_star = Pmt(13) ;
+Ra_star = Pmt(12);
+P0_star = Pmt(13);
 t0 = Pmt(14);
-C0 = Pmt(15) ;
-L = Pmt(16) ;
-L_heat_star = Pmt(17) ;
+C0 = Pmt(15);
+L = Pmt(16);
+L_heat_star = Pmt(17);
 Km_star = Pmt(18);
-P_inf = Pmt(19) ;
-T_inf = Pmt(20) ;
-C_star = Pmt(21) ;
-De = Pmt(22) ;
+P_inf = Pmt(19);
+T_inf = Pmt(20);
+C_star = Pmt(21);
+De = Pmt(22);
 alpha = Pmt(23);
-CaY = Pmt(24) ;
-Ze = Pmt(25) ;
+CaY = Pmt(24);
+Ze = Pmt(25);
 afd = Pmt(26);
 
 
@@ -945,7 +945,7 @@ end
             pdot = -3*k*U/R*P;
         end
         
-        Pv = 0*(Pvsat(T(end)*T_inf)/P_inf);
+        Pv = (Pvsat(T(end)*T_inf)/P_inf);
         if comp == 0
             %Rayleigh-Plesset equation
             udot = (P + abs(1-Cgrad)*Pv  - 1 - Pext + S - 1/(We*R) -1.5*U^2)/R;
@@ -974,7 +974,7 @@ end
                 
             else  % Original expression
                  udot = ((1+U/C_star)...
-                    *(P  + 0*abs(1-Cgrad)*Pv -1/(We*R) + S - 1 - Pext)  ...
+                    *(P  + abs(1-Cgrad)*Pv -1/(We*R) + S - 1 - Pext)  ...
                     + R/C_star*(pdot+ U/(We*R^2) + Sdot - P_ext_prime ) ...
                     - 1.5*(1-U/(3*C_star))*U^2)/((1-U/C_star)*R); % +JdotA/(C_star));
             end

@@ -49,10 +49,13 @@ lastNonEmptyIdx = find(failed_tests ~= 0, 1, 'last');
 % Truncate the array, keeping empty cells within range
 failed_tests = failed_tests(1:lastNonEmptyIdx);
 
+% Remove zeros from failed_tests
+failed_tests(failed_tests == 0) = [];
+
 if isempty(failed_tests)
     fprintf('✅ All tests PASSED.\n');
     exit(0); % Success
 else
-    fprintf('❌ Tests FAILED at indices: %s\n', num2str(failed_tests));
+    fprintf('❌ Tests FAILED at indices: %s\n', sprintf('%d ', failed_tests));
     exit(1); % Fail the workflow
 end

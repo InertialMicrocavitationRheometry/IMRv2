@@ -156,12 +156,16 @@ function varargout =  m_imrv2_finitediff(varargin)
     else
         C0 = zeros(-1,1);
     end
+    
+    % initial condition vector
     init = [Rzero;
     Uzero;
     p0star;
     Tau0;
     Tm0;
     C0];
+    
+    % thermal auxilary variable for boundary conditions
     tau_del = [];
     TL = [];
     
@@ -257,9 +261,6 @@ function varargout =  m_imrv2_finitediff(varargin)
             
             % precalculation for speed up
             K_star = alpha*T+beta;
-            pVap = vapor*(f_pvsat(T(1)*T8)/P8);
-        else
-            pVap = vapor*p0star;
         end
         if medtherm
             Tm(1) = T(end);
@@ -286,6 +287,7 @@ function varargout =  m_imrv2_finitediff(varargin)
             DDTau = DD_Matrix_T_C*Tau;
             
             % internal pressure equation
+            pVap = vapor*(f_pvsat(T(1)*T8)/P8);
             pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U+...
                 + kappa*p*Fom*Rv_star*DC(end)...
             /( T(end)*R*Rmix(end)*(1-C(end)) ) );
@@ -314,6 +316,7 @@ function varargout =  m_imrv2_finitediff(varargin)
             DDTau = DD_Matrix_T_C*Tau;
             
             % internal pressure equation
+            pVap = vapor*(f_pvsat(T(1)*T8)/P8);
             pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U);
             
             % temperature inside the bubble
@@ -327,6 +330,7 @@ function varargout =  m_imrv2_finitediff(varargin)
             Taudot(end) = 0;
         else
             % polytropic gas
+            pVap = vapor*Pv_star;
             pdot= -3*kappa*U/R*p;
         end
         
@@ -350,7 +354,7 @@ function varargout =  m_imrv2_finitediff(varargin)
         
         % stress equation
         % [J,JdotX,Z1dot,Z2dot] = ...
-
+            
         [J,JdotX,~,~] = ...
             f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO,cdd);
         

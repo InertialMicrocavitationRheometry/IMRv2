@@ -130,7 +130,9 @@ function varargout =  m_imrv2_spectral(varargin)
     % yV = 2*Lv./(1-ze) - Lv + 1;
     nn = ((-1).^(0:Nt).*(0:Nt).^2)';
     nn = sparse(nn);
-    Udot = 0*C0; %TODO Change this!
+    
+    % TODO Change this!
+    Udot = 0*C0;
     
     % precomputations for viscous dissipation
     zT = 1 - 2./(1 + (yT - 1)/Lv);
@@ -169,6 +171,8 @@ function varargout =  m_imrv2_spectral(varargin)
     % TODO ADD THE MASS Transfer structure here
     
     Sp = zeros(2*(Nv - 1)*(spectral == 1) + 2,1);
+    
+    % initial condition vector
     init = [Rzero;
     Uzero;
     p0star;
@@ -347,7 +351,7 @@ function varargout =  m_imrv2_spectral(varargin)
                 end
             else
                 % polytropic approximation
-                pVap = vapor*Pv_star;                
+                pVap = vapor*Pv_star;
                 pdot = -3*kappa*U/R*p;
             end
             
