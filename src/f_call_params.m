@@ -188,7 +188,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     end
     
     % check for physical viscoelastic parameters
-    if (lambda1 > mu8/G && (stress == 1 || stress == 2)) || abs(eps3 - 0.25) > 0.25
+    if (lambda1 > mu8/G && (stress == 3 || stress == 4)) || abs(eps3 - 0.25) > 0.25
         error('INPUT ERROR: Unphysical viscoelastic parameters');
     end
     
@@ -311,22 +311,22 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
         masstrans = 0;
     end
     
-    % 1 : N-H, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
-    if stress == 1 || stress == 2
+    % 1 : N-H, 2: qN-H, 3: linear Maxwell, Jeffreys, Zener, 5: UCM or OldB, 6: PTT, 7: Giesekus
+    if stress == 1 || stress == 2 || stress == 3 || stress == 4
         spectral = 0;
-    elseif stress == 3
+    elseif stress == 5
         Ca = -1;
-    elseif stress == 4
+    elseif stress == 6
         Ca = -1;
         spectral = 1;
-    elseif stress == 5
+    elseif stress == 7
         Ca = -1;
         spectral = 1;
     end
     
-    if stress == 1 || stress == 2
+    if stress == 1 || stress == 2 || stress == 3 || stress == 4
         JdotA = 4/Re8;
-    elseif stress == 3 || stress == 4
+    elseif stress == 5 || stress == 6
         JdotA = 4*LAM/Re8;
     else
         JdotA = 0;
@@ -334,7 +334,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     if spectral == 1
         JdotA = 0;
     end
-    if stress == 0 || stress == 1 || stress == 2
+    if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4
         zeNO = 0;
     else
         zeNO = 1;

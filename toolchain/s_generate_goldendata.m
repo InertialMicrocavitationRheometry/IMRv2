@@ -2,6 +2,7 @@ clc;
 clear;
 close;
 
+addpath('../toolchain/');
 addpath('../src');
 addpath('../tests/');
 load('file_ids.mat');
@@ -13,7 +14,7 @@ for radial = 1:4
     for vapor = 0:1
         for bubtherm = 0:1
             for medtherm = 0:1
-                for stress = 0:2
+                for stress = 0:4
                     filename1 = strcat('../tests/',ids{count+0},'.mat');
                     filename2 = strcat('../tests/',ids{count+1},'.mat');
                     varin = {'radial',radial,'bubtherm',bubtherm,'tvector',tvector,...

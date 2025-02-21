@@ -129,8 +129,20 @@ function varargout =  m_imrv2_finitediff(varargin)
     kapover = (kappa-1)/kappa;
     xi = (1+(j-1)*deltaYm)';
     yT = ((2./(xi+1)-1)*Lt+1);
-    ic = zeros(-1,1);
-    id = zeros(-1,1);
+    
+    % index management
+    if spectral == 0
+        Nv = 0;
+    end
+    if bubtherm == 0
+        Nt = 0;
+        Mt = 0;
+    end
+    if medtherm == 0
+        Mt = 0;
+    end
+    ic = (4+Nt+Mt):(4+Nt+Mt+Nv);
+    id = (5+Nt+Mt+Nv):(4+Nt+Mt+2*Nv);
     
     % precomputations for viscous dissipation
     % zT = 1 - 2./(1 + (yT - 1)/Lv);
@@ -141,21 +153,33 @@ function varargout =  m_imrv2_finitediff(varargin)
     % radius, velocity, pressure, bubble temperature, medium temperature,
     % vapor concentration
     T = zeros(-1,1);
+    % bubble temperature initial condition
     if bubtherm
         Tau0 = zeros(Nt,1);
     else
         Tau0 = zeros(-1,1);
     end
+    % medium initial temperature
     if medtherm
         Tm0 = ones(Mt,1);
     else
         Tm0 = zeros(-1,1);
     end
+    % mass transfer initial condition
     if masstrans
         C0 = C0*ones(Nt,1);
     else
         C0 = zeros(-1,1);
     end
+    % stress spectra
+    if stress < 3
+        istress = 0;
+    elseif stress == 3 || stress == 4
+        istress = 1;
+    elseif stress == 5
+        istress = 2;
+    end
+    Sp = zeros(2*(Nv - 1)*(spectral == 1) + istress,1);
     
     % initial condition vector
     init = [Rzero;
@@ -163,7 +187,8 @@ function varargout =  m_imrv2_finitediff(varargin)
     p0star;
     Tau0;
     Tm0;
-    C0];
+    C0;
+    Sp];
     
     % thermal auxiliary variable for boundary conditions
     tau_del = [];
@@ -220,6 +245,7 @@ function varargout =  m_imrv2_finitediff(varargin)
     if masstrans == 1
         varargout{7} = C;
     end
+    
     % TODO Add the stress output if possible, similar to the spectral code
     
     % solver function
@@ -353,9 +379,7 @@ function varargout =  m_imrv2_finitediff(varargin)
         end
         
         % stress equation
-        % [J,JdotX,Z1dot,Z2dot] = ...
-            
-        [J,JdotX,~,~] = ...
+        [J,JdotX,Z1dot,Z2dot] = ...
             f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO,cdd);
         
         % pressure waveform
@@ -365,17 +389,15 @@ function varargout =  m_imrv2_finitediff(varargin)
         [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, R, U, ...
             J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
         
-        % stress integral rate
-        % TODO ADD STRESS MODELS
-        % Jdot = JdotX - JdotA*Udot/R;
-        
         % output assembly
         dXdt = [U;
         Udot;
         pdot;
         Taudot;
         Tmdot;
-        Cdot];
+        Cdot;
+        Z1dot;
+        Z2dot];
         
     end
     % end of solver

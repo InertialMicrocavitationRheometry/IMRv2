@@ -50,8 +50,8 @@ S               = 0.056;
 %0.056;% 0.072              % (N/m) Liquid Surface Tension
 vmaterial       = 'water';
 G               = 1E3;                % (Pa) Medium Shear Modulus
-lambda1         = 0*0.5e-5;             % relaxation time (s)
-lambda2         = 0;            % retardation time (s)
+lambda1         = 1e-8;             % relaxation time (s)
+lambda2         = 1e-8;               % retardation time (s)
 % mu8             = 0.027606;
 %0.0246;
 %1E-3;

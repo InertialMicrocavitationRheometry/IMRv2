@@ -151,26 +151,36 @@ function varargout =  m_imrv2_spectral(varargin)
     if medtherm == 0
         Mt = -1;
     end
-    if masstrans == 0
-        Nm = -1;
-    end
+    % TODO add masstransfer back
+    % if masstrans == 0
+    %     Nm = -1;
+    % end
     ia = 4:(4+Nt);
     ib = (5+Nt):(5+Nt+Mt);
     ic = (6+Nt+Mt):(5+Nt+Mt+Nv);
     id = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
-    ie = (6+Nt+Mt+2*Nv):(5+Nt+Mt+2*Nv+Nm);
+    % ie = (6+Nt+Mt+2*Nv):(5+Nt+Mt+2*Nv+Nm);
     
     % initial condition assembly
     
-    % radius, velocity, pressure, auxiliary temperature spectrum,
-    % medium temperature spectrum, stress spectrum,
-    % initial stress integral
+    % radius, velocity, pressure
+    
+    % auxiliary temperature, boundary temperature, medium temperature,
     Tau0 = zeros(Nt+1,1);
     Tm0 = ones(Mt ~= -1);
     Tm1 = zeros(Mt,1);
-    % TODO ADD THE MASS Transfer structure here
     
-    Sp = zeros(2*(Nv - 1)*(spectral == 1) + 2,1);
+    % stress spectra
+    if stress < 3
+        istress = 0;
+    elseif stress == 3 || stress == 4
+        istress = 1;
+    elseif stress == 5
+        istress = 2;
+    end
+    Sp = zeros(2*(Nv - 1)*(spectral == 1) + istress,1);
+    
+    % TODO ADD THE MASS Transfer structure here
     
     % initial condition vector
     init = [Rzero;
@@ -179,8 +189,7 @@ function varargout =  m_imrv2_spectral(varargin)
     Tau0;
     Tm0;
     Tm1;
-    Sp;
-    0];
+    Sp];
     
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
@@ -196,14 +205,20 @@ function varargout =  m_imrv2_spectral(varargin)
     U = X(:,2);
     p = X(:,3);
     % extracting the Chebyshev coefficients
-    Z1 = X(:,ic);
-    Z2 = X(:,id);
+    % Z1 = X(:,ic);
+    % Z2 = X(:,id);
     a = X(:,ia)';
     b = X(:,ib)';
-    c = X(:,ic)';
-    d = X(:,id)';
+    % if stress >= 3
+    %     c = X(:,ic)';
+    % end
+    % if stress > 4 && stress <= 7
+    %     d = X(:,id)';
+    % else
+    %     d = zeros(-1,1);
+    % end
     % e = X(:,ie)';
-    I = X(:,ie+1);
+    %I = X(:,ie+1);
     if bubtherm
         T = (alpha-1+sqrt(1+2*alpha*gA*a))/alpha;
         if medtherm
@@ -223,11 +238,11 @@ function varargout =  m_imrv2_spectral(varargin)
     
     % transform to real space
     if spectral == 1
-        trr = sCA*c;
-        t00 = sCA*d;
+        % trr = sCA*c;
+        % t00 = sCA*d;
     else
-        trr = c;
-        t00 = d;
+        %trr = c;
+        %t00 = d;
     end
     % dimensionalization
     if dimensionalout == 1
@@ -238,15 +253,15 @@ function varargout =  m_imrv2_spectral(varargin)
         p = p*p0;
         T = T*T8;
         %pA = pA*p0;
-        I = I*p0;
+        %I = I*p0;
         % c = c*p0;
         % d = d*p0;
         % e = e*C0;
         % C = C*C0;
         Udot = Udot*uc/tc;
         if spectral == 1
-            trr = trr*p0;
-            t00 = t00*p0;
+            % trr = trr*p0;
+            % t00 = t00*p0;
         end
         if bubtherm == 1
             if medtherm == 1
@@ -269,18 +284,18 @@ function varargout =  m_imrv2_spectral(varargin)
     if masstrans == 1
         varargout{7} = C;
     end
-    varargout{8} = trr;
-    varargout{9} = t00;
-    varargout{10} = I;
-    if stress == 2
-        varargout{11} = Z1; % Z1
-        varargout{12} = Z2; % Z2
-        varargout{13} = (Z1)./R.^3 - 4*LAM/Re8.*U./R; % J
-    elseif stress == 3
-        varargout{11} = Z1; % Z1
-        varargout{12} = Z2; % Z2
-        varargout{13} = (Z1 + Z2)./R.^3 - 4*LAM./Re8.*U./R; % J
-    end
+    %varargout{8} = trr;
+    %varargout{9} = t00;
+    % varargout{10} = I;
+    % if stress == 2
+    %     varargout{11} = Z1; % Z1
+    %     varargout{12} = Z2; % Z2
+    %     varargout{13} = (Z1)./R.^3 - 4*LAM/Re8.*U./R; % J
+    % elseif stress == 3
+    %     varargout{11} = Z1; % Z1
+    %     varargout{12} = Z2; % Z2
+    %     varargout{13} = (Z1 + Z2)./R.^3 - 4*LAM./Re8.*U./R; % J
+    % end
     
     % solver function
     function dXdt = SVBDODE(t,X)
@@ -366,17 +381,13 @@ function varargout =  m_imrv2_spectral(varargin)
             [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, R, U, ...
                 J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
             
-            % stress integral rate
-            Jdot = JdotX - JdotA*Udot/R;
-            
             % output assembly
             dXdt = [U;
             Udot;
             pdot;
             qdot;
             Z1dot;
-            Z2dot;
-            Jdot];
+            Z2dot];
             
         end
         % end of solver
