@@ -131,18 +131,23 @@ function varargout =  m_imrv2_finitediff(varargin)
     yT = ((2./(xi+1)-1)*Lt+1);
     
     % index management
+    Nc = Nt;
     if spectral == 0
         Nv = 0;
     end
-    if bubtherm == 0
+    if bubtherm == 0 || masstrans == 0
         Nt = 0;
         Mt = 0;
+    end
+    if bubtherm == 0 && masstrans == 1
+        Nt = 0;
     end
     if medtherm == 0
         Mt = 0;
     end
-    ic = (4+Nt+Mt):(4+Nt+Mt+Nv);
-    id = (5+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
+    imass = (4+Nt+Mt):(3+Nt+Nc+Mt);
+    ic = (4+Nt+Nc+Mt):(4+Nt+Nc+Mt+Nv);
+    id = (5+Nt+Nc+Mt+Nv):(5+Nt+Nc+Mt+2*Nv);
     
     % precomputations for viscous dissipation
     % zT = 1 - 2./(1 + (yT - 1)/Lv);
@@ -167,7 +172,7 @@ function varargout =  m_imrv2_finitediff(varargin)
     end
     % mass transfer initial condition
     if masstrans
-        C0 = C0*ones(Nt,1);
+        C0 = C0*ones(Nc,1);
     else
         C0 = zeros(-1,1);
     end
@@ -196,7 +201,7 @@ function varargout =  m_imrv2_finitediff(varargin)
     
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, ...
-        eps3, Re8, De, Ca, LAM, 'finite difference');
+        eps3, vapor, Re8, De, Ca, LAM, 'finite difference');
     bubble = @SVBDODE;
     [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);
     
@@ -213,8 +218,9 @@ function varargout =  m_imrv2_finitediff(varargin)
             Tm = X(:,(Nt+4):(2*Nt+3));
         end
     end
+    
     if masstrans
-        C = X(:,(2*Nt+4):end);
+        C = X(:,imass);
     end
     
     % transform variables back into their dimensional form
@@ -260,9 +266,13 @@ function varargout =  m_imrv2_finitediff(varargin)
         p = X(3);
         
         % solve for boundary condition at the wall
-        if (medtherm)
+        if medtherm 
             Tau = X(4:(Nt+3));
             Tm = X((Mt+4):(2*Mt+3));
+            if masstrans
+                C = X(imass);
+            end
+
             if t/tfin > 0.001
                 %Might need to tune 0.001 for convergence:
                 guess= -.001+tau_del(end);
@@ -302,13 +312,14 @@ function varargout =  m_imrv2_finitediff(varargin)
         Cdot = zeros(-1,1);
         % heat and mass transfer PDE residual calculations
         if bubtherm && masstrans
-            C = X((2*Nt+4):end);
+            % extracting the vapor concentration
+            C = X(imass);
             C(end) =  CW(T(end),p);
             Rmix = C*Rv_star + (1-C)*Ra_star;
             % concentration field inside the bubble
             DC  = D_Matrix_T_C*C;
             DDC = DD_Matrix_T_C*C;
-            % temp. field inside the bubble
+            % temperature field inside the bubble
             DTau  = D_Matrix_T_C*Tau;
             DDTau = DD_Matrix_T_C*Tau;
             
@@ -320,24 +331,23 @@ function varargout =  m_imrv2_finitediff(varargin)
             
             % temperature inside the bubble
             U_vel = (chi/R*(kappa-1)*DTau-y*R*pdot/3)/(kappa*p);
-            first_term = (DDTau*chi./R^2+pdot)*(K_star*T./p*kapover);
+            first_term = (DDTau.*chi./R^2+pdot).*(K_star.*T/p*kapover);
             second_term = -DTau.*((1./R).*(U_vel-y.*U));
             
-            Taudot= first_term+second_term;
+            Taudot = first_term + second_term;
             Taudot(end) = 0;
             
             % vapor concentration equation
             U_mix = U_vel + Fom/R*((Rv_star - Ra_star)/Rmix)*DC  ;
-            one = DDC;
-            two = DC*(DTau/(K_star*T)+((Rv_star - Ra_star)/Rmix)*DC );
-            three =  (U_mix-U*yk)/R*DC;
+            two = DC.*(DTau./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*DC );
+            three =  (U_mix-U.*y)/R.*DC;
             
             % concentration evolution
-            Cdot = Fom/R^2*(one - two) - three;
+            Cdot = Fom/R^2*(DDC - two) - three;
             Cdot(end) = 0;
             
         elseif bubtherm
-            % temp. field inside the bubble
+            % temperature gradient field inside the bubble
             DTau  = D_Matrix_T_C*Tau;
             DDTau = DD_Matrix_T_C*Tau;
             
@@ -346,14 +356,37 @@ function varargout =  m_imrv2_finitediff(varargin)
             pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U);
             
             % temperature inside the bubble
-            
-            % first_term = (DDTau.*chi./R^2+pdot).*( K_star.*T/p*(kappa-1)/kappa);
             first_term = (DDTau.*chi./R^2+pdot).*(kapover*K_star.*T./p);
             U_vel = (chi/R*(kappa-1)*DTau-y*R*pdot/3)/(kappa*p);
             second_term = -DTau.*((1/R).*(U_vel-y*U));
             
             Taudot= first_term+second_term;
             Taudot(end) = 0;
+        elseif masstrans
+            % extracting the vapor concentration
+            C = X(imass);
+            C(end) =  CW(T8,p);
+            Rmix = C*Rv_star + (1-C)*Ra_star;
+
+            % concentration field inside the bubble
+            DC  = D_Matrix_T_C*C;
+            DDC = DD_Matrix_T_C*C;
+
+            % internal pressure equation
+            pVap = vapor*(f_pvsat(T8)/P8);
+            pdot = 3/R*(kappa*p*Fom*Rv_star*DC(end)/(T8*R*Rmix(end)*(1-C(end))));    
+
+            % temperature inside the bubble
+            U_vel = (-y*R*pdot/3)/(kappa*p);            
+
+            % vapor concentration equation
+            U_mix = U_vel + Fom/R*((Rv_star - Ra_star)/Rmix)*DC;
+            two = ((Rv_star - Ra_star)./Rmix).*DC;
+            three =  (U_mix-U.*y)/R.*DC;
+
+            % concentration evolution
+            Cdot = Fom/R^2*(DDC - two) - three;
+            Cdot(end) = 0;
         else
             % polytropic gas
             pVap = vapor*Pv_star;
@@ -361,7 +394,7 @@ function varargout =  m_imrv2_finitediff(varargin)
         end
         
         if medtherm
-            % temp. field outside the bubble
+            % temperature field outside the bubble
             DTm = D_Matrix_Tm*Tm;
             DDTm = DD_Matrix_Tm*Tm;
             % warm liquid
@@ -421,18 +454,18 @@ function varargout =  m_imrv2_finitediff(varargin)
         % coefficients in terms of forward difference
         
         % second order
-        coeff = [-3/2 , 2 ,-1/2 ];
+        coeff = [-1.5 , 2 ,-0.5 ];
         Tm_trans = Tm(2:3);
         T_trans = flipud(Tau(end-2:end-1));
         
         if masstrans
-            % C_trans = flipud(C(end-2:end-1));
-            C_trans = flipud(C(end-6:end-1));
+            C_trans = flipud(C(end-2:end-1));
+            % C_trans = flipud(C(end-6:end-1));
             Tauw = chi*(2*iota*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...
                 chi*(-coeff*[prelim;T_trans])/deltaY + ...
-            Fom*L_heat_star*P*( (CW(TW(prelim),P)*(Rv_star-Ra_star)+Ra_star))^-1 *...
-                (TW(prelim) * (1-CW(TW(prelim),P))  ).^(-1).*...
-            (-coeff*[CW(TW(prelim),P);
+            Fom*L_heat_star*p*( (CW(TW(prelim),p)*(Rv_star-Ra_star)+Ra_star))^-1 *...
+                (TW(prelim) * (1-CW(TW(prelim),p))  ).^(-1).*...
+            (-coeff*[CW(TW(prelim),p);
             C_trans])/deltaY;
         else
             Tauw = chi*(2*iota*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...

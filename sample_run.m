@@ -7,11 +7,11 @@ addpath('src');
 % equation options
 tvector = linspace(0,20E-6,200);
 for radial = 1:4
-    for bubtherm = 1
-        for medtherm = 1
+    for bubtherm = 0:1
+        for medtherm = 0:1
             for vapor = 0:1
                 for stress = 0:5
-                    for masstrans = 0:1
+                    for masstrans = 1
                         varin = {'radial',radial,...
                             'bubtherm',bubtherm,...
                             'tvector',tvector,...
@@ -19,7 +19,7 @@ for radial = 1:4
                             'medtherm',medtherm,...
                             'stress',stress,...
                             'masstrans',masstrans};
-                        [tf,Rf,Uf] = m_imrv2_finitediff(varin{:},'Nt',200,'Mt',200);
+                        [tf,Rf,Uf] = m_imrv2_finitediff(varin{:},'Nt',20,'Mt',20);
                     end
                 end
             end
@@ -27,7 +27,6 @@ for radial = 1:4
     end
 end
 
-figure(1)
-hold on;
-plot(tf,Rf,'^')
-% plot(ts,Rs,'o')
+% figure(1)
+% hold on;
+% plot(tf,Rf,'^')

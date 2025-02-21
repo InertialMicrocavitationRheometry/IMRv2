@@ -3,7 +3,7 @@
 
 % brief This function features the display output on the command window
 function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, ...
-        spectral, eps3, Re8, De, Ca, LAM, mode)
+        spectral, eps3, vapor, Re8, De, Ca, LAM, mode)
     
     % Command window display
     
@@ -41,13 +41,13 @@ function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, ...
     
     if stress == 0
         const = 'no stress applied';
-    elseif stress == 1 && stress == 2
+    elseif stress == 1 || stress == 2
         if Ca == Inf
             const = 'Newtonian fluid';
         else
             const = 'neo-Hookean Kelvin-Voigt';
         end
-    elseif stress == 3 && stress == 4
+    elseif stress == 3 || stress == 4
         if Ca == Inf
             const = 'Newtonian fluid';
         else

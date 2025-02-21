@@ -162,9 +162,6 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     if check || medtherm ~= 0 && medtherm ~= 1
         error('INPUT ERROR: medtherm must be 0 or 1');
     end
-    if check || masstrans == 1 && bubtherm == 0
-        error('INPUT ERROR: bubtherm must be 1 for masstrans to be 1');
-    end
     check = 1-isnumeric(stress);
     if check || stress > 5 || stress < 0
         error('INPUT ERROR: stress must be between 0 to 5');
@@ -173,7 +170,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     if check || vapor ~= 0 && vapor ~= 1
         error('INPUT ERROR: vapor must be 0 or 1');
     end
-    check = 1-isnumeric(radial);
+    check = 1-isnumeric(masstrans);
     if check || masstrans ~= 0 && masstrans ~= 1
         error('INPUT ERROR: masstrans must be 0 or 1');
     end
@@ -308,7 +305,6 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     end
     if medtherm == 1
         bubtherm = 1;
-        masstrans = 0;
     end
     
     % 1 : N-H, 2: qN-H, 3: linear Maxwell, Jeffreys, Zener, 5: UCM or OldB, 6: PTT, 7: Giesekus
