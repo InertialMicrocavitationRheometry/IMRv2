@@ -142,7 +142,7 @@ function varargout =  m_imrv2_finitediff(varargin)
         Mt = 0;
     end
     ic = (4+Nt+Mt):(4+Nt+Mt+Nv);
-    id = (5+Nt+Mt+Nv):(4+Nt+Mt+2*Nv);
+    id = (5+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
     
     % precomputations for viscous dissipation
     % zT = 1 - 2./(1 + (yT - 1)/Lv);

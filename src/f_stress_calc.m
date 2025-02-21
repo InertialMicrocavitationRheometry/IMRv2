@@ -10,12 +10,10 @@ function [J,JdotX,Z1dot,Z2dot] = ...
     % TODO Need to add non-Newtonian behavior to JdotX
     % ((1-U/C_star)*R + ...
         %  4/Re8/C_star - 6*ddintfnu*iDRe/C_star);
+    
     Z1dot = zeros(-1,1);
     Z2dot = zeros(-1,1);
-    if stress == -1
-        cdd = ones(size(cdd));
-        zeNO = ones(size(zeNO));
-    end
+    
     % radial stretch
     Rst = Req/R;
     % no stress
@@ -53,7 +51,6 @@ function [J,JdotX,Z1dot,Z2dot] = ...
         % stress integral derivative
         JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re8*U^2/R^2;
         
-        
         % linear Maxwell, Jeffreys, Zener -- quadratic neo-Hookean
     elseif stress == 4
         % extract stress auxiliary variable
@@ -81,9 +78,13 @@ function [J,JdotX,Z1dot,Z2dot] = ...
         Z2 = X(id);
         % compute new derivatives
         Z1dot = -(1/De - 2*U/R)*Z1 + 2*(LAM-1)/(Re8*De)*R^2*U;
-        Z2dot = -(1/De + 1*U/R)*Z2 + 2*(LAM-1)/(Re8*De)*R^2*U;
+        Z2dot = -(1/De +   U/R)*Z2 + 2*(LAM-1)/(Re8*De)*R^2*U;
         J = (Z1 + Z2)/R^3 - 4*LAM/Re8*U/R;
         JdotX = (Z1dot+Z2dot)/R^3 - 3*U/R^4*(Z1+Z2) + 4*LAM/Re8*U^2/R^2;
+        
+    elseif stress == -1
+        JdotX = cdd*zeNO;
+        
     else
         error('stress setting is not available');
     end
