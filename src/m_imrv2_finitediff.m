@@ -83,8 +83,8 @@ function varargout =  m_imrv2_finitediff(varargin)
     % v_lambda_star   = sigma_opts(11);
     zeNO            = sigma_opts(12);
     iWe             = 1/We;
-    if Ca==-1
-        Ca=Inf;
+    if Ca == -1
+        Ca = Inf;
     end
     % dimensionless thermal
     Foh             = thermal_opts(1);
@@ -131,11 +131,15 @@ function varargout =  m_imrv2_finitediff(varargin)
     yT = ((2./(xi+1)-1)*Lt+1);
     
     % index management
-    Nc = Nt;
+    if masstrans == 1
+        Nc = Nt;
+    else
+        Nc = 0;
+    end
     if spectral == 0
         Nv = 0;
     end
-    if bubtherm == 0 || masstrans == 0
+    if bubtherm == 0
         Nt = 0;
         Mt = 0;
     end
@@ -164,32 +168,30 @@ function varargout =  m_imrv2_finitediff(varargin)
     else
         Tau0 = zeros(-1,1);
     end
+    
     % medium initial temperature
     if medtherm
         Tm0 = ones(Mt,1);
     else
         Tm0 = zeros(-1,1);
     end
+    
     % mass transfer initial condition
     if masstrans
         C0 = C0*ones(Nc,1);
     else
         C0 = zeros(-1,1);
     end
+    
     % stress spectra
     if stress < 3
-        istress = 0;
+        Sp = zeros(2*(Nv - 1)*(spectral == 1),1);
     elseif stress == 3 || stress == 4
-        istress = 1;
+        [Sp] = f_max_pre_stress(Req, Cstar, Pv_star, We, Re8, De, Ca, alphax);
     elseif stress == 5
-        istress = 2;
+        Sp = zeros(2*(Nv - 1)*(spectral == 1) + 2,1);
     end
-    Sp = zeros(2*(Nv - 1)*(spectral == 1) + istress,1);
-    if stress == 3 || stress == 4
-        Sp = max_pre_stress(Req/Rzero, Cstar, f_pvsat(T8), We, ...
-        Re8, De, Ca, alphax);
-    end
-
+    
     % initial condition vector
     init = [Rzero;
     Uzero;
@@ -270,13 +272,13 @@ function varargout =  m_imrv2_finitediff(varargin)
         p = X(3);
         
         % solve for boundary condition at the wall
-        if medtherm 
+        if medtherm
             Tau = X(4:(Nt+3));
             Tm = X((Mt+4):(2*Mt+3));
             if masstrans
                 C = X(imass);
             end
-
+            
             if t/tfin > 0.001
                 %Might need to tune 0.001 for convergence:
                 guess= -.001+tau_del(end);
@@ -371,23 +373,23 @@ function varargout =  m_imrv2_finitediff(varargin)
             C = X(imass);
             C(end) =  CW(T8,p);
             Rmix = C*Rv_star + (1-C)*Ra_star;
-
+            
             % concentration field inside the bubble
             DC  = D_Matrix_T_C*C;
             DDC = DD_Matrix_T_C*C;
-
+            
             % internal pressure equation
             pVap = vapor*(f_pvsat(T8)/P8);
-            pdot = 3/R*(kappa*p*Fom*Rv_star*DC(end)/(T8*R*Rmix(end)*(1-C(end))));    
-
+            pdot = 3/R*(kappa*p*Fom*Rv_star*DC(end)/(T8*R*Rmix(end)*(1-C(end))));
+            
             % temperature inside the bubble
-            U_vel = (-y*R*pdot/3)/(kappa*p);            
-
+            U_vel = (-y*R*pdot/3)/(kappa*p);
+            
             % vapor concentration equation
             U_mix = U_vel + Fom/R*((Rv_star - Ra_star)/Rmix)*DC;
             two = ((Rv_star - Ra_star)./Rmix).*DC;
             three =  (U_mix-U.*y)/R.*DC;
-
+            
             % concentration evolution
             Cdot = Fom/R^2*(DDC - two) - three;
             Cdot(end) = 0;
@@ -442,7 +444,7 @@ function varargout =  m_imrv2_finitediff(varargin)
     % functions called by solver
     
     function Tw= TW(Tauw)
-        %calculates the temperature at the bubble wall as a function of \tau
+        % calculates the temperature at the bubble wall as a function of \tau
         Tw = (alpha - 1 + sqrt(1+2*Tauw*alpha)) / alpha;
     end
     
@@ -463,21 +465,26 @@ function varargout =  m_imrv2_finitediff(varargin)
         T_trans = flipud(Tau(end-2:end-1));
         
         if masstrans
+            
             C_trans = flipud(C(end-2:end-1));
-            % C_trans = flipud(C(end-6:end-1));
+            
             Tauw = chi*(2*iota*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...
                 chi*(-coeff*[prelim;T_trans])/deltaY + ...
             Fom*L_heat_star*p*( (CW(TW(prelim),p)*(Rv_star-Ra_star)+Ra_star))^-1 *...
                 (TW(prelim) * (1-CW(TW(prelim),p))  ).^(-1).*...
             (-coeff*[CW(TW(prelim),p);
+            
             C_trans])/deltaY;
+            
         else
+            
             Tauw = chi*(2*iota*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...
                 chi*(-coeff*[prelim;T_trans])/deltaY;
+            
         end
     end
     
-    function [Diff_Matrix ] = f_finite_diff_mat(Nodes,order,Tm_check)
+    function [Diff_Matrix] = f_finite_diff_mat(Nodes,order,Tm_check)
         % Creates finite difference matrices
         % Nodes: Number of nodes
         % order: order of differentiation ( 1st derivative vs 2nd derivative)
@@ -536,14 +543,10 @@ function varargout =  m_imrv2_finitediff(varargin)
 end
 
 function cdd = preStressInt(L,N)
-    
     cdd = L*N*0;
-    
 end
 
-
 % function cdd = StressInt(L,N,varargin)
-%
 %     if nargin == 2
 %         k = 1;
 %     else
@@ -551,9 +554,7 @@ end
 %     end
 %     syms x;
 %     cdd = zeros(N-k+1,1);
-%
 %     for n = k:N
 %         cdd(n-k+1) = subs(2*L*int((cos(n*acos(x))-1)/((L*(2/(1-x)-1)+1)*(1-x)^2),-1,1));
 %     end
-%
 % end

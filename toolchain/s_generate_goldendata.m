@@ -19,12 +19,12 @@ for radial = 1:4
                     filename2 = strcat('../tests/',ids{count+1},'.mat');
                     varin = {'radial',radial,'bubtherm',bubtherm,'tvector',tvector,...
                         'vapor',vapor,'medtherm',medtherm,'stress',stress};
-                    [tf,Rf,Uf] = m_imrv2_finitediff(varin{:},'Nt',100,'Mt',100);
-                    [ts,Rs,Us] = m_imrv2_spectral(varin{:},'Nt',12,'Mt',12);
+                    [tf,Rf] = m_imrv2_finitediff(varin{:},'Nt',100,'Mt',100);
+                    [ts,Rs] = m_imrv2_spectral(varin{:},'Nt',12,'Mt',12);
                     if (norm(Rs-Rf,2) < 1E-2)
                         disp('----> SUCCESS! <------');
-                        save(filename1,"tf","Rf");
-                        save(filename2,"ts","Rs");
+                        save(filename1,"Rf");
+                        save(filename2,"Rs");
                     else
                         disp('error radial not working')
                         figure(count)
@@ -33,6 +33,29 @@ for radial = 1:4
                         plot(tf,Rf,'k-.^');
                     end
                     count = count + 2;
+                end
+            end
+        end
+    end
+end
+
+masstrans = 1;
+for radial = 1:4
+    for bubtherm = 0:1
+        for medtherm = 0:1
+            for vapor = 0:1
+                for stress = 0:5
+                    filename1 = strcat('../tests/',ids{count+0},'.mat');
+                    varin = {'radial',radial,...
+                        'bubtherm',bubtherm,...
+                    'tvector',tvector,...
+                        'vapor',vapor,...
+                    'medtherm',medtherm,...
+                        'stress',stress,...
+                    'masstrans',masstrans};
+                    [~,Rf] = m_imrv2_finitediff(varin{:},'Nt',100,'Mt',100);
+                    save(filename1,"Rf");
+                    count = count + 1;
                 end
             end
         end

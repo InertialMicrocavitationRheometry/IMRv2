@@ -4,7 +4,7 @@ clear;
 addpath('../src');
 load('file_ids.mat');
 
-num_tests = 4*2*2*2*3;
+num_tests = 4*2*2*2*6*3;
 errors_fd = zeros(num_tests,1);
 errors_sp = zeros(num_tests,1);
 failed_tests = zeros(size(errors_sp));
@@ -24,8 +24,12 @@ for radial = 1:4
                     filename2 = strcat('../tests/',ids{count+1},'.mat');
                     load(filename1);
                     load(filename2);
-                    varin = {'radial',radial,'bubtherm',bubtherm,'tvector',tvector,...
-                        'vapor',vapor,'medtherm',medtherm,'stress',stress};
+                    varin = {'radial',radial,...
+                        'bubtherm',bubtherm,...
+                    'tvector',tvector,...
+                        'vapor',vapor,...
+                    'medtherm',medtherm,...
+                        'stress',stress};
                     [~,Rf_test] = m_imrv2_finitediff(varin{:},'Nt',100,'Mt',100);
                     [~,Rs_test] = m_imrv2_spectral(varin{:},'Nt',12,'Mt',12);
                     errors_fd(count) = norm(Rf-Rf_test,2);
@@ -44,6 +48,35 @@ for radial = 1:4
         end
     end
 end
+
+masstrans = 1;
+for radial = 1:4
+    for bubtherm = 0:1
+        for medtherm = 0:1
+            for vapor = 0:1
+                for stress = 0:5
+                    filename1 = strcat('../tests/',ids{count+0},'.mat');
+                    load(filename1);
+                    varin = {'radial',radial,...
+                        'bubtherm',bubtherm,...
+                    'tvector',tvector,...
+                        'vapor',vapor,...
+                    'medtherm',medtherm,...
+                        'stress',stress,...
+                    'masstrans',masstrans};
+                    [~,Rf_test] = m_imrv2_finitediff(varin{:},'Nt',100,'Mt',100);
+                    errors_fd(count) = norm(Rf-Rf_test,2);
+                    fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
+                    if (errors_fd(count) > threshold)
+                        failed_tests(count) = count;
+                    end
+                    count = count + 1;
+                end
+            end
+        end
+    end
+end
+
 % Find the last non-empty cell index
 lastNonEmptyIdx = find(failed_tests ~= 0, 1, 'last');
 % Truncate the array, keeping empty cells within range
