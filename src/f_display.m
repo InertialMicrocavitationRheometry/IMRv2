@@ -33,22 +33,27 @@ function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, ...
         mass = 'no mass transfer in the bubble';
     end
     
+    if vapor == 1
+        vap = 'vapor in the bubble';
+    else
+        vap = 'no vapor in the bubble';
+    end
     
     if stress == 0
         const = 'no stress applied';
-    elseif stress == 1
+    elseif stress == 1 && stress == 2
         if Ca == Inf
             const = 'Newtonian fluid';
         else
             const = 'neo-Hookean Kelvin-Voigt';
         end
-    elseif stress == 2
+    elseif stress == 3 && stress == 4
         if Ca == Inf
             const = 'Newtonian fluid';
         else
             const = 'quadratic neo-Hookean Kelvin-Voigt';
         end
-    elseif stress == 3
+    elseif stress == 5
         if Ca ~= Inf && LAM == 0
             const = 'linear Zener';
         elseif Ca == Inf && LAM == 0
@@ -56,9 +61,9 @@ function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, ...
         elseif Ca == Inf && LAM ~= 0
             const = 'linear Jeffreys';
         else
-            const = 'Kelvin-yangChurch series';
+            const = 'Kelvin-Voigt series';
         end
-    elseif stress == 4
+    elseif stress == 6
         if Ca ~= Inf && LAM == 0
             const = 'upper-convective Zener';
         elseif Ca == Inf && LAM == 0
@@ -66,7 +71,7 @@ function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, ...
         elseif Ca == Inf && LAM ~= 0
             const = 'Oldroyd-B';
         end
-    elseif stress == 5
+    elseif stress == 7
         const = 'Phan-Thien-Tanner';
     else
         const = ['Giesekus(' num2str(eps3) ')'];
@@ -84,6 +89,7 @@ function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, ...
     disp(['Medium rheology: ' const]);
     disp(['Thermal effects: ' therm]);
     disp(['Mass effects: ' mass]);
+    disp(['Vapor effects: ' vap]);
     disp(['Solution method: ' solut]);
     disp('--- Dimensionless numbers ---');
     disp(['Re8 = ' num2str(Re8,'%10.10f')]);
