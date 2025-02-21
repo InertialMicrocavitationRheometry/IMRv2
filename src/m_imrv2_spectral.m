@@ -172,13 +172,12 @@ function varargout =  m_imrv2_spectral(varargin)
     
     % stress spectra
     if stress < 3
-        istress = 0;
+        Sp = zeros(2*(Nv - 1)*(spectral == 1),1);
     elseif stress == 3 || stress == 4
-        istress = 1;
+        [Sp] = f_max_pre_stress(Req, Cstar, Pv_star, We, Re8, De, Ca, alphax);
     elseif stress == 5
-        istress = 2;
+        Sp = zeros(2*(Nv - 1)*(spectral == 1) + 2,1);
     end
-    Sp = zeros(2*(Nv - 1)*(spectral == 1) + istress,1);
     
     % TODO ADD THE MASS Transfer structure here
     
