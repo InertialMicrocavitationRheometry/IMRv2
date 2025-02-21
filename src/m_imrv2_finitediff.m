@@ -185,7 +185,11 @@ function varargout =  m_imrv2_finitediff(varargin)
         istress = 2;
     end
     Sp = zeros(2*(Nv - 1)*(spectral == 1) + istress,1);
-    
+    if stress == 3 || stress == 4
+        Sp = max_pre_stress(Req/Rzero, Cstar, f_pvsat(T8), We, ...
+        Re8, De, Ca, alphax);
+    end
+
     % initial condition vector
     init = [Rzero;
     Uzero;
