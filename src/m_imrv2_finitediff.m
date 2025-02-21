@@ -303,7 +303,7 @@ function varargout =  m_imrv2_finitediff(varargin)
         % heat and mass transfer PDE residual calculations
         if bubtherm && masstrans
             C = X((2*Nt+4):end);
-            C(end) =  CW(T(end),P);
+            C(end) =  CW(T(end),p);
             Rmix = C*Rv_star + (1-C)*Ra_star;
             % concentration field inside the bubble
             DC  = D_Matrix_T_C*C;
@@ -409,9 +409,9 @@ function varargout =  m_imrv2_finitediff(varargin)
         Tw = (alpha - 1 + sqrt(1+2*Tauw*alpha)) / alpha;
     end
     
-    function Cw = CW(Tw,P)
+    function Cw = CW(Tw,p)
         % calculates the temperature and concentration at the bubble wall
-        thetha = Rv_star/Ra_star*(P./(f_pvsat(Tw*T_inf)/P_inf) -1);
+        thetha = Rv_star/Ra_star*(p./(f_pvsat(Tw*T8)/P8) - 1);
         Cw = 1./(1+thetha);
     end
     
