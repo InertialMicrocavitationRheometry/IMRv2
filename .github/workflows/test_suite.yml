@@ -37,12 +37,9 @@ jobs:
           release: latest
           products: "MATLAB"
 
-      - name: Install Symbolic Math Toolbox Manually
-        uses: matlab-actions/run-command@v2
-        with:
-          command: |
-            matlab.addons.install('Symbolic Math Toolbox');
-            savepath;
+      - name: Install Symbolic Math Toolbox using MATLAB Package Manager
+          run: |
+            /usr/local/MATLAB/bin/matlab -batch "mpm install --release=latest --products Symbolic_Math_Toolbox"
 
       - name: Run Only `m_test_suite.m`
         uses: matlab-actions/run-command@v2
