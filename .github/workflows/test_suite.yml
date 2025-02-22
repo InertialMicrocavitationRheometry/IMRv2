@@ -35,7 +35,7 @@ jobs:
         uses: matlab-actions/setup-matlab@v2
         with: 
           release: latest
-          products: "MATLAB"
+          products: "MATLAB, Symbolic_Math_Toolbox"
 
       - name: Run Only `m_test_suite.m`
         uses: matlab-actions/run-command@v2
