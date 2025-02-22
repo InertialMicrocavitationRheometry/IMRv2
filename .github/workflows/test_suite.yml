@@ -35,13 +35,9 @@ jobs:
         uses: matlab-actions/setup-matlab@v2
         with: 
           release: latest
-          products: "MATLAB"
-
-      - name: Set up MATLAB
-        uses: matlab-actions/setup-matlab@v2
-        with: 
-          release: latest
-          products: "Symbolic_Math_Toolbox"
+          products: > 
+            MATLAB
+            Symbolic_Math_Toolbox
 
       - name: Run Only `m_test_suite.m`
         uses: matlab-actions/run-command@v2
