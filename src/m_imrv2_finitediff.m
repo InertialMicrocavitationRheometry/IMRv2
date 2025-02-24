@@ -82,7 +82,7 @@ function varargout =  m_imrv2_finitediff(varargin)
     % vmaterial       = sigma_opts(10);
     % v_lambda_star   = sigma_opts(11);
     zeNO            = sigma_opts(12);
-    iWe             = 1/We;
+    iWe = 1/We;
     if Ca == -1
         Ca = Inf;
     end
@@ -259,7 +259,7 @@ function varargout =  m_imrv2_finitediff(varargin)
     end
     
     % TODO Add the stress output if possible, similar to the spectral code
-    
+   
     % solver function
     function dXdt = SVBDODE(t,X)
         if progdisplay == 1
@@ -278,14 +278,16 @@ function varargout =  m_imrv2_finitediff(varargin)
             if masstrans
                 C = X(imass);
             end
-            
+            fzero_opts = optimset('TolX',1e-12);
             if t/tfin > 0.001
                 %Might need to tune 0.001 for convergence:
-                guess= -.001+tau_del(end);
-                prelim  = fzero(@Boundary,guess);
+                guess_upper = tau_del(end) + 0.001;
+                guess_lower = tau_del(end) - 0.001;
+                bracket = [guess_lower guess_upper];
+                prelim  = fzero(@Boundary,bracket,fzero_opts);
             else
                 guess = -.0001;
-                prelim  = fzero(@Boundary,guess);
+                prelim  = fzero(@Boundary,guess,fzero_opts);
             end
         else
             prelim = 0 ;
@@ -396,7 +398,7 @@ function varargout =  m_imrv2_finitediff(varargin)
         else
             % polytropic gas
             pVap = vapor*Pv_star;
-            pdot= -3*kappa*U/R*p;
+            pdot = -3*kappa*U/R*p;
         end
         
         if medtherm
@@ -423,8 +425,8 @@ function varargout =  m_imrv2_finitediff(varargin)
         
         % pressure waveform
         [pf8,pf8dot] = f_pinfinity(t,pvarargin);
-        
-        % bubble wall acceleration
+
+        % bubble wall acceleration 
         [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, R, U, ...
             J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
         

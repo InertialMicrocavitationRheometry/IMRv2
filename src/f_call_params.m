@@ -11,7 +11,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
         acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
     = f_call_params(varargin)
     
-    disp('--- Inertial Microcavitation Rheometry Forward Solver ---')
+    disp('--- Inertial Microcavitation Rheometry Forward Solver ---');
     % check that all inputs are matched
     if mod(nargin,2) == 1
         error('input error: unmatched inputs');
@@ -111,7 +111,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             case 'lambda2', lambda2 = varargin{n+1};
             case 'alphax',  alphax = varargin{n+1};
             case 'surft',    S = varargin{n+1};
-            P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
+            % P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
             case 'vmaterial', vmaterial = varargin{n+1};
             visflag = visflag + 1;
             [mu8,Dmu,v_a,v_nc,v_lambda,vmat] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity
@@ -141,7 +141,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             
         end
     end
-    
+
     if p0set == 0
         % need to add Pv_sat at room temp
         P0 = (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3);
@@ -149,7 +149,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     if c8set == 0
         C8 = sqrt(nstate*(P8 + GAM)/rho8);
     end
-    
+
     check = 1-isnumeric(radial);
     if check || radial > 4 || radial <= 0
         error('INPUT ERROR: radial must be 1, 2, 3, or 4');
@@ -206,6 +206,10 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     Pv_star = vapor*Pv/Pref;
     P0_star = P0/Pref;
     
+    if Pv_star > P0_star
+        error('vapor pressure can not be higher than the total pressure');
+    end
+
     % TODO
     % When we assume water vapor undergoes infinitely fast mass diffusion
     % the vapor pressure is constant and P is the pressure of
@@ -244,8 +248,8 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     else
         DRe = 0;
     end
-    
-    We      = Pref*R0/(2*S);
+    log_We = log(0.5) + log(Pref) + log(R0) - log(S);
+    We = exp(log_We);
     v_lambda_star = v_lambda/t0;
     LAM     = lambda2/lambda1;
     De      = lambda1*Uc/R0;            % Deborah number
@@ -343,8 +347,8 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     %     Pv = f_pvsat(1*T_inf)/P_inf;
     %     P0_star = Pext_Amp_Freq(1)/P_inf + Cgrad*f_pvsat(1*T_inf)/P_inf;
     %     % Need to recalculate initial concentration
-    %     thetha = Rv_star/Ra_star*(P0_star-Pv)/Pv; % masp air / mass vapor
-    %     C0 = 1/(1+thetha);
+    %     theta = Rv_star/Ra_star*(P0_star-Pv)/Pv; % masp air / mass vapor
+    %     C0 = 1/(1+theta);
     %     Ma0 = (P0_star-Pv)/Ra_star;
     %     % Need to calculate the equilibrium radii for initial
     %     % stress state:
@@ -384,6 +388,5 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     % dimensionless thermal
     thermal_opts = [Foh Br alpha beta chi iota];
     % dimensionaless mass transfer
-    mass_opts = [Fom C0 Rv_star Ra_star L_heat_star mv0 ma0];
-    
+    mass_opts = [Fom C0 Rv_star Ra_star L_heat_star mv0 ma0]; 
 end

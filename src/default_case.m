@@ -46,15 +46,13 @@ mn              = 0;        % power shift for waveform
 wave_type       = 2;        % wave type oscillating bubble, see f_pinfinity
 
 % stress options
-S               = 0.056;
-%0.056;% 0.072              % (N/m) Liquid Surface Tension
+S               = 0.072;         % (N/m) Liquid Surface Tension
 vmaterial       = 'water';
-G               = 1E3;                % (Pa) Medium Shear Modulus
-lambda1         = 1e-8;             % relaxation time (s)
-lambda2         = 1e-8;               % retardation time (s)
+G               = 1E3;           % (Pa) Medium Shear Modulus
+lambda1         = 1e-8;          % relaxation time (s)
+lambda2         = 1e-8;          % retardation time (s)
 % mu8             = 0.027606;
-%0.0246;
-%1E-3;
+
 alphax          = 0.25;        % qKV term
 
 %(3*alphax-1)*(5 - (Req/1)^4 - 4*(Req/1))/(2*Ca) + ...
@@ -86,6 +84,5 @@ Ra              = 438.275;            % (J/Kg-K)Gas constant air
 
 % pressure variables
 Pv              = f_pvsat(T8);
-% P0              = Pv*vapor + ...% P8 + 2*S/R0;%
 %    (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3*kappa); % need to add Pv_sat at room temp
 P0              = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
