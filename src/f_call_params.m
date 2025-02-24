@@ -119,7 +119,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             
             % thermal options
             case 't8',      T8 = varargin{n+1};
-                            tempset = 1;
+            tempset = 1;
             case 'kappa',   kappa = varargin{n+1};
             case 'at',      AT = varargin{n+1};
             case 'bt',      BT = varargin{n+1};
@@ -143,7 +143,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             
         end
     end
-
+    
     if tempset == 1
         % recalculating the vapor pressure
         Pv = vapor*f_pvsat(T8);
@@ -156,7 +156,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     if c8set == 0
         C8 = sqrt(nstate*(P8 + GAM)/rho8);
     end
-
+    
     check = 1-isnumeric(radial);
     if check || radial > 4 || radial <= 0
         error('INPUT ERROR: radial must be 1, 2, 3, or 4');
@@ -216,7 +216,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     if Pv_star > P0_star
         error('vapor pressure can not be higher than the total pressure');
     end
-
+    
     % TODO
     % When we assume water vapor undergoes infinitely fast mass diffusion
     % the vapor pressure is constant and P is the pressure of
@@ -395,5 +395,5 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     % dimensionless thermal
     thermal_opts = [Foh Br alpha beta chi iota];
     % dimensionaless mass transfer
-    mass_opts = [Fom C0 Rv_star Ra_star L_heat_star mv0 ma0]; 
+    mass_opts = [Fom C0 Rv_star Ra_star L_heat_star mv0 ma0];
 end

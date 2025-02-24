@@ -259,7 +259,7 @@ function varargout =  m_imrv2_finitediff(varargin)
     end
     
     % TODO Add the stress output if possible, similar to the spectral code
-   
+    
     % solver function
     function dXdt = SVBDODE(t,X)
         if progdisplay == 1
@@ -318,7 +318,7 @@ function varargout =  m_imrv2_finitediff(varargin)
         Taudot = zeros(-1,1);
         Tmdot = zeros(-1,1);
         Cdot = zeros(-1,1);
-
+        
         % heat and mass transfer PDE residual calculations
         if bubtherm && masstrans
             % extracting the vapor concentration
@@ -371,7 +371,7 @@ function varargout =  m_imrv2_finitediff(varargin)
             
             Taudot = first_term+second_term;
             Taudot(end) = 0;
-
+            
         elseif masstrans
             % extracting the vapor concentration
             C = X(imass);
@@ -397,7 +397,7 @@ function varargout =  m_imrv2_finitediff(varargin)
             % concentration evolution
             Cdot = Fom/R^2*(DDC - two) - three;
             Cdot(end) = 0;
-
+            
         else
             % polytropic gas
             pVap = vapor*Pv_star;
@@ -428,8 +428,8 @@ function varargout =  m_imrv2_finitediff(varargin)
         
         % pressure waveform
         [pf8,pf8dot] = f_pinfinity(t,pvarargin);
-
-        % bubble wall acceleration 
+        
+        % bubble wall acceleration
         [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, R, U, ...
             J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
         

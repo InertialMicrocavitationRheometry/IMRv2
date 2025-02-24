@@ -12,7 +12,7 @@ function [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, ...
     if radial == 1
         Udot = (p + pVap - 1 - pf8 - iWe/R + J - 1.5*U^2)/R;
         
-    % Keller-Miksis in pressure
+        % Keller-Miksis in pressure
     elseif radial == 2
         Udot = ((1+U./Cstar)*(p + pVap - 1 - pf8 - iWe/R + J) ...
             + R/Cstar*(pdot + iWe*U/R^2 +  JdotX - pf8dot) ...
@@ -21,7 +21,7 @@ function [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, ...
         %     + R./Cstar.*(pdot + iWe.*U./R.^2 +  JdotX - pf8dot) ...
             %     - 1.5.*(1-U./(3.*Cstar)).*U.^2)./((1-U./Cstar).*R + JdotA./Cstar);
         
-    % Keller-Miksis in enthalpy
+        % Keller-Miksis in enthalpy
     elseif radial == 3
         hB = (sam/no)*(((p - iWe/R + GAMa + J)/sam)^no - 1);
         hH = (sam/(p - iWe/R + GAMa + J))^(1/nstate);
@@ -29,7 +29,7 @@ function [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, ...
             + R/Cstar*hH*(pdot + iWe*U/R^2 + JdotX) ...
         - 1.5*(1 - U/(3*Cstar))*U^2)/((1 - U/Cstar)*R + JdotA*hH/Cstar);
         
-    % Gilmore equation
+        % Gilmore equation
     elseif radial == 4
         hB = sam/no*(((p - iWe/R + GAMa + J)/sam)^no - 1);
         hH = (sam/(p - iWe/R + GAMa + J))^(1/nstate);
