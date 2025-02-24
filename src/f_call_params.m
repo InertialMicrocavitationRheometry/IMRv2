@@ -44,12 +44,13 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     % load inputs
     misscount = 0;
     p0set = 0;
+    tempset = 0;
     c8set = 0;
     tflag = 0;
     visflag = 0;
     for n = 1:2:nargin
         if strcmpi(varargin{n},'p0') == 1
-            p0set = 1;
+            p0set = 0;
         end
         if strcmpi(varargin{n},'c8') == 1
             c8set = 1;
@@ -118,6 +119,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             
             % thermal options
             case 't8',      T8 = varargin{n+1};
+                            tempset = 1;
             case 'kappa',   kappa = varargin{n+1};
             case 'at',      AT = varargin{n+1};
             case 'bt',      BT = varargin{n+1};
@@ -142,6 +144,11 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
         end
     end
 
+    if tempset == 1
+        % recalculating the vapor pressure
+        Pv = vapor*f_pvsat(T8);
+        P0 = (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3);
+    end
     if p0set == 0
         % need to add Pv_sat at room temp
         P0 = (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3);

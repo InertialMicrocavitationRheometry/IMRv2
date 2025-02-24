@@ -15,14 +15,14 @@ kappa = 1.4;
 Lheat = 2.378193575129533e+04;
 T8 = 298.15;
 rho8 = 1064;
-tvector = linspace(0,tfin,1000);
-radial = 1;
+tvector = linspace(0,tfin,100);
+radial = 2;
 vapor = 1;
 bubtherm = 1;
 medtherm = 1;
 masstrans = 0;
 stress = 0;
-varin = {'progdisplay',1,'radial',radial,...
+varin = {'radial',radial,...
          'bubtherm',bubtherm,...
          'tvector',tvector,...
          'vapor',vapor,...
@@ -43,4 +43,4 @@ varin = {'progdisplay',1,'radial',radial,...
 figure(1)
 hold on;
 plot(tf,Rf,'^')
-clear
+ylim([0 1.2])

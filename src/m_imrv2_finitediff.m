@@ -278,7 +278,7 @@ function varargout =  m_imrv2_finitediff(varargin)
             if masstrans
                 C = X(imass);
             end
-            fzero_opts = optimset('TolX',1e-12);
+            fzero_opts = optimset('TolX',1e-20);
             if t/tfin > 0.001
                 %Might need to tune 0.001 for convergence:
                 guess_upper = tau_del(end) + 0.001;
@@ -318,6 +318,7 @@ function varargout =  m_imrv2_finitediff(varargin)
         Taudot = zeros(-1,1);
         Tmdot = zeros(-1,1);
         Cdot = zeros(-1,1);
+
         % heat and mass transfer PDE residual calculations
         if bubtherm && masstrans
             % extracting the vapor concentration
@@ -368,8 +369,9 @@ function varargout =  m_imrv2_finitediff(varargin)
             U_vel = (chi/R*(kappa-1)*DTau-y*R*pdot/3)/(kappa*p);
             second_term = -DTau.*((1/R).*(U_vel-y*U));
             
-            Taudot= first_term+second_term;
+            Taudot = first_term+second_term;
             Taudot(end) = 0;
+
         elseif masstrans
             % extracting the vapor concentration
             C = X(imass);
@@ -395,6 +397,7 @@ function varargout =  m_imrv2_finitediff(varargin)
             % concentration evolution
             Cdot = Fom/R^2*(DDC - two) - three;
             Cdot(end) = 0;
+
         else
             % polytropic gas
             pVap = vapor*Pv_star;
