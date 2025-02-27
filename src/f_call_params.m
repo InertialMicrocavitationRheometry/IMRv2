@@ -45,15 +45,12 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     misscount = 0;
     p0set = 0;
     tempset = 0;
-    c8set = 0;
+    dmset = 0;
     tflag = 0;
     visflag = 0;
     for n = 1:2:nargin
         if strcmpi(varargin{n},'p0') == 1
             p0set = 0;
-        end
-        if strcmpi(varargin{n},'c8') == 1
-            c8set = 1;
         end
         switch lower(varargin{n})
             % equation options
@@ -94,7 +91,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             case 'gam',     GAM = varargin{n+1};
             case 'nstate',  nstate = varargin{n+1};
             case 'p8',      P8 = varargin{n+1};
-            case 'c8',      C8 = varargin{n+1};
+            case 'c8',      C8 = varargin{n+1}; 
             
             % pressure waveform options
             case 'pa',      pA = varargin{n+1};
@@ -102,11 +99,11 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             case 'tw',      TW = varargin{n+1};
             case 'dt',      DT = varargin{n+1};
             case 'mn',      mn = varargin{n+1};
+            case 'wave_type', wave_type = varargin{n+1};
             
             % stress options
             case 'mu',      mu8 = varargin{n+1};
             visflag = visflag + 1;
-            
             case 'g',       G = varargin{n+1};
             case 'lambda1', lambda1 = varargin{n+1};
             case 'lambda2', lambda2 = varargin{n+1};
@@ -123,8 +120,9 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             case 'kappa',   kappa = varargin{n+1};
             case 'at',      AT = varargin{n+1};
             case 'bt',      BT = varargin{n+1};
-            case 'kl',      Km = varargin{n+1};
-            case 'dl',      Dm = varargin{n+1};
+            case 'km',      Km = varargin{n+1};
+            case 'dm',      Dm = varargin{n+1}; 
+                            dmset = 1;
             
             % mass transfer options
             case 'dmass',   D0 = varargin{n+1};
@@ -147,14 +145,15 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     if tempset == 1
         % recalculating the vapor pressure
         Pv = vapor*f_pvsat(T8);
-        P0 = (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3);
+        P0 = (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^3;
     end
     if p0set == 0
         % need to add Pv_sat at room temp
-        P0 = (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^(3);
+        P0 = (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^3;
     end
-    if c8set == 0
-        C8 = sqrt(nstate*(P8 + GAM)/rho8);
+    if dmset == 0
+        % (m^2/s) thermal diffusivity
+        Dm = Km / (rho8*Cp);
     end
     
     check = 1-isnumeric(radial);
@@ -181,6 +180,10 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     if check || masstrans ~= 0 && masstrans ~= 1
         error('INPUT ERROR: masstrans must be 0 or 1');
     end
+    check = 1-isnumeric(wave_type);
+    if check || wave_type > 5 || wave_type <= -3
+        error('INPUT ERROR: wavetype must be between -2 to 5');
+    end
     if (tflag > 1)
         error('INPUT ERROR: Only tvector or tfin can be specified, not both');
     end
@@ -197,74 +200,83 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     end
     
     % intermediate calculated variables
-    K8      = AT*T8+BT;                 % far-field thermal conductivity (W/(m K))
-    Rnondim = P8/(rho8*T8);             % dimensional parameter for gas constants
-    Uc      = sqrt(P8/rho8);            % characteristic velocity (m/s)
-    theta   = Rv/Ra*(P0-Pv)/Pv;         % mass air / mass vapor
-    C0      = 1/(1+theta);              % initial vapor concentration
-    mv0     = Pv*vapor*(4/3*pi*R0^3)/Rv/T8;   % mass of vapor
-    ma0     = (P0-Pv*vapor)*(4/3*pi*R0^3)/Ra/T8;  % mass of non-condensible gas
-    Mnondim = rho8*(4/3*pi*R0^3);       %
+    
+    % far-field thermal conductivity (W/(m K))
+    K8      = AT*T8+BT;                 
+    % dimensional parameter for gas constants
+    Rnondim = P8/(rho8*T8);             
+    % characteristic velocity (m/s)
+    Uc      = sqrt(P8/rho8);            
     
     % Final non-dimensional variables
     Pref    = P8;
-    t0      = R0/Uc;                    % characteristic time (s)
     % dimensionless vapor and infinity pressure
     Pv_star = vapor*Pv/Pref;
     P0_star = P0/Pref;
-    
-    if Pv_star > P0_star
-        error('vapor pressure can not be higher than the total pressure');
-    end
-    
-    % TODO
-    % When we assume water vapor undergoes infinitely fast mass diffusion
-    % the vapor pressure is constant and P is the pressure of
-    % non-condesible gas
-    %P0_star = P0_star - (1-masstrans)*f_pvsat(T_inf)/P_inf;
-    
+    % characteristic time (s)
+    t0      = R0/Uc;                       
+
     % dimensionless waveform parameters
     tvector = TVector./t0;
-    om      = omega*t0;                 % non-dimensional frequency
+    % non-dimensional frequency
+    om      = omega*t0;                 
     ee      = pA/Pref;
     tw      = TW*t0;
     dt      = DT/t0;
     % acoustic properties
-    GAMa    = GAM/P8;                   % bulk liquid stiffness
-    Cstar   = C8/Uc;                    % speed of sound
+
+    % bulk liquid stiffness
+    GAMa    = GAM/P8;                   
+    % speed of sound
+    Cstar   = C8/Uc;                    
     % thermal properties
     chi     = T8*K8/(P8*R0*Uc);
-    % T8*K8/(P0*R0*Uc);
     iota    = Km/(K8*Lt);
     Foh     = Dm/(Uc*R0);
-    alpha   = AT*T8/K8;              % we do not need beta = BT/K8, we do for diffusion
+    alpha   = AT*T8/K8;              
     beta    = BT/K8;
     Br      = Uc^2/(Cp*T8);
     % mass diffusion
     Fom     = D0/(Uc*R0);
+    % mass of vapor
+    mv0     = Pv*vapor*(4/3*pi*R0^3)/Rv/T8;   
+    % mass of non-condensible gas
+    ma0     = P0*(4/3*pi*R0^3)/Ra/T8;   
+    Mnondim = rho8*(4/3*pi*R0^3);     
     mv0     = mv0/Mnondim;
     ma0     = ma0/Mnondim;
     Rv_star = Rv/Rnondim;
     Ra_star = Ra/Rnondim;
+    % mass air / mass vapor
+    theta = Rv_star/Ra_star*(P0_star-Pv_star)/Pv_star;
+    % initial vapor concentration
+    C0 = 1/(1+theta);
     L_heat_star = L_heat/(Uc)^2;
+
     % viscoelastic properties
+
+    % Cauchy number
     Ca      = Pref/G;
-    Re8     = Pref*R0/(mu8*Uc);        % this is the Reynolds number
+    % Reynolds number
+    Re8     = Pref*R0/(mu8*Uc);        
     if Dmu ~= 0
         DRe = Pref*R0/(Dmu*Uc);
     else
         DRe = 0;
     end
+    % Weber number
     log_We = log(0.5) + log(Pref) + log(R0) - log(S);
     We = exp(log_We);
+    % relaxation time
     v_lambda_star = v_lambda/t0;
+    % Weissenberg number
     LAM     = lambda2/lambda1;
-    De      = lambda1*Uc/R0;            % Deborah number
+    % Deborah number
+    De      = lambda1*Uc/R0;            
     % dimensionless initial conditions
     Rzero   = 1;
     Req_zero= Req/R0;
     Uzero   = U0/Uc;
-    pzero   = P0_star;
     
     % overwrite defaults with nondimensional inputs
     if isempty(varargin) == 0
@@ -295,7 +307,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
                 % dimensionless initial conditions
                 case 'rzero',   Rzero = varargin{n+1};
                 case 'uzero',   Uzero = varargin{n+1};
-                case 'pzero',   pzero = varargin{n+1};
+                case 'p0star',  P0_star = varargin{n+1};
                 otherwise
                 misscount = misscount + 1;
             end
@@ -347,40 +359,37 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
         zeNO = 1;
     end
     
-    % TODO
-    % need to modify initial conditions for the Out-of-Equilibrium Rayleigh
-    % collapse:
-    % if  (Pext_type == 'IC')
-    %     Pv = f_pvsat(1*T_inf)/P_inf;
-    %     P0_star = Pext_Amp_Freq(1)/P_inf + Cgrad*f_pvsat(1*T_inf)/P_inf;
-    %     % Need to recalculate initial concentration
-    %     theta = Rv_star/Ra_star*(P0_star-Pv)/Pv; % masp air / mass vapor
+    % modify initial conditions for the Out-of-Equilibrium Rayleigh collapse:
+    % if  (wave_type == -1)
+    %     % mass air / mass vapor
+    %     theta = Rv_star/Ra_star*P0/Pv; 
     %     C0 = 1/(1+theta);
-    %     Ma0 = (P0_star-Pv)/Ra_star;
-    %     % Need to calculate the equilibrium radii for initial
-    %     % stress state:
-    %     [REq] = f_calc_Req(R0, Tgrad ,Cgrad,Pext_Amp_Freq(1),vmaterial);
-    %     %REq = 1;
-    %     C0 = C0*ones(1,NT);
-    %     U0_star = -(1-P0_star)/(C_star); % Initial velocity
-    %     %Plesset & Prosperetti, ARFM 1977, p166
-    %     else
-    %     U0_star = 0;
+    %     ma0 = P0/Ra_star;
+    %     % calculating the equilibrium radii for initial
+    %     [REq] = f_calc_Req(R0, bubtherm, masstrans, ee, vmaterial);
+    %     % initial velocity
+    %     Uzero = -(1-pzero)/(Cstar); 
+    % else
+    %     % Plesset & Prosperetti, ARFM 1977, p166
+    %     Uzero = 0;
     % end
-    %
-    % if  (Pext_type == 'RC')
-    %     U0_star = -1*(Pext_Amp_Freq(1)/P_inf)/(C_star); % Initial velocity
-    %      %Plesset & Prosperetti, ARFM 1977, p166
+    % 
+    % % Plesset & Prosperetti, ARFM 1977, p166
+    % if  (wave_type == -2)
+    %     % initial velocity
+    %     Uzero = -(ee/P8)/(Cstar); 
     % end
     
+    % out parameters
+
     % equation settings
     eqns_opts = [radial bubtherm medtherm stress eps3 vapor masstrans];
     % solver options
     solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
     % dimensionless initial conditions
-    init_opts = [Rzero Uzero pzero P8 T8 Pv_star Req_zero alphax];
+    init_opts = [Rzero Uzero P0_star P8 T8 Pv_star Req_zero alphax R0];
     % time span options
-    tspan_opts = tvector;
+    tspan_opts = tvector; 
     % output options
     out_opts = [dimensionalout progdisplay];
     
@@ -393,7 +402,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     % dimensionless viscoelastic
     sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA vmat v_lambda_star zeNO];
     % dimensionless thermal
-    thermal_opts = [Foh Br alpha beta chi iota];
+    thermal_opts = [Foh Br alpha beta chi iota Km/K8];
     % dimensionaless mass transfer
     mass_opts = [Fom C0 Rv_star Ra_star L_heat_star mv0 ma0];
 end

@@ -11,7 +11,7 @@ function [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin)
     else
         options = odeset('MaxStep',tfin/divisions,'RelTol',1e-8);
     end
-    
+
     if method == 15
         [t,X] = ode15s(bubble,tspan,init,options);
     elseif method == 23

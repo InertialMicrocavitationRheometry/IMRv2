@@ -64,7 +64,7 @@ GAM             = 3049.13*1e5;
 nstate          = 7.15;
 % far-field pressure (Pa)
 P8              = 101325;
-% sqrt(nstate*(P8 + GAM)/rho8); % far-field sound speed (m/s)
+% far-field sound speed (m/s)
 C8              = 1484;
 
 % pressure wave options
@@ -112,11 +112,9 @@ BT              = 1.165e-2;
 % (K) far field temperature
 T8              = 300;
 % (W/m-K) thermal conductivity medium
-Km              = 0.615;
+Km              = 0.55;
 % (J/Kg K) specific heat medium
-Cp              = 3.61e3;
-% (m^2/s) thermal diffusivity
-Dm              = Km / (rho8*Cp);
+Cp              = 4.181e3;
 
 % mass transfer options
 
@@ -129,7 +127,7 @@ Ru              = 8.3144598;
 % (J/Kg-K) gas constant vapor
 Rv              = Ru/(18.01528e-3);
 % (J/Kg-K) gas constant air
-Ra              = 438.275;
+Ra              = Ru/(28.966e-3); 
 
 % viscosity variables
 [mu8,Dmu,v_a,v_nc,v_lambda,vmat] = f_nonNewtonian_Re(vmaterial);

@@ -1,6 +1,6 @@
 % close all;clc;
 warning('off','all')
-
+clear;
 % Load Data
 % load('C:\Users\bachi\Dropbox (University of Michigan)\Bachir\ODV\Data\PA_Calibrated.mat')
 % load('/Users/bachirabeid/Dropbox (University of Michigan)/Bachir/ODV/Data/All_Combined.mat')
@@ -56,8 +56,8 @@ gam_st = 0.072; % (N/m) Water Surface Tension (Called "S" in other function)
 T_inf = 298.15; % (K) Far field temp. 
 
 Tgrad = 1; %1 Temperature transfer bt bubble and material
-Cgrad = 0;%1;  %1 Vapor-non-condensible gas diffusion
-Tmgrad = 0; %0 Off means cold liquid assumption
+Cgrad = 1;%1;  %1 Vapor-non-condensible gas diffusion
+Tmgrad = 1; %0 Off means cold liquid assumption
 
 % Note: P_guess depends on bubble size, so we will treat it inside solver
 % loop ...
@@ -96,10 +96,10 @@ for i =range(1)% 1:length(expts)
     R0 =expts(i).R0;
     % eqR = R0;
     fileName = expts(i).FileName;
-    
+
     P_guess = (P_inf+2*gam_st/eqR-Pvsat(T_inf))*(eqR/R0)^(3);
     Lmax = R0/eqR; % Max. stretch
-    
+
     % Set up simulation duration:
     tspan = R0/3; %/3; % Make a bit longer, for good comparison
     TX = R0/12.6; % Empirically selected duration for initial expansion, matching experiment ...
@@ -122,7 +122,7 @@ for i =range(1)% 1:length(expts)
 
 
     % Treat bubble content: (Left original code in place)
-    NT = 200; % Mesh points in bubble, resolution should be >=500
+    NT = 50; % Mesh points in bubble, resolution should be >=500
     NTM = 50; % Mesh points in the material, should be 10
     Pext_type = 'IC'; %'IC' for Flynn, 'ga' for gaussian bubble growth
 
