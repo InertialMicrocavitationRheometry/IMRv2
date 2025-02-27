@@ -507,12 +507,12 @@ function varargout =  m_imrv2_finitediff(varargin)
             N = Nodes-1;
             deltaY = 1/N;
             K = 1:1:N+1;
-            yk = (K-1)*deltaY;
+            y = (K-1)*deltaY;
         elseif Tm_check == 1
             N = Nodes-1;
             deltaY = -2/N;
             K = 1:1:N+1;
-            yk = 1+(K-1)*deltaY;
+            y = 1+(K-1)*deltaY;
         end
         
         Diff_Matrix = zeros(Nodes);

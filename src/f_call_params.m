@@ -402,7 +402,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     % dimensionless viscoelastic
     sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA vmat v_lambda_star zeNO];
     % dimensionless thermal
-    thermal_opts = [Foh Br alpha beta chi iota Km/K8];
+    thermal_opts = [Foh Br alpha beta chi iota];
     % dimensionaless mass transfer
     mass_opts = [Fom C0 Rv_star Ra_star L_heat_star mv0 ma0];
 end

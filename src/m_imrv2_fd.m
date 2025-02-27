@@ -33,12 +33,12 @@ function varargout =  m_imrv2_fd(varargin)
     Nt              = solve_opts(5);
     Mt              = solve_opts(6);
     Lv              = solve_opts(7);
-    L               = solve_opts(8);
+    Lt               = solve_opts(8);
     
     % dimensionless initial conditions
     Rzero           = init_opts(1);
     Uzero           = init_opts(2);
-    p0star          = init_opts(3);
+    pg0star          = init_opts(3);
     P8              = init_opts(4);
     T8              = init_opts(5);
     Pv_star         = init_opts(6);
@@ -94,7 +94,6 @@ function varargout =  m_imrv2_fd(varargin)
     beta            = thermal_opts(4);
     chi             = thermal_opts(5);
     iota            = thermal_opts(6);
-    Km_star         = thermal_opts(7);
 
     % dimensionaless mass transfer
     Fom             = mass_opts(1);
@@ -103,7 +102,7 @@ function varargout =  m_imrv2_fd(varargin)
     Ra_star         = mass_opts(4);
     L_heat_star     = mass_opts(5);
     % mv0             = mass_opts(6);
-    ma0             = mass_opts(7);
+    % ma0             = mass_opts(7);
     
     % pre_process
     
@@ -113,18 +112,18 @@ function varargout =  m_imrv2_fd(varargin)
     D_Matrix_Tm = f_finite_diff_mat(Mt,1,1);
     DD_Matrix_Tm = f_finite_diff_mat(Mt,2,1);
 
-    % Inside the bubble
+    % inside the bubble
     N = Nt-1;
     deltaY = 1/N;
     i = 1:1:N+1;
-    yk = ((i-1)*deltaY)';
+    y = ((i-1)*deltaY)';
 
-    % Outside the bubble
+    % outside the bubble
     Nm = Mt-1;
     deltaYm = -2/Nm;
     j = 1:1:Nm+1;
-    xk = (1+(j-1)*deltaYm)';
-    yk2 = ((2./(xk+1)-1)*L+1);
+    xi = (1+(j-1)*deltaYm)';
+    yT = ((2./(xi+1)-1)*Lt+1);
 
 
     % precomputations
@@ -162,30 +161,29 @@ function varargout =  m_imrv2_fd(varargin)
 %******************************************
 % Initial Conditions
 % tspan_star = tspan/t0;
-R0_star = 1;
-U0_star = 0;  % Change as needed
+Uzero = 0;  % Change as needed
 %Z10 = 0;
 S0 = 0;
-Tau0 = zeros(1,Nt);
-C0 = C0*ones(1,Nt);
-Tm0 = ones(1,Mt);
+Tau0 = zeros(Nt,1);
+C0 = C0*ones(Nt,1);
+Tm0 = ones(Mt,1);
 
 % Need to modify intial conditions for the Out-of-Equilibrium Rayleigh
 % Collapse:
 % if strcmp(Pext_type,'IC')
     Pv = f_pvsat(1*T8)/P8;
-    P0_star = p0star + 1*f_pvsat(1*T8)/P8;
+    Pb_star = pg0star + 1*f_pvsat(1*T8)/P8;
     % Need to recalculate intital concentration
-    theta = Rv_star/Ra_star*(P0_star-Pv)/Pv; % mass air / mass vapor
+    theta = Rv_star/Ra_star*(Pb_star-Pv)/Pv; % mass air / mass vapor
     C0 = 1/(1+theta);
     % Calculate the equilibrium radii ratio for initial stress state:
-    % [REq,~,~] = IMRCalc_Req(R0, 1, 1, p0star*P8, G, G1, mu);
+    % [REq,~,~] = IMRCalc_Req(R0, 1, 1, pg0star*P8, G, G1, mu);
 
-    ma0 = p0star/Ra_star;
+    ma0 = pg0star/Ra_star;
     fun = @(x) Pv*(1+(ma0/x)*(Ra_star/Rv_star))-1-...
     1/We*(Pv/(Rv_star*x))^(1/3) ; % parameterized function
 
-    MTotal0 = p0star/Ra_star + Pv/Rv_star;
+    MTotal0 = pg0star/Ra_star + Pv/Rv_star;
     exp2=MTotal0;
     x = fzero(fun,exp2,optimset('display','off'));
 
@@ -200,15 +198,32 @@ Tm0 = ones(1,Mt);
     % parameters, [G, G1, mu] are fed mostly to use the IMRcall_Param
     % function ...
 
-    C0 = C0*ones(1,Nt);
-    %U0_star = -1*(1-P0_star)/(Cstar); %Intitial velocity due to shockwave
-    U0_star = 0;
+    C0vec = C0*ones(Nt,1);
+    %Uzero = -1*(1-Pb_star)/(Cstar); %Intitial velocity due to shockwave
+    Uzero = 0;
     
 % end
-S0 = 0;
-% init = [R0_star U0_star P0_star S0 Tau0 C0 Tm0];
-init = [R0_star U0_star P0_star Tau0 Tm0 C0];
-%X0 = [R0_star U0_star P0_star Tau0 C0 Tm0]; % Try dropping J?
+
+
+    % stress spectra
+    if stress < 3
+        Sp = zeros(2*(Nv - 1)*(spectral == 1),1);
+    elseif stress == 3 || stress == 4
+        [Sp] = f_max_pre_stress(Req, Cstar, Pv_star, We, Re8, De, Ca, alphax);
+    elseif stress == 5
+        Sp = zeros(2*(Nv - 1)*(spectral == 1) + 2,1);
+    end
+
+    % init = [Rzero Uzero Pb_star Tau0 Tm0 C0 Sp];
+
+    % initial condition vector
+    init = [Rzero;
+    Uzero;
+    Pb_star;
+    Tau0;
+    Tm0;
+    C0vec];
+    % Sp];
 
     % thermal auxiliary variable for boundary conditions
     tau_del = [];
@@ -283,112 +298,98 @@ Cdel = [];
 % Nested function; ODE Solver calls to march governing equations in time
 % This function has acess to all parameters above
 
-    function dxdt = SVBDODE(t,x)
+    function [dXdt] = SVBDODE(t,x)
         
-        % ZZ - drop stress integral from update
+        % extract solution
+
+        % bubble wall radius
+        R = x(1); 
+        % bubble wall velocity
+        U = x(2); 
+        % internal bubble pressure
+        p = x(3); 
+        % auxilary variable for internal bubble temperature
+        Tau = x(ibubtherm);
+        % temperature in the material
+        Tm = x(imedtherm); 
+        % vapor concentration inside the bubble
+        C = x(imass); 
+        % stress integral
+        %Z1 = x(4); 
+
+        % if (1 == 1)
+            if t/tfin> 0.001
+                guess= -.001+tau_del(end);
+                prelim  = fzero(@Boundary,guess);
+            else
+                guess = -.0001;
+                prelim  = fzero(@Boundary,guess);
+            end
+        % else
+            % prelim = 0;
+        % end
         
-        % Break x vector into indv. values
-        R = x(1); % Bubble wall Radius
-        U = x(2); % Bubble wall velocity
-        p = x(3); % Internal pressure
-        %Z1 = x(4); % Stress integral
-        % S = x(4);
-        % Tau = x(5:(Nt+4)); % Alt - x(4:(NT+3));
-        % C = x((Nt+5):(2*Nt+4)); % Alt - x((NT+4):(2*NT+3)); 
-        % Tm = x((2*Nt+5):end); % Alt - x((2*NT+4):end); 
-        Tau = x(ibubtherm); % Alt - x(4:(Nt+3));
-        Tm = x(imedtherm); % Alt - x((2*Nt+4):end); 
-        C = x(imass); % Alt - x((Nt+4):(2*Nt+3)); 
-        
-        % *********Solves for boundary condition at the wall**************
-                % if (1 == 1)
-                    if t/tfin> 0.001
-                        %Might need to tune 0.001 for convergence:
-                        guess= -.001+tau_del(end);
-                        prelim  = fzero(@Boundary,guess);
-                    else
-                        guess = -.0001;
-                        prelim  = fzero(@Boundary,guess);
-                    end
-                % else
-                    % prelim = 0;
-               % end
-        
-        %****************************************************************
-        % Sets value at boundary conditions
+        % sets value at boundary conditions
         tau_del = [tau_del prelim];
         Tau(end) = prelim;
         T = TW(Tau);
         Tm(1) = T(end);
         
-        % Calculated variables
+        % calculate variables
         K_star = alpha*T+beta;
         C(end) =  CW(T(end),p);
         
         Rmix = C*Rv_star + (1-C)*Ra_star;
         
-        % Gets variables that are not directly calculated as outputs
+        % gets variables that are not directly calculated as outputs
         Tdel = [Tdel T(end)];
         tdel = [tdel t];
         Cdel = [Cdel C(end)];
-  
-        % *****************************************
-        % Create derivative terms
-        
-        % Temp. field of the gas inside the bubble
+          
+        % temperature field of the gas inside the bubble
         DTau  = D_Matrix_T_C*Tau;
         DDTau = DD_Matrix_T_C*Tau;
         
-        % Concentration of vapor inside the bubble
+        % concentration of vapor inside the bubble
         DC  = D_Matrix_T_C*C;
         DDC = DD_Matrix_T_C*C;
 
-        % Temp. field in the material
+        % temperature field in the material
         DTm = D_Matrix_Tm*Tm;
         DDTm = DD_Matrix_Tm*Tm;
-        %***************************************
-        % Internal pressure equation
+
+        % internal pressure equation
         pdot = 3/R*(1*chi*(kappa-1)*DTau(end)/R - kappa*p*U +...
               + 1*kappa*p*Fom*Rv_star*DC(end)/( T(end)*R* Rmix(end)* (1-C(end)) ) );
-
-        % *****************************************
         
-        %***************************************
-        % Temperature of the gas inside the bubble
-        U_vel = (chi/R*(kappa-1).*DTau-yk*R*pdot/3)/(kappa*p);
+        % temperature of the gas inside the bubble
+        U_vel = (chi/R*(kappa-1).*DTau-y*R*pdot/3)/(kappa*p);
         first_term = (DDTau.*chi./R^2+pdot).*(K_star.*T/p*(kappa-1)/kappa);
-        second_term = -DTau.*(U_vel-yk*U)./R;
+        second_term = -DTau.*(U_vel-y*U)./R;
         
         Tau_prime = first_term+second_term;
         Tau_prime(end) = 0;
-        Tau_prime = Tau_prime*1;
-        % *****************************************
         
-        %***************************************
-        % Vapor concentration equation
+        % vapor concentration equation
         U_mix = U_vel + Fom/R*((Rv_star - Ra_star)./Rmix).*DC;
         one = DDC;
         two = DC.*(DTau./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*DC );
-        three =  (U_mix-U.*yk)/R.*DC;
+        three =  (U_mix-U.*y)/R.*DC;
         
         C_prime = Fom/R^2*(one - two) - three;
         C_prime(end) = 0;
-        C_prime = C_prime*1;
-        %*****************************************
         
-        %***************************************
-        % Material temperature equations
-        first_term = (1+xk).^2./(L*R).*(U./yk2.^2.*(1-yk2.^3)/2+Foh/R.*((xk+1)/(2*L)-1./yk2)).* DTm;
-        second_term = Foh/R^2.*(xk+1).^4/L^2.*DDTm/4;
-        third_term =  3*Br./yk2.^6.*(4/(3*Ca).*(1-1/R^3)+4.*U/(Re8.*R)).*U./R;
+        % material temperature equations
+        first_term = (1+xi).^2./(Lt*R).*(U./yT.^2.*(1-yT.^3)/2+Foh/R.*((xi+1)/(2*Lt)-1./yT)).* DTm;
+        second_term = Foh/R^2.*(xi+1).^4/Lt^2.*DDTm/4;
+        third_term =  3*Br./yT.^6.*(4/(3*Ca).*(1-1/R^3)+4.*U/(Re8.*R)).*U./R;
         Tm_prime = first_term+second_term+third_term;
-        Tm_prime(end) = 0; % Sets boundary condition on temp
-        Tm_prime(1) = 0; % Previously calculated;
-        Tm_prime = Tm_prime*1; %1 makes this quantity zero
-        %*****************************************
+        % sets boundary condition on temp
+        Tm_prime(end) = 0; 
+        % previously calculated
+        Tm_prime(1) = 0; 
         
-        
-        % Equations of motion
+        % equations of motion
         rdot = U;
         
         % bubble wall acceleration
@@ -443,49 +444,34 @@ Cdel = [];
         % ****************************************
         % Jdot = Jdot - SdotA*udot/R;     % We don't really use advancement of J in next step though ...
         Jdot = 0;
-        dxdt = [rdot; udot; pdot; Tau_prime; Tm_prime; C_prime];
-        
-        %dxdt = [rdot; udot; pdot; Tau_prime; C_prime; Tm_prime]; % Try dropping J
-        
-        
+        dXdt = [rdot; udot; pdot; Tau_prime; Tm_prime; C_prime];
+         
     end
-%*************************************************************************
-
-% Other nested functions used to carry out repetetive calculations
-% throughout the code
+    % end of solver
+    
+    % functions called by solver
+    
+    % calculates the temperature at the bubble wall as a function of \tau
     function Tw = TW(Tauw)
-        %calculates the temperature at the bubble wall as a fuction of \tau
         Tw = (alpha -1 + sqrt(1+2*Tauw*alpha)) / alpha;
     end
 
+    % calculates the concentration at the bubble wall
     function Cw = CW(Tw,p)
-        % Calculates the concentration at the bubble wall
-        
-        %Function of p and temp at the wall
-        theta = Rv_star/Ra_star*(p./(f_pvsat(Tw*T8)/P8) -1);
+        theta = Rv_star/Ra_star*(p./(f_pvsat(Tw*T8)/P8)-1);
         Cw = 1./(1+theta);
     end
 
+    % solves temperature boundary conditions at the bubble wall
     function Tauw = Boundary(prelim)
-        % Solves temperature boundary conditions at the bubble wall
-        % Create finite diff. coeffs.
-        % Coefficients in terms of forward difference
         
-        %    %Second order
+        % coefficients in terms of second-order accurate forward difference
         coeff = [-3/2 , 2 ,-1/2 ];
         Tm_trans = Tm(2:3);
         T_trans = flipud(Tau(end-2:end-1));
         C_trans = flipud(C(end-2:end-1));
-        
-        %   Could implement any order... sixth order example is shown below
-        
-        %     Sixth order
-        %     coeff= [-49/20 ,6	,-15/2	,20/3	,-15/4	,6/5	,-1/6]; %Sixth order coeff
-        %     Tm_trans = Tm(2:7);
-        %     T_trans = flipud(Tau(end-6:end-1));
-        %     C_trans = flipud(C(end-6:end-1));
-        
-        Tauw =chi*(2*Km_star/L*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...
+                
+        Tauw =chi*(2*iota*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...
             chi*(-coeff*[prelim ;T_trans] )/deltaY + 1*...
             Fom*L_heat_star*p*( (CW(TW(prelim),p)*(Rv_star-Ra_star)+Ra_star))^-1 *...
             (TW(prelim) * (1-CW(TW(prelim),p))  ).^(-1).*...
@@ -496,7 +482,7 @@ Cdel = [];
     % Creates finite difference matrices
     % Nodes: Number of nodes
     % order: order of differentiation ( 1st derivative vs 2nd derivative)
-    % Tm_check: 0 not for external temp , 1 used for ext. temp
+    % Tm_check: 0 not for external temp , 1 used for external temp
     function [Diff_Matrix] = f_finite_diff_mat(Nodes,order,Tm_check)
 
         % coordinate creation
@@ -504,12 +490,12 @@ Cdel = [];
             N = Nodes-1;
             deltaY = 1/N;
             K = 1:1:N+1;
-            yk = (K-1)*deltaY;
+            y = (K-1)*deltaY;
         elseif Tm_check == 1
             N = Nodes-1;
             deltaY = -2/N;
             K = 1:1:N+1;
-            yk = 1+(K-1)*deltaY;
+            y = 1+(K-1)*deltaY;
         end
         
         Diff_Matrix = zeros(Nodes);
@@ -531,9 +517,9 @@ Cdel = [];
             if Tm_check == 0
                 % in between
                 for counter = 2:N  
-                    Diff_Matrix(counter,counter+1) = 1 + deltaY/yk(counter);
+                    Diff_Matrix(counter,counter+1) = 1 + deltaY/y(counter);
                     Diff_Matrix(counter,counter)   = -2;
-                    Diff_Matrix(counter,counter-1) = 1 - deltaY/yk(counter);
+                    Diff_Matrix(counter,counter-1) = 1 - deltaY/y(counter);
                 end
             elseif Tm_check == 1
                 for counter=2:N  %in between
@@ -549,12 +535,12 @@ Cdel = [];
             Diff_Matrix = Diff_Matrix / (deltaY^2) ;
         end
         
-        % Diff_Matrix = sparse(Diff_Matrix);
+        Diff_Matrix = sparse(Diff_Matrix);
         
     end
     
-function cdd = preStressInt(L,N)
-    cdd = L*N*0;
-end
+    function cdd = preStressInt(Lt,N)
+        cdd = Lt*N*0;
+    end
 
 end
