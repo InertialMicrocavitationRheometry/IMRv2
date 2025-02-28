@@ -4,7 +4,7 @@
 % brief This module features a fourth- and sixth-order accurate finite
 % difference solver of the PDEs involving thermal transport and
 % viscoelasticity to solve Rayleigh-Plesset equations
-function varargout =  m_imrv2_full_model(varargin)
+function varargout =  m_imr_full_model(varargin)
     
     % problem initialization
     [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts,...
@@ -33,7 +33,7 @@ function varargout =  m_imrv2_full_model(varargin)
     Nt              = solve_opts(5);
     Mt              = solve_opts(6);
     Lv              = solve_opts(7);
-    Lt               = solve_opts(8);
+    Lt              = solve_opts(8);
     
     % dimensionless initial conditions
     Rzero           = init_opts(1);

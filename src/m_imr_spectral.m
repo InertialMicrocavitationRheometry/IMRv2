@@ -4,7 +4,7 @@
 % brief This module features a Chebyshev spectral collocation solver of the
 % PDEs involving thermal transport and viscoelasticity to solve
 % Rayleigh-Plesset equations
-function varargout =  m_imrv2_spectral(varargin)
+function varargout =  m_imr_spectral(varargin)
     
     % problem Initialization
     [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts,...
@@ -38,7 +38,7 @@ function varargout =  m_imrv2_spectral(varargin)
     % dimensionless initial conditions
     Rzero           = init_opts(1);
     Uzero           = init_opts(2);
-    p0star          = init_opts(3);
+    P0star          = init_opts(3);
     P8              = init_opts(4);
     T8              = init_opts(5);
     Pv_star         = init_opts(6);
@@ -132,7 +132,7 @@ function varargout =  m_imrv2_spectral(varargin)
     nn = sparse(nn);
     
     % TODO Change this!
-    Udot = 0*C0;
+    Rddot = 0*C0;
     
     % precomputations for viscous dissipation
     zT = 1 - 2./(1 + (yT - 1)/Lv);
@@ -184,7 +184,7 @@ function varargout =  m_imrv2_spectral(varargin)
     % initial condition vector
     init = [Rzero;
     Uzero;
-    p0star;
+    P0star;
     Tau0;
     Tm0;
     Tm1;
@@ -201,8 +201,8 @@ function varargout =  m_imrv2_spectral(varargin)
     
     % extract result
     R = X(:,1);
-    U = X(:,2);
-    p = X(:,3);
+    Rdot = X(:,2);
+    P = X(:,3);
     % extracting the Chebyshev coefficients
     % Z1 = X(:,ic);
     % Z2 = X(:,id);
@@ -248,8 +248,8 @@ function varargout =  m_imrv2_spectral(varargin)
         % re-dimensionalize problem
         t = t*tc;
         R = R*Rref;
-        U = U*uc;
-        p = p*p0;
+        Rdot = Rdot*uc;
+        P = P*p0;
         T = T*T8;
         %pA = pA*p0;
         %I = I*p0;
@@ -257,7 +257,7 @@ function varargout =  m_imrv2_spectral(varargin)
         % d = d*p0;
         % e = e*C0;
         % C = C*C0;
-        Udot = Udot*uc/tc;
+        Rddot = Rddot*uc/tc;
         if spectral == 1
             % trr = trr*p0;
             % t00 = t00*p0;
@@ -272,8 +272,8 @@ function varargout =  m_imrv2_spectral(varargin)
     % outputs
     varargout{1} = t;
     varargout{2} = R;
-    varargout{3} = U;
-    varargout{4} = p;
+    varargout{3} = Rdot;
+    varargout{4} = P;
     varargout{5} = T;
     if bubtherm == 1 && medtherm == 1
         varargout{6} = TL;
@@ -289,11 +289,11 @@ function varargout =  m_imrv2_spectral(varargin)
     % if stress == 2
     %     varargout{11} = Z1; % Z1
     %     varargout{12} = Z2; % Z2
-    %     varargout{13} = (Z1)./R.^3 - 4*LAM/Re8.*U./R; % J
+    %     varargout{13} = (Z1)./R.^3 - 4*LAM/Re8.*Rdot./R; % J
     % elseif stress == 3
     %     varargout{11} = Z1; % Z1
     %     varargout{12} = Z2; % Z2
-    %     varargout{13} = (Z1 + Z2)./R.^3 - 4*LAM./Re8.*U./R; % J
+    %     varargout{13} = (Z1 + Z2)./R.^3 - 4*LAM./Re8.*Rdot./R; % J
     % end
     
     % solver function
@@ -303,14 +303,14 @@ function varargout =  m_imrv2_spectral(varargin)
             
             % extract standard inputs
             R = X(1);
-            U = X(2);
-            p = X(3);
+            Rdot = X(2);
+            P = X(3);
             qdot = [];
             
             % updating the viscous forces/Reynolds number
             % [fnu,intfnu,dintfnu,ddintfnu] = ...
                 % [fnu,~,~,~] = ...
-            % f_nonNewtonian_integrals(vmaterial,U,R,v_a,v_nc,v_lambda_star);
+            % f_nonNewtonian_integrals(vmaterial,Rdot,R,v_a,v_nc,v_lambda_star);
             
             % non-condensible gas pressure and temperature
             if bubtherm
@@ -324,20 +324,20 @@ function varargout =  m_imrv2_spectral(varargin)
                 ddSI = gAPdd*SI;
                 % temperature and thermal diffusivity fields
                 T = (alpha - 1 + sqrt(1+2*alpha*SI))/alpha;
-                D = kapover*(alpha*T.^2 + beta*T)/p;
+                D = kapover*(alpha*T.^2 + beta*T)/P;
                 
                 % vapor pressure
-                pVap = vapor*f_pvsat(T(end)*T8)/P8;
+                Pvap = vapor*f_pvsat(T(end)*T8)/P8;
                 
                 % bubble pressure
-                pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*p*U);
+                Pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*P*Rdot);
                 
                 % auxiliary temperature derivative
-                SIdot = pdot*D + chi/R^2*(2*D./y - kapover/p*(dSI - dSI(1)*y)).*dSI ...
+                SIdot = Pdot*D + chi/R^2*(2*D./y - kapover/P*(dSI - dSI(1)*y)).*dSI ...
                     + chi*D/R^2.*ddSI;
                 
-                SIdot(end) = pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
-                    + kapover/p*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);
+                SIdot(end) = Pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
+                    + kapover/P*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);
                 
                 if medtherm % warm-liquid
                     % extract medium temperature
@@ -345,14 +345,14 @@ function varargout =  m_imrv2_spectral(varargin)
                     % new derivative of medium temperature
                     first_term = (1+xi).^2/(Lt*R).*...
                         (Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
-                    U/2*(1./yT.^2 - yT)).*(mAPd*TL);
+                    Rdot/2*(1./yT.^2 - yT)).*(mAPd*TL);
                     second_term = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
                     TLdot =  first_term + second_term;
                     % include viscous heating
                     if spectral == 1
-                        TLdot = TLdot - 2*Br*U./(R*yT.^3).*(ZZT*(X(ic) - X(id)));
+                        TLdot = TLdot - 2*Br*Rdot./(R*yT.^3).*(ZZT*(X(ic) - X(id)));
                     else %if stress == 1
-                        TLdot = TLdot + 4*Br./yT.^6*(U/R*(1-1/R^3)/Ca + 3/Re8*(U/R)^2);
+                        TLdot = TLdot + 4*Br./yT.^6*(Rdot/R*(1-1/R^3)/Ca + 3/Re8*(Rdot/R)^2);
                     end
                     % enforce boundary condition and solve
                     TLdot(end) = 0;
@@ -365,25 +365,25 @@ function varargout =  m_imrv2_spectral(varargin)
                 end
             else
                 % polytropic approximation
-                pVap = vapor*Pv_star;
-                pdot = -3*kappa*U/R*p;
+                Pvap = vapor*Pv_star;
+                Pdot = -3*kappa*Rdot/R*P;
             end
             
             % stress equation
             [J,JdotX,Z1dot,Z2dot] = ...
-                f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO,cdd);
+                f_stress_calc(stress,X,Req,R,Ca,De,Re8,Rdot,alphax,ic,id,LAM,zeNO,cdd);
             
             % pressure waveform
-            [pf8,pf8dot] = f_pinfinity(t,pvarargin);
+            [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
             
             % bubble wall acceleration
-            [Udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, R, U, ...
+            [Rddot] = f_radial_eq(radial, P, Pdot, Pvap, Pf8, Pf8dot, iWe, R, Rdot, ...
                 J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
             
             % output assembly
-            dXdt = [U;
-            Udot;
-            pdot;
+            dXdt = [Rdot;
+            Rddot;
+            Pdot;
             qdot;
             Z1dot;
             Z2dot];
