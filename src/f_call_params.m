@@ -353,6 +353,19 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     if spectral == 1
         JdotA = 0;
     end
+            % Keller-Miksis equation
+            % if linkv==1 || neoHook==1 || Yeoh==1
+                % JdotA = 4/Re8;
+            % elseif sls==1 || nhzen==1 || fdkv==1 || zzzen==1 || fdmax==1  % ZZ - Not exactly true for FDKV, but I also don't think this matters ...
+                % JdotA = 0;
+            % elseif nhkv_pld==1
+            %     %JdotA = 4/Re8*(2^alpha+1)/3*(abs(Rdot)/R)^(alpha-1);
+            %     JdotA = 4/Re8/3*(2^alpha+1)*sign(Rdot)*(abs(Rdot)/R)^(alpha)*R^2/Rdot^2;
+            %     if isnan(SdotA)
+            %         SdotA=4/Re8;
+            %     end
+            % end
+
     if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4
         zeNO = 0;
     else
@@ -387,7 +400,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     % solver options
     solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
     % dimensionless initial conditions
-    init_opts = [Rzero Uzero P0_star P8 T8 Pv_star Req_zero alphax R0];
+    init_opts = [Rzero Uzero P0_star P8 T8 Pv_star Req_zero alphax];
     % time span options
     tspan_opts = tvector; 
     % output options
