@@ -1,6 +1,6 @@
 % close all;clc;
 warning('off','all')
-clear;
+
 % Load Data
 % load('C:\Users\bachi\Dropbox (University of Michigan)\Bachir\ODV\Data\PA_Calibrated.mat')
 % load('/Users/bachirabeid/Dropbox (University of Michigan)/Bachir/ODV/Data/All_Combined.mat')
@@ -133,7 +133,7 @@ for i =range(1)% 1:length(expts)
     end
 
     disptime = 0; % 1 = Displays time to complete simulation
-    Dim = 1;  % 1 = displays results in dimensional form
+    Dim = 0;  % 1 = displays results in dimensional form
     comp = 1; % 0 uses Rayleigh-Plesset, 1 uses Keller-Miksis
 
     if strcmp(Pext_type,'ga')

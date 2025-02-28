@@ -129,7 +129,6 @@ function varargout =  m_imr_full_model(varargin)
     %LDR = LAM*De/Re8;
     sam = 1 - Pv_star + GAMa;
     no = (nstate-1)/nstate;
-    kapover = (kappa-1)/kappa;
     
     % index management
     if masstrans == 1
@@ -326,7 +325,7 @@ function varargout =  m_imr_full_model(varargin)
         
         % temperature of the gas inside the bubble
         U_vel = (chi/R*(kappa-1).*DTau-y*R*Pdot/3)/(kappa*P);
-        first_term = (DDTau.*chi./R^2+Pdot).*(K_star.*T/P*kapover);
+        first_term = (DDTau.*chi./R^2+Pdot).*(K_star.*T/P*(kappa-1)/kappa);
         second_term = -DTau.*(U_vel-y*Rdot)./R;
         
         Taudot = first_term+second_term;
