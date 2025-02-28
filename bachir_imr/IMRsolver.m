@@ -550,16 +550,16 @@ end
         
         % *********Solves for boundary condition at the wall**************
         %         if (Tmgrad == 1)
-        %             if t/tspan_star> 0.001
-        %                 %Might need to tune 0.001 for convergence:
-        %                 guess= -.001+tau_del(end);
-        %                 prelim  = fzero(@Boundary,guess);
-        %             else
-        %                 guess = -.0001;
-        %                 prelim  = fzero(@Boundary,guess);
-        %             end
+                    if t/tspan_star> 0.001
+                        %Might need to tune 0.001 for convergence:
+                        guess= -.001+tau_del(end);
+                        prelim  = fzero(@Boundary,guess);
+                    else
+                        guess = -.0001;
+                        prelim  = fzero(@Boundary,guess);
+                    end
         %         else
-        prelim = 0;
+        % prelim = 0;
         %        end
         
         %****************************************************************
