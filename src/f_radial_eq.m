@@ -16,21 +16,22 @@ function [Rddot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, ...
     elseif radial == 2
         Rddot = ((1+Rdot./Cstar)*(p + pVap - 1 - pf8 - iWe/R + J) ...
             + R/Cstar*(pdot + iWe*Rdot/R^2 +  JdotX - pf8dot) ...
-        - 1.5*(1-Rdot/(3*Cstar))*Rdot^2)/((1-Rdot/Cstar)*R);% + JdotA/Cstar);
+        - 1.5*(1-Rdot/(3*Cstar))*Rdot^2)/((1-Rdot/Cstar)*R + JdotA/Cstar);
+        
         % Rddot = ((1+Rdot./Cstar)*(p + pVap - 1 - pf8 - iWe./R + J) ... % check to see if pVap should be included
         %     + R./Cstar.*(pdot + iWe.*Rdot./R.^2 +  JdotX - pf8dot) ...
             %     - 1.5.*(1-Rdot./(3.*Cstar)).*Rdot.^2)./((1-Rdot./Cstar).*R + JdotA./Cstar);
-
-            % if fdkv == 1
-            %     RHS = (1+Rdot/Cstar)...
+        
+        % if fdkv == 1
+        %     RHS = (1+Rdot/Cstar)...
             %         *(P  + abs(1-1)*Pv -1/(We*R) + J - 1 - Pext)  ...
-            %         + R/Cstar*(Pdot+ Rdot/(We*R^2) + Jdot -P_ext_prime );
-            %     LHS = (3/2)*(1-Rdot/(3*Cstar))*Rdot^2;
-            %     denom = (1-Rdot/Cstar)*R - (R/Cstar)*Sdd;
-            % 
-            %     Rddot = (RHS - LHS)/denom;
-            % 
-
+        %         + R/Cstar*(Pdot+ Rdot/(We*R^2) + Jdot -P_ext_prime );
+        %     LHS = (3/2)*(1-Rdot/(3*Cstar))*Rdot^2;
+        %     denom = (1-Rdot/Cstar)*R - (R/Cstar)*Sdd;
+        %
+        %     Rddot = (RHS - LHS)/denom;
+        %
+        
         % Keller-Miksis in enthalpy
     elseif radial == 3
         hB = (sam/no)*(((p - iWe/R + GAMa + J)/sam)^no - 1);

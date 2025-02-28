@@ -63,81 +63,82 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
             case 'masstrans',   masstrans = varargin{n+1};
             
             % solver options
-            case 'method',  method = varargin{n+1};
-            case 'spectral',spectral = varargin{n+1};
-            case 'divisions', divisions = varargin{n+1};
-            case 'nv',      Nv = varargin{n+1};
-            case 'nt',      Nt = varargin{n+1};
-            case 'mt',      Mt = varargin{n+1};
-            case 'lv',      Lv = varargin{n+1};
-            case 'lt',      Lt = varargin{n+1};
-            case 'tfin',    TFin = varargin{n+1};
+            case 'method',      method = varargin{n+1};
+            case 'spectral',    spectral = varargin{n+1};
+            case 'divisions',   divisions = varargin{n+1};
+            case 'nv',          Nv = varargin{n+1};
+            case 'nt',          Nt = varargin{n+1};
+            case 'mt',          Mt = varargin{n+1};
+            case 'lv',          Lv = varargin{n+1};
+            case 'lt',          Lt = varargin{n+1};
+            case 'tfin',        TFin = varargin{n+1};
             tflag = tflag + 1;
             %TVector = 0;
             
             % initial options
-            case 'r0',      R0 = varargin{n+1};
+            case 'collapse',    collapse = varargin{n+1};
+            case 'r0',          R0 = varargin{n+1};
             P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
-            case 'u0',      U0 = varargin{n+1};
-            case 'req',     Req = varargin{n+1};
+            case 'u0',          U0 = varargin{n+1};
+            case 'req',         Req = varargin{n+1};
             P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
             
             % output options
-            case 'dimout',     dimensionalout = varargin{n+1};
-            case 'progdisplay',   progdisplay = varargin{n+1};
+            case 'dimout',      dimensionalout = varargin{n+1};
+            case 'progdisplay', progdisplay = varargin{n+1};
             
             % acoustic options
-            case 'rho8',    rho8 = varargin{n+1};
-            case 'gam',     GAM = varargin{n+1};
-            case 'nstate',  nstate = varargin{n+1};
-            case 'p8',      P8 = varargin{n+1};
-            case 'c8',      C8 = varargin{n+1}; 
+            case 'rho8',        rho8 = varargin{n+1};
+            case 'gam',         GAM = varargin{n+1};
+            case 'nstate',      nstate = varargin{n+1};
+            case 'p8',          P8 = varargin{n+1};
+            case 'c8',          C8 = varargin{n+1};
             
             % pressure waveform options
-            case 'pa',      pA = varargin{n+1};
-            case 'omega',   omega = varargin{n+1};
-            case 'tw',      TW = varargin{n+1};
-            case 'dt',      DT = varargin{n+1};
-            case 'mn',      mn = varargin{n+1};
-            case 'wave_type', wave_type = varargin{n+1};
+            case 'pa',          pA = varargin{n+1};
+            case 'omega',       omega = varargin{n+1};
+            case 'tw',          TW = varargin{n+1};
+            case 'dt',          DT = varargin{n+1};
+            case 'mn',          mn = varargin{n+1};
+            case 'wave_type',   wave_type = varargin{n+1};
             
             % stress options
-            case 'mu',      mu8 = varargin{n+1};
+            case 'mu',          mu8 = varargin{n+1};
             visflag = visflag + 1;
-            case 'g',       G = varargin{n+1};
-            case 'lambda1', lambda1 = varargin{n+1};
-            case 'lambda2', lambda2 = varargin{n+1};
-            case 'alphax',  alphax = varargin{n+1};
-            case 'surft',    S = varargin{n+1};
+            case 'g',           G = varargin{n+1};
+            case 'lambda1',     lambda1 = varargin{n+1};
+            case 'lambda2',     lambda2 = varargin{n+1};
+            case 'alphax',      alphax = varargin{n+1};
+            case 'surft',       S = varargin{n+1};
             % P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
-            case 'vmaterial', vmaterial = varargin{n+1};
+            case 'vmaterial',   vmaterial = varargin{n+1};
             visflag = visflag + 1;
             [mu8,Dmu,v_a,v_nc,v_lambda,vmat] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity
             
             % thermal options
-            case 't8',      T8 = varargin{n+1};
+            case 't8',          T8 = varargin{n+1};
             tempset = 1;
-            case 'kappa',   kappa = varargin{n+1};
-            case 'at',      AT = varargin{n+1};
-            case 'bt',      BT = varargin{n+1};
-            case 'km',      Km = varargin{n+1};
-            case 'dm',      Dm = varargin{n+1}; 
-                            dmset = 1;
+            case 'kappa',       kappa = varargin{n+1};
+            case 'at',          AT = varargin{n+1};
+            case 'bt',          BT = varargin{n+1};
+            case 'km',          Km = varargin{n+1};
+            case 'dm',          Dm = varargin{n+1};
+            dmset = 1;
             
             % mass transfer options
-            case 'dmass',   D0 = varargin{n+1};
-            case 'lheat',   L_heat = varargin{n+1};
-            case 'rv',      Rv = varargin{n+1};
-            case 'ra',      Ra = varargin{n+1};
+            case 'dmass',       D0 = varargin{n+1};
+            case 'lheat',       L_heat = varargin{n+1};
+            case 'rv',          Rv = varargin{n+1};
+            case 'ra',          Ra = varargin{n+1};
             
             % pressure options
-            case 'pv',      Pv = varargin{n+1};
+            case 'pv',          Pv = varargin{n+1};
             P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
-            case 'p0',      P0 = varargin{n+1};
-            case 'tvector', TVector = varargin{n+1};
+            case 'p0',          P0 = varargin{n+1};
+            case 'tvector',     TVector = varargin{n+1};
             tflag = tflag + 1;
             TFin = 0;
-            otherwise, misscount = misscount + 1;
+            otherwise,          misscount = misscount + 1;
             
         end
     end
@@ -202,11 +203,11 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     % intermediate calculated variables
     
     % far-field thermal conductivity (W/(m K))
-    K8      = AT*T8+BT;                 
+    K8      = AT*T8+BT;
     % dimensional parameter for gas constants
-    Rnondim = P8/(rho8*T8);             
+    Rnondim = P8/(rho8*T8);
     % characteristic velocity (m/s)
-    Uc      = sqrt(P8/rho8);            
+    Uc      = sqrt(P8/rho8);
     
     % Final non-dimensional variables
     Pref    = P8;
@@ -214,35 +215,35 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     Pv_star = vapor*Pv/Pref;
     P0_star = P0/Pref;
     % characteristic time (s)
-    t0      = R0/Uc;                       
-
+    t0      = R0/Uc;
+    
     % dimensionless waveform parameters
     tvector = TVector./t0;
     % non-dimensional frequency
-    om      = omega*t0;                 
+    om      = omega*t0;
     ee      = pA/Pref;
     tw      = TW*t0;
     dt      = DT/t0;
     % acoustic properties
-
+    
     % bulk liquid stiffness
-    GAMa    = GAM/P8;                   
+    GAMa    = GAM/P8;
     % speed of sound
-    Cstar   = C8/Uc;                    
+    Cstar   = C8/Uc;
     % thermal properties
     chi     = T8*K8/(P8*R0*Uc);
     iota    = Km/(K8*Lt);
     Foh     = Dm/(Uc*R0);
-    alpha   = AT*T8/K8;              
+    alpha   = AT*T8/K8;
     beta    = BT/K8;
     Br      = Uc^2/(Cp*T8);
     % mass diffusion
     Fom     = D0/(Uc*R0);
     % mass of vapor
-    mv0     = Pv*vapor*(4/3*pi*R0^3)/Rv/T8;   
+    mv0     = Pv*vapor*(4/3*pi*R0^3)/Rv/T8;
     % mass of non-condensible gas
-    ma0     = P0*(4/3*pi*R0^3)/Ra/T8;   
-    Mnondim = rho8*(4/3*pi*R0^3);     
+    ma0     = P0*(4/3*pi*R0^3)/Ra/T8;
+    Mnondim = rho8*(4/3*pi*R0^3);
     mv0     = mv0/Mnondim;
     ma0     = ma0/Mnondim;
     Rv_star = Rv/Rnondim;
@@ -252,13 +253,13 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     % initial vapor concentration
     C0 = 1/(1+theta);
     L_heat_star = L_heat/(Uc)^2;
-
+    
     % viscoelastic properties
-
+    
     % Cauchy number
     Ca      = Pref/G;
     % Reynolds number
-    Re8     = Pref*R0/(mu8*Uc);        
+    Re8     = Pref*R0/(mu8*Uc);
     if Dmu ~= 0
         DRe = Pref*R0/(Dmu*Uc);
     else
@@ -272,10 +273,9 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     % Weissenberg number
     LAM     = lambda2/lambda1;
     % Deborah number
-    De      = lambda1*Uc/R0;            
+    De      = lambda1*Uc/R0;
     % dimensionless initial conditions
     Rzero   = 1;
-    Req_zero= Req/R0;
     Uzero   = U0/Uc;
     
     % overwrite defaults with nondimensional inputs
@@ -353,19 +353,19 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     if spectral == 1
         JdotA = 0;
     end
-            % Keller-Miksis equation
-            % if linkv==1 || neoHook==1 || Yeoh==1
-                % JdotA = 4/Re8;
-            % elseif sls==1 || nhzen==1 || fdkv==1 || zzzen==1 || fdmax==1  % ZZ - Not exactly true for FDKV, but I also don't think this matters ...
-                % JdotA = 0;
-            % elseif nhkv_pld==1
-            %     %JdotA = 4/Re8*(2^alpha+1)/3*(abs(Rdot)/R)^(alpha-1);
-            %     JdotA = 4/Re8/3*(2^alpha+1)*sign(Rdot)*(abs(Rdot)/R)^(alpha)*R^2/Rdot^2;
-            %     if isnan(SdotA)
-            %         SdotA=4/Re8;
-            %     end
-            % end
-
+    % Keller-Miksis equation
+    % if linkv==1 || neoHook==1 || Yeoh==1
+    % JdotA = 4/Re8;
+    % elseif sls==1 || nhzen==1 || fdkv==1 || zzzen==1 || fdmax==1  % ZZ - Not exactly true for FDKV, but I also don't think this matters ...
+        % JdotA = 0;
+    % elseif nhkv_pld==1
+    %     %JdotA = 4/Re8*(2^alpha+1)/3*(abs(Rdot)/R)^(alpha-1);
+    %     JdotA = 4/Re8/3*(2^alpha+1)*sign(Rdot)*(abs(Rdot)/R)^(alpha)*R^2/Rdot^2;
+    %     if isnan(SdotA)
+    %         SdotA=4/Re8;
+    %     end
+    % end
+    
     if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4
         zeNO = 0;
     else
@@ -375,34 +375,60 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     % modify initial conditions for the Out-of-Equilibrium Rayleigh collapse:
     % if  (wave_type == -1)
     %     % mass air / mass vapor
-    %     theta = Rv_star/Ra_star*P0/Pv; 
+    %     theta = Rv_star/Ra_star*P0/Pv;
     %     C0 = 1/(1+theta);
     %     ma0 = P0/Ra_star;
     %     % calculating the equilibrium radii for initial
     %     [REq] = f_calc_Req(R0, bubtherm, masstrans, ee, vmaterial);
     %     % initial velocity
-    %     Uzero = -(1-pzero)/(Cstar); 
+    %     Uzero = -(1-pzero)/(Cstar);
     % else
     %     % Plesset & Prosperetti, ARFM 1977, p166
     %     Uzero = 0;
     % end
-    % 
+    %
     % % Plesset & Prosperetti, ARFM 1977, p166
     % if  (wave_type == -2)
     %     % initial velocity
-    %     Uzero = -(ee/P8)/(Cstar); 
+    %     Uzero = -(ee/P8)/(Cstar);
     % end
     
+    if collapse
+        Pv = f_pvsat(1*T8)/P8;
+        Pb_star = P0_star + 1*f_pvsat(1*T8)/P8;
+        % Need to recalculate intital concentration
+        theta = Rv_star/Ra_star*(Pb_star-Pv)/Pv; % mass air / mass vapor
+        C0 = 1/(1+theta);
+        % Calculate the equilibrium radii ratio for initial stress state:
+        % [REq,~,~] = IMRCalc_Req(R0, 1, 1, pg0star*P8, G, G1, mu);
+        
+        ma0 = P0_star/Ra_star;
+        fun = @(x) Pv*(1+(ma0/x)*(Ra_star/Rv_star))-1-...
+            1/We*(Pv/(Rv_star*x))^(1/3) ; % parameterized function
+        
+        MTotal0 = P0_star/Ra_star + Pv/Rv_star;
+        exp2=MTotal0;
+        x = fzero(fun,exp2,optimset('display','off'));
+        
+        while (isnan(x))
+            exp2 = exp2/1.11;
+            x = fzero(fun,exp2,optimset('display','off'));
+        end
+        MVE = x;
+        Req  =(Rv_star*MVE/Pv)^(1/3);
+    end
+    Req_zero= Req;
+    
     % out parameters
-
+    
     % equation settings
     eqns_opts = [radial bubtherm medtherm stress eps3 vapor masstrans];
     % solver options
     solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
     % dimensionless initial conditions
-    init_opts = [Rzero Uzero P0_star P8 T8 Pv_star Req_zero alphax];
+    init_opts = [Rzero Uzero Pb_star P8 T8 Pv_star Req_zero alphax];
     % time span options
-    tspan_opts = tvector; 
+    tspan_opts = tvector;
     % output options
     out_opts = [dimensionalout progdisplay];
     

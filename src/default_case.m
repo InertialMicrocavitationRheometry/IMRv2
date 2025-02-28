@@ -40,6 +40,7 @@ Lt              = 2;
 
 % initial conditions
 
+collapse        = 1;
 % initial bubble radius
 R0              = 100E-6;
 % initial velocity (m/s)
@@ -127,7 +128,7 @@ Ru              = 8.3144598;
 % (J/Kg-K) gas constant vapor
 Rv              = Ru/(18.01528e-3);
 % (J/Kg-K) gas constant air
-Ra              = Ru/(28.966e-3); 
+Ra              = Ru/(28.966e-3);
 
 % viscosity variables
 [mu8,Dmu,v_a,v_nc,v_lambda,vmat] = f_nonNewtonian_Re(vmaterial);
