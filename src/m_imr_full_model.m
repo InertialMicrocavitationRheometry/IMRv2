@@ -1,10 +1,10 @@
-% file m_imrv2_finitediff.m
+% file m_imrv2_full_model.m
 % brief contains module m_imrv2_finitediff
 
 % brief This module features a fourth- and sixth-order accurate finite
 % difference solver of the PDEs involving thermal transport and
 % viscoelasticity to solve Rayleigh-Plesset equations
-function varargout =  m_imrv2_fd(varargin)
+function varargout =  m_imrv2_full_model(varargin)
     
     % problem initialization
     [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts,...

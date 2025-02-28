@@ -42,8 +42,8 @@ varin = {'progdisplay',0,...
          'masstrans',masstrans,...
          't8',T8,...
          'rho8',rho8};
-[tf,Rf,~] = m_imrv2_full_model(varin{:},'Nt',50,'Mt',50);
-% [td,Rd,~] = m_imrv2_finitediff(varin{:},'Nt',50,'Mt',50);
+[tf,Rf,~] = m_imr_full_model(varin{:},'Nt',50,'Mt',50);
+% [td,Rd,~] = m_imr_finitediff(varin{:},'Nt',50,'Mt',50);
 
 figure(1)
 hold on;

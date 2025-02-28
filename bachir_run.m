@@ -40,8 +40,8 @@ varin = {'radial',radial,...
          'lheat',Lheat,...
          't8',T8,...
          'rho8',rho8};
-[tf,Rf,Uf] = m_imrv2_finitediff(varin{:},'Nt',200,'Mt',200);
-[ts,Rs,Us] = m_imrv2_spectral(varin{:},'Nt',12,'Mt',12);
+[tf,Rf,Uf] = m_imr_finitediff(varin{:},'Nt',200,'Mt',200);
+[ts,Rs,Us] = m_imr_spectral(varin{:},'Nt',12,'Mt',12);
 
 figure(1)
 hold on;
