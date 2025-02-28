@@ -129,7 +129,6 @@ function varargout =  m_imr_finitediff(varargin)
     %LDR = LAM*De/Re8;
     sam = 1 - Pv_star + GAMa;
     no = (nstate-1)/nstate;
-    kapover = (kappa-1)/kappa;
     
     % index management
     if masstrans == 1
@@ -284,7 +283,7 @@ function varargout =  m_imr_finitediff(varargin)
         C = X(imass);
         % end
         % solve for boundary condition at the wall
-        prelim = 0;
+        % prelim = 0;
         % if medtherm
         if t/tfin > 0.001
             %Might need to tune 0.001 for convergence:
@@ -321,9 +320,9 @@ function varargout =  m_imr_finitediff(varargin)
             % [fnu,~,~,~] = ...
         % f_nonNewtonian_integrals(vmaterial,U,R,v_a,v_nc,v_lambda_star);
         
-        Taudot = zeros(-1,1);
-        Tmdot = zeros(-1,1);
-        Cdot = zeros(-1,1);
+        % Taudot = zeros(-1,1);
+        % Tmdot = zeros(-1,1);
+        % Cdot = zeros(-1,1);
         
         % heat and mass transfer PDE residual calculations
         % if bubtherm && masstrans
@@ -373,7 +372,7 @@ function varargout =  m_imr_finitediff(varargin)
         %     pdot = 3/R*(chi*(kappa-1)*DTau(end)/R-kappa*p*U);
         %
         %     % temperature inside the bubble
-        %     first_term = (DDTau.*chi./R^2+pdot).*(kapover*K_star.*T./p);
+        %     first_term = (DDTau.*chi./R^2+pdot).*(((kappa-1)/kappa)*K_star.*T./p);
         %     U_vel = (chi/R*(kappa-1)*DTau-y*R*pdot/3)/(kappa*p);
         %     second_term = -DTau.*((1/R).*(U_vel-y*U));
         %
