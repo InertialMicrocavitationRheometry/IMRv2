@@ -157,16 +157,9 @@ function varargout =  m_imrv2_fd(varargin)
     ic          = (4+Nt+Mt+Nc):(3+Nt+Mt+Nc+Nv);
     id          = (4+Nt+Mt+Nc+Nv):(3+Nt+Mt+Nc+2*Nv);
 
-
-%******************************************
-% Initial Conditions
-% tspan_star = tspan/t0;
-Uzero = 0;  % Change as needed
-%Z10 = 0;
-S0 = 0;
-Tau0 = zeros(Nt,1);
-C0 = C0*ones(Nt,1);
-Tm0 = ones(Mt,1);
+    % precomputations for viscous dissipation
+    % zT = 1 - 2./(1 + (yT - 1)/Lv);
+    cdd = preStressInt(Lv,Nv);
 
 % Need to modify intial conditions for the Out-of-Equilibrium Rayleigh
 % Collapse:
@@ -198,12 +191,37 @@ Tm0 = ones(Mt,1);
     % parameters, [G, G1, mu] are fed mostly to use the IMRcall_Param
     % function ...
 
-    C0vec = C0*ones(Nt,1);
+    % C0vec = C0*ones(Nt,1);
     %Uzero = -1*(1-Pb_star)/(Cstar); %Intitial velocity due to shockwave
-    Uzero = 0;
+    % Uzero = 0;
     
 % end
 
+    % initial condition assembly
+    
+    % radius, velocity, pressure, bubble temperature, medium temperature,
+    % vapor concentration
+
+    % bubble temperature initial condition
+    if bubtherm
+        Tau0 = zeros(Nt,1);
+    else
+        Tau0 = zeros(-1,1);
+    end
+    
+    % medium initial temperature
+    if medtherm
+        Tm0 = ones(Mt,1);
+    else
+        Tm0 = zeros(-1,1);
+    end
+    
+    % mass transfer initial condition
+    if masstrans
+        C0vec = C0*ones(Nc,1);
+    else
+        C0vec = zeros(-1,1);
+    end
 
     % stress spectra
     if stress < 3
@@ -214,38 +232,20 @@ Tm0 = ones(Mt,1);
         Sp = zeros(2*(Nv - 1)*(spectral == 1) + 2,1);
     end
 
-    % init = [Rzero Uzero Pb_star Tau0 Tm0 C0 Sp];
-
     % initial condition vector
     init = [Rzero;
     Uzero;
     Pb_star;
     Tau0;
     Tm0;
-    C0vec];
-    % Sp];
+    C0vec;
+    Sp];
 
-    % thermal auxiliary variable for boundary conditions
     tau_del = [];
-    TL = [];
-tau_del= [];
-tdel=[];
-Tdel = [];
-Cdel = [];
 
-% cdd = preStressInt(Lv,Nv);
-%************************************************
-% March equations in time
-%options = odeset('RelTol',1e-10);
-
-% trange = linspace(0,tspan_star,1000); % This allows us to force truncation at certain temporal positions, if needed
-% Set up temporal checking points:
-% tplus = 0.3*t0; %3E-5; % absolute time
-% tcheck = tplus;
-
-    % opts1 = odeset('RelTol',1e-8,'AbsTol',1e-8); % Define option for ODE solver
-    % [t , X] = ode23tb(@bubble, tfin, X0, opts1);
-    %[t , X] = ode23tb_spit(@bubble, trange, X0); % See if this messes things up
+    % solver start
+    f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, ...
+        eps3, vapor, Re8, De, Ca, LAM, 'finite difference');
     bubble = @SVBDODE;
     [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);
 
@@ -271,11 +271,11 @@ Cdel = [];
         R = R*Rref;
         U = U*uc;
         p = p*p0;
-        if bubtherm == 1
+        if bubtherm
             T = T*T8;
-            if medtherm == 1
-                TL = TL*T8;
-            end
+        end
+        if medtherm
+            Tm = Tm*T8;
         end
     end
     
@@ -286,7 +286,7 @@ Cdel = [];
     varargout{4} = p;
     varargout{5} = T;
     if bubtherm == 1 && medtherm == 1
-        varargout{6} = TL;
+        varargout{6} = Tm;
     else
         varargout{6} = ((T8 - 1)*dimensionalout + 1)*ones(size(t,1),1);
     end
@@ -294,10 +294,7 @@ Cdel = [];
         varargout{7} = C;
     end
 
-%*************************************************************************
-% Nested function; ODE Solver calls to march governing equations in time
-% This function has acess to all parameters above
-
+    % solver function
     function [dXdt] = SVBDODE(t,x)
         
         % extract solution
@@ -340,11 +337,6 @@ Cdel = [];
         C(end) =  CW(T(end),p);
         
         Rmix = C*Rv_star + (1-C)*Ra_star;
-        
-        % gets variables that are not directly calculated as outputs
-        Tdel = [Tdel T(end)];
-        tdel = [tdel t];
-        Cdel = [Cdel C(end)];
           
         % temperature field of the gas inside the bubble
         DTau  = D_Matrix_T_C*Tau;
@@ -364,11 +356,11 @@ Cdel = [];
         
         % temperature of the gas inside the bubble
         U_vel = (chi/R*(kappa-1).*DTau-y*R*pdot/3)/(kappa*p);
-        first_term = (DDTau.*chi./R^2+pdot).*(K_star.*T/p*(kappa-1)/kappa);
+        first_term = (DDTau.*chi./R^2+pdot).*(K_star.*T/p*kapover);
         second_term = -DTau.*(U_vel-y*U)./R;
         
-        Tau_prime = first_term+second_term;
-        Tau_prime(end) = 0;
+        Taudot = first_term+second_term;
+        Taudot(end) = 0;
         
         % vapor concentration equation
         U_mix = U_vel + Fom/R*((Rv_star - Ra_star)./Rmix).*DC;
@@ -376,24 +368,24 @@ Cdel = [];
         two = DC.*(DTau./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*DC );
         three =  (U_mix-U.*y)/R.*DC;
         
-        C_prime = Fom/R^2*(one - two) - three;
-        C_prime(end) = 0;
+        Cdot = Fom/R^2*(one - two) - three;
+        Cdot(end) = 0;
         
         % material temperature equations
         first_term = (1+xi).^2./(Lt*R).*(U./yT.^2.*(1-yT.^3)/2+Foh/R.*((xi+1)/(2*Lt)-1./yT)).* DTm;
         second_term = Foh/R^2.*(xi+1).^4/Lt^2.*DDTm/4;
         third_term =  3*Br./yT.^6.*(4/(3*Ca).*(1-1/R^3)+4.*U/(Re8.*R)).*U./R;
-        Tm_prime = first_term+second_term+third_term;
+        Tmdot = first_term+second_term+third_term;
         % sets boundary condition on temp
-        Tm_prime(end) = 0; 
+        Tmdot(end) = 0; 
         % previously calculated
-        Tm_prime(1) = 0; 
+        Tmdot(1) = 0; 
         
         % equations of motion
-        rdot = U;
+        Rdot = U;
         
         % bubble wall acceleration
-        % [udot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, R, U, ...
+        % [Rddot] = f_radial_eq(radial, p, pdot, pVap, pf8, pf8dot, iWe, R, U, ...
             % J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
 
         % pressure waveform
@@ -410,7 +402,7 @@ Cdel = [];
                 JdotX =  -2*U/R*(1/Rst + 1/Rst^4)/Ca + 4/Re8*U^2/R^2;
         % if comp == 0
         %     %Rayleigh-Plesset equation
-        %     udot = (p + abs(1-1)*Pv  - 1 - Pext + J - 1/(We*R) -1.5*U^2)/R;
+        %     Rddot = (p + abs(1-1)*Pv  - 1 - Pext + J - 1/(We*R) -1.5*U^2)/R;
         % else
             % Keller-Miksis equation
             % if linkv==1 || neoHook==1 || Yeoh==1
@@ -432,19 +424,31 @@ Cdel = [];
             %     LHS = (3/2)*(1-U/(3*Cstar))*U^2;
             %     denom = (1-U/Cstar)*R - (R/Cstar)*Sdd;
             % 
-            %     udot = (RHS - LHS)/denom;
+            %     Rddot = (RHS - LHS)/denom;
             % 
             % else  % Original expression
-                 udot = ((1+U/Cstar)...
+                 Rddot = ((1+U/Cstar)...
                     *(p  + abs(1-1)*Pv -1/(We*R) + J - 1 - pf8)  ...
                     + R/Cstar*(pdot+ U/(We*R^2) + JdotX - pf8dot) ...
                     - 1.5*(1-U/(3*Cstar))*U^2)/((1-U/Cstar)*R); % +JdotA/(Cstar));
             % end
         % end
-        % ****************************************
-        % Jdot = Jdot - SdotA*udot/R;     % We don't really use advancement of J in next step though ...
+
+        % stress equation
+        Z1dot = zeros(-1,1);
+        Z2dot = Z1dot;
+        % [J,JdotX,Z1dot,Z2dot] = ...
+            % f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO,cdd);
+
         Jdot = 0;
-        dXdt = [rdot; udot; pdot; Tau_prime; Tm_prime; C_prime];
+        dXdt = [Rdot; 
+            Rddot; 
+            pdot; 
+            Taudot; 
+            Tmdot; 
+            Cdot;
+            Z1dot;
+            Z2dot];
          
     end
     % end of solver
