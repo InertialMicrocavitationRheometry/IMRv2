@@ -273,7 +273,7 @@ function varargout =  m_imr_full_model(varargin)
         Rdot    = X(2);
         % internal bubble pressure
         P       = X(3);
-        % auxilary variable for internal bubble temperature
+        % auxiliary variable for internal bubble temperature
         Tau     = X(ibubtherm);
         % temperature in the material
         Tm      = X(imedtherm);

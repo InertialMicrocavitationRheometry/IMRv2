@@ -396,7 +396,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     if collapse
         Pv = f_pvsat(1*T8)/P8;
         Pb_star = P0_star + 1*f_pvsat(1*T8)/P8;
-        % Need to recalculate intital concentration
+        % Need to recalculate initial concentration
         theta = Rv_star/Ra_star*(Pb_star-Pv)/Pv; % mass air / mass vapor
         C0 = 1/(1+theta);
         % Calculate the equilibrium radii ratio for initial stress state:
