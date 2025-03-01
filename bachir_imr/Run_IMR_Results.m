@@ -198,7 +198,8 @@ end
 %
 hold on
 % plot(t2*1e6/(23.05),R2/2.4475e-4)
-plot(t2/(R0/Uc),R2/R0,'s')
+% plot(t2/(R0/Uc),R2/R0,'rs')
+plot(t2,R2,'rs')
 
 %
 

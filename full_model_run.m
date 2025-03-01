@@ -44,10 +44,10 @@ varin = {'progdisplay',0,...
          'rho8',rho8};
 
 [tf,Rf,~] = m_imr_full_model(varin{:},'Nt',50,'Mt',50);
-% [td,Rd,~] = m_imr_finitediff(varin{:},'Nt',50,'Mt',50);
+[td,Rd,~] = m_imr_finitediff(varin{:},'Nt',50,'Mt',50);
 
 figure(1)
 hold on;
-plot(tf,Rf,'^')
-% plot(td,Rd,'s')
+plot(tf,Rf,'k^')
+plot(td,Rd,'g+')
 ylim([0 1.2])
