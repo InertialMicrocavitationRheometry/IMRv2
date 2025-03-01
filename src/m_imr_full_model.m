@@ -124,11 +124,11 @@ function varargout =  m_imr_full_model(varargin)
     xi = (1+(j-1)*deltaYm)';
     yT = ((2./(xi+1)-1)*Lt+1);
     
-    
     % precomputations
     %LDR = LAM*De/Re8;
     sam = 1 - Pv_star + GAMa;
     no = (nstate-1)/nstate;
+    chi_kappa = chi / kappa;
     
     % index management
     if masstrans == 1
@@ -168,21 +168,21 @@ function varargout =  m_imr_full_model(varargin)
     if bubtherm
         Tau0 = zeros(Nt,1);
     else
-        Tau0 = zeros(-1,1);
+        Tau0 = [];
     end
-    
+
     % medium initial temperature
     if medtherm
         Tm0 = ones(Mt,1);
     else
-        Tm0 = zeros(-1,1);
+        Tm0 = [];
     end
     
     % mass transfer initial condition
     if masstrans
         C0vec = C0*ones(Nc,1);
     else
-        C0vec = zeros(-1,1);
+        C0vec = [];
     end
     
     % stress spectra
@@ -204,6 +204,10 @@ function varargout =  m_imr_full_model(varargin)
     Sp];
     
     tau_del = [];
+    tau_idx = 1;
+    alpha_smooth = 0.95;  % Adjust between 0.5-0.9 based on how stable the solutions are
+    TW = @(Tauw) (alpha -1 + sqrt(1+2*Tauw*alpha)) / alpha;
+    CW = @(Tw, P) 1 ./ (1 + (Rv_star / Ra_star) * (P ./ (f_pvsat(Tw * T8) / P8) - 1));
     
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, ...
@@ -280,29 +284,29 @@ function varargout =  m_imr_full_model(varargin)
         C       = X(imass);
         % stress integral
         %Z1 = x(4);
+
+        if length(tau_del) > 1
+            guess = alpha_smooth * tau_del(end) + (1 - alpha_smooth) * tau_del(end-1);
+        else
+            guess = -0.0001;  % Default for the first iteration
+        end
         
         % if (1 == 1)
-        if t/tfin> 0.001
-            guess= -.001+tau_del(end);
-            prelim  = fzero(@Boundary,guess);
-        else
-            guess = -.0001;
-            prelim  = fzero(@Boundary,guess);
-        end
+        prelim  = fzero(@Boundary,guess);
         % else
         % prelim = 0;
         % end
         
         % sets value at boundary conditions
-        tau_del = [tau_del prelim];
+        tau_del(tau_idx) = prelim;
+        tau_idx = tau_idx + 1;
         Tau(end) = prelim;
-        T = TW(Tau);
+        T = TW(Tau);  
         Tm(1) = T(end);
         
         % calculate variables
-        K_star = alpha*T+beta;
-        C(end) =  CW(T(end),P);
-        
+        K_star = alpha * T + beta;  
+        C(end) = CW(T(end), P);  
         Rmix = C*Rv_star + (1-C)*Ra_star;
         
         % temperature field of the gas inside the bubble
@@ -324,7 +328,8 @@ function varargout =  m_imr_full_model(varargin)
             + 1*kappa*P*Fom*Rv_star*DC(end)/( T(end)*R* Rmix(end)* (1-C(end)) ) );
         
         % temperature of the gas inside the bubble
-        U_vel = (chi/R*(kappa-1).*DTau-y*R*Pdot/3)/(kappa*P);
+        U_vel = (chi_kappa/R*(kappa-1).*DTau - y*R*Pdot/3)/(kappa*P);
+        % U_vel = (chi/R*(kappa-1).*DTau-y*R*Pdot/3)/(kappa*P);
         first_term = (DDTau.*chi./R^2+Pdot).*(K_star.*T/P*(kappa-1)/kappa);
         second_term = -DTau.*(U_vel-y*Rdot)./R;
         
@@ -372,22 +377,23 @@ function varargout =  m_imr_full_model(varargin)
         Cdot;
         Z1dot;
         Z2dot];
-        
+
     end
+
     % end of solver
     
     % functions called by solver
     
     % calculates the temperature at the bubble wall as a function of \tau
-    function Tw = TW(Tauw)
-        Tw = (alpha -1 + sqrt(1+2*Tauw*alpha)) / alpha;
-    end
-    
-    % calculates the concentration at the bubble wall
-    function Cw = CW(Tw,P)
-        theta = Rv_star/Ra_star*(P./(f_pvsat(Tw*T8)/P8)-1);
-        Cw = 1./(1+theta);
-    end
+    % function Tw = TW(Tauw)
+    %     Tw = (alpha -1 + sqrt(1+2*Tauw*alpha)) / alpha;
+    % end
+    % 
+    % % calculates the concentration at the bubble wall
+    % function Cw = CW(Tw,P)
+    %     theta = Rv_star/Ra_star*(P./(f_pvsat(Tw*T8)/P8)-1);
+    %     Cw = 1./(1+theta);
+    % end
     
     % solves temperature boundary conditions at the bubble wall
     function Tauw = Boundary(prelim)
@@ -395,15 +401,20 @@ function varargout =  m_imr_full_model(varargin)
         % coefficients in terms of second-order accurate forward difference
         coeff = [-1.5 , 2 ,-0.5 ];
         Tm_trans = Tm(2:3);
-        T_trans = flipud(Tau(end-2:end-1));
-        C_trans = flipud(C(end-2:end-1));
+        % T_trans = flipud(Tau(end-2:end-1));
+        % C_trans = flipud(C(end-2:end-1));
+        T_trans = Tau(end-1:-1:end-2);
+        C_trans = C(end-1:-1:end-2);
         
-        Tauw =chi*(2*iota*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...
-            chi*(-coeff*[prelim ;T_trans] )/deltaY + 1*...
-        Fom*L_heat_star*P*( (CW(TW(prelim),P)*(Rv_star-Ra_star)+Ra_star))^-1 *...
-            (TW(prelim) * (1-CW(TW(prelim),P))  ).^(-1).*...
-        (-coeff*[CW(TW(prelim),P);
-        C_trans] )/deltaY;
+        Tw_prelim = (alpha -1 + sqrt(1+2*prelim*alpha)) / alpha;
+        Pv_prelim = (f_pvsat(Tw_prelim * T8) / P8);
+        Cw_prelim = 1 ./ (1 + (Rv_star / Ra_star) * (P ./ Pv_prelim - 1));
+
+        Tauw = chi * (2 * iota * (coeff * [Tw_prelim; Tm_trans] ) / deltaYm) + ...
+            chi * (-coeff * [prelim ;T_trans] ) / deltaY + ...
+            Fom * L_heat_star * P * ((Cw_prelim * (Rv_star - Ra_star) + Ra_star))^-1 * ...
+            (Tw_prelim * (1 - Cw_prelim))^-1 * ...
+            (-coeff * [Cw_prelim; C_trans] ) / deltaY;
         
     end
     
@@ -426,7 +437,7 @@ function varargout =  m_imr_full_model(varargin)
             y = 1+(K-1)*deltaY;
         end
         
-        Diff_Matrix = zeros(Nodes);
+        Diff_Matrix = zeros(Nodes, Nodes);
         
         if order == 1
             % in between
