@@ -6,7 +6,7 @@
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear
 % Jeffreys, linear Zener, UCM and Oldroyd-B
 function [J,JdotX,Z1dot,Z2dot] = ...
-        f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ic,id,LAM,zeNO,cdd)
+        f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ivisco,id,LAM,zeNO,cdd)
     % TODO Need to add non-Newtonian behavior to JdotX
     % ((1-U/C_star)*R + ...
         %  4/Re8/C_star - 6*ddintfnu*iDRe/C_star);
@@ -38,7 +38,7 @@ function [J,JdotX,Z1dot,Z2dot] = ...
         % linear Maxwell, Jeffreys, Zener -- neo-Hookean
     elseif stress == 3
         % extract stress auxiliary variable
-        Z1 = X(ic);
+        Z1 = X(ivisco);
         J = Z1/R^3 - 4*LAM/Re8*U/R;
         % elastic shift Ze
         Ze = -0.5 * (R^3 / Ca) * (5 - Rst^4 - 4*Rst);
@@ -54,7 +54,7 @@ function [J,JdotX,Z1dot,Z2dot] = ...
         % linear Maxwell, Jeffreys, Zener -- quadratic neo-Hookean
     elseif stress == 4
         % extract stress auxiliary variable
-        Z1 = X(ic);
+        Z1 = X(ivisco);
         J = Z1/R^3 - 4*LAM/Re8*U/R;
         strainhard = (3*alphax - 1) / (2*Ca);
         % simplified Ze equation with decimal fractions
@@ -74,8 +74,8 @@ function [J,JdotX,Z1dot,Z2dot] = ...
         % upper-convected Maxwell, OldRoyd-B
     elseif stress == 5
         % extract stress sub-integrals
-        Z1 = X(ic);
-        Z2 = X(id);
+        Z1 = X(ivisco);
+        Z2 = X(ivisco2);
         % compute new derivatives
         Z1dot = -(1/De - 2*U/R)*Z1 + 2*(LAM-1)/(Re8*De)*R^2*U;
         Z2dot = -(1/De +   U/R)*Z2 + 2*(LAM-1)/(Re8*De)*R^2*U;

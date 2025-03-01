@@ -333,6 +333,11 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     % 1 : N-H, 2: qN-H, 3: linear Maxwell, Jeffreys, Zener, 5: UCM or OldB, 6: PTT, 7: Giesekus
     if stress == 1 || stress == 2 || stress == 3 || stress == 4
         spectral = 0;
+        if stress == 3 || stress == 4
+            Nv = 1;
+        else
+            Nv = 0;
+        end
     elseif stress == 5
         Ca = -1;
     elseif stress == 6
@@ -371,28 +376,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     else
         zeNO = 1;
     end
-    
-    % modify initial conditions for the Out-of-Equilibrium Rayleigh collapse:
-    % if  (wave_type == -1)
-    %     % mass air / mass vapor
-    %     theta = Rv_star/Ra_star*P0/Pv;
-    %     C0 = 1/(1+theta);
-    %     ma0 = P0/Ra_star;
-    %     % calculating the equilibrium radii for initial
-    %     [REq] = f_calc_Req(R0, bubtherm, masstrans, ee, vmaterial);
-    %     % initial velocity
-    %     Uzero = -(1-pzero)/(Cstar);
-    % else
-    %     % Plesset & Prosperetti, ARFM 1977, p166
-    %     Uzero = 0;
-    % end
-    %
-    % % Plesset & Prosperetti, ARFM 1977, p166
-    % if  (wave_type == -2)
-    %     % initial velocity
-    %     Uzero = -(ee/P8)/(Cstar);
-    % end
-    
+      
     if collapse
         Pv = f_pvsat(1*T8)/P8;
         Pb_star = P0_star + 1*f_pvsat(1*T8)/P8;
