@@ -3,6 +3,7 @@
 
 % brief This function sets up Victor to write this.
 function [Smaxpred] = f_max_pre_stress(Ro, al_nd, pwv_nd, We, Re, De, Ca, alpha)
+
     % compute trc constant
     trc = sqrt(6 * pi) * gamma(11/6) / (5 * gamma(4/3));
     

@@ -9,7 +9,7 @@ R0 = 2.447495043190468e-04;
 Req = 3.008409399929516e-05;
 % Req = 0.122917895573930*R0;
 % ratio = Req/R0;
-Req = R0;
+% Req = R0;
 tfin = R0/3;
 % pzero = 0.001887748193919;
 % cstar = 1.520710024149080e+02;
@@ -23,7 +23,7 @@ vapor = 1;
 bubtherm = 1;
 medtherm = 1;
 masstrans = 1;
-stress = 3;
+stress = 1;
 varin = {'progdisplay',0,...
     'radial',radial,...
          'bubtherm',bubtherm,...

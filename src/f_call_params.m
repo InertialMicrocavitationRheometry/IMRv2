@@ -377,6 +377,10 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
         zeNO = 1;
     end
 
+    if stress == 3 || stress == 4 && De == 0
+        error('INPUT ERROR: De can not equal zero for stress = 3 or 4');
+    end
+
     if collapse && vapor == 1
         Pv = f_pvsat(T8)/P8;
         Pb_star = P0_star + f_pvsat(1*T8)/P8;
@@ -401,7 +405,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
         MVE = x;
         Req  =(Rv_star*MVE/Pv)^(1/3);
     else
-        Pb_star = P0_star + f_pvsat(1*T8)/P8*vapor;
+        Pb_star = P0_star + f_pvsat(T8)/P8*vapor;
         Req = Req/R0;
     end
 
