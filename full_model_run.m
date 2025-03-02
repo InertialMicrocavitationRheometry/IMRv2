@@ -44,12 +44,10 @@ varin = {'progdisplay',0,...
          'rho8',rho8};
 
 [t1,R1,~] = m_imr_full_model(varin{:},'Nt',50,'Mt',50);
-[t2,R2,~] = m_imr_full_model1(varin{:},'Nt',50,'Mt',50);
-[t3,R3,~] = m_imr_finitediff(varin{:},'Nt',50,'Mt',50);
+[t2,R2,~] = m_imr_finitediff(varin{:},'Nt',50,'Mt',50);
 
 figure(1)
 hold on;
 plot(t1,R1,'k^')
 plot(t2,R2,'g.')
-plot(t3,R3,'r>')
 ylim([0 1.2])
