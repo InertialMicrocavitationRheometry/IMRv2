@@ -281,17 +281,17 @@ function varargout =  m_imr_fd(varargin)
         % extract solution
         
         % bubble wall radius
-        R       = X(1);
+        R = X(1);
         % bubble wall velocity
-        Rdot    = X(2);
+        Rdot = X(2);
         % internal bubble pressure
-        P       = X(3);
+        P = X(3);
         % auxiliary variable for internal bubble temperature
         if bubtherm
-            Tau     = X(ibubtherm);
+            Tau = X(ibubtherm);
         end
         if masstrans    
-            C       = X(imass);
+            C = X(imass);
         end
 
         % empty output variables
@@ -302,7 +302,7 @@ function varargout =  m_imr_fd(varargin)
         % boundary condition evaluation
         if medtherm
             % temperature in the material
-            Tm      = X(imedtherm);  
+            Tm = X(imedtherm);  
             prelim = fzero(@Boundary,guess);
             guess = prelim;
         else

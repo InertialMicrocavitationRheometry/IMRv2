@@ -358,6 +358,7 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     if spectral == 1
         JdotA = 0;
     end
+    
     % Keller-Miksis equation
     % if linkv==1 || neoHook==1 || Yeoh==1
     % JdotA = 4/Re8;
