@@ -197,7 +197,7 @@ function varargout =  m_imr_fd(varargin)
     if stress < 3
         Sp = zeros(2*(Nv - 1)*(spectral == 1),1);
     elseif stress == 3 || stress == 4
-        [Sp] = f_max_pre_stress(Req, kappa, Cstar, Pv_star, We, Re8, De, ...
+        [Sp] = f_max_pre_stress(Req, Cstar, Pv_star, We, Re8, De, ...
             Ca, alphax);
         Nv = 1;
     elseif stress == 5

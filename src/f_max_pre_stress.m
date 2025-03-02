@@ -2,18 +2,19 @@
 % brief contains function f_call_params
 
 % brief This function sets up Victor to write this.
-function [Smaxpred] = f_max_pre_stress(Ro, kappa, al_nd, pwv_nd, We, Re, De, Ca, alpha)
+function [Smaxpred] = f_max_pre_stress(Ro, al_nd, pwv_nd, We, Re, De, Ca, alpha)
     % compute trc constant
-    trc = sqrt(6*pi)*gamma(11/6)/(5*gamma(4/3));
+    trc = sqrt(6 * pi) * gamma(11/6) / (5 * gamma(4/3));
     
     % compute stress-related terms
-    fbarst = pi/(sqrt(6)*We*trc);
+    fbarst = pi / (sqrt(6) * We * trc);
     
-    % constants
-    B = 2.1844; 
+    % define constants
+    gam = 1.4;
+    B = 2.1844;
     
     % compute barotropic correction term
-    fbarbc = -(1 - pwv_nd + 1 / (We * Ro)) * B * Ro^(3 * kappa) + pwv_nd;
+    fbarbc = -(1 - pwv_nd + 1 / (We * Ro)) * B * Ro^(3 * gam) + pwv_nd;
     
     % compute compressibility correction
     Mc = 1 / al_nd;
@@ -29,7 +30,7 @@ function [Smaxpred] = f_max_pre_stress(Ro, kappa, al_nd, pwv_nd, We, Re, De, Ca,
     % compute elastic correction
     fbare = (1 / (60 * Ca * gamma(5/6))) * gamma(1/3) * ...
         ((40 * sqrt(pi) * Ro * (1 - 3 * alpha)) + ...
-        (120 * (-1 + 2 * Ro^3) * alpha * gamma(7/6)) / (Ro * gamma(2/3)) + ...
+    (120 * (-1 + 2 * Ro^3) * alpha * gamma(7/6)) / (Ro * gamma(2/3)) + ...
         (-50 + 177 * alpha) * gamma(5/6) / gamma(4/3));
     
     % compute stress loss correction
@@ -39,8 +40,7 @@ function [Smaxpred] = f_max_pre_stress(Ro, kappa, al_nd, pwv_nd, We, Re, De, Ca,
     fsum = fbarbc + fbarst + fbarc + fbarsls;
     
     % compute time constant tg
-    tg = (5 * sqrt(pi) * gamma(5/6) - 6 * Ro^(5/2) * gamma(4/3) *...
-        hypergeom([1/2, 5/6], 11/6, Ro^3)) / ...
+    tg = (5 * sqrt(pi) * gamma(5/6) - 6 * Ro^(5/2) * gamma(4/3) * hypergeom([1/2, 5/6], 11/6, Ro^3)) / ...
         (5 * sqrt(6 - 6 * fsum) * gamma(4/3));
     
     % compute predicted maximum stress
