@@ -376,9 +376,9 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
     else
         zeNO = 1;
     end
-      
-    if collapse
-        Pv = f_pvsat(1*T8)/P8;
+
+    if collapse && vapor == 1
+        Pv = f_pvsat(T8)/P8;
         Pb_star = P0_star + 1*f_pvsat(1*T8)/P8;
         % Need to recalculate initial concentration
         theta = Rv_star/Ra_star*(Pb_star-Pv)/Pv; % mass air / mass vapor
@@ -400,8 +400,11 @@ function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
         end
         MVE = x;
         Req  =(Rv_star*MVE/Pv)^(1/3);
+    else
+        Pb_star = P0_star;
+        Req = Req/R0;
     end
-    Req_zero= Req;
+    Req_zero = Req;
     
     % out parameters
     

@@ -10,10 +10,10 @@ function [Smaxpred] = f_max_pre_stress(Ro, kappa, al_nd, pwv_nd, We, Re, De, Ca,
     fbarst = pi/(sqrt(6)*We*trc);
     
     % constants
-    B = 2.1844;
+    B = 2.1844; 
     
     % compute barotropic correction term
-    fbarbc = -(1 - pwv_nd + 1 / (We * Ro)) * B * Ro^(3 * gam) + pwv_nd;
+    fbarbc = -(1 - pwv_nd + 1 / (We * Ro)) * B * Ro^(3 * kappa) + pwv_nd;
     
     % compute compressibility correction
     Mc = 1 / al_nd;
@@ -29,7 +29,7 @@ function [Smaxpred] = f_max_pre_stress(Ro, kappa, al_nd, pwv_nd, We, Re, De, Ca,
     % compute elastic correction
     fbare = (1 / (60 * Ca * gamma(5/6))) * gamma(1/3) * ...
         ((40 * sqrt(pi) * Ro * (1 - 3 * alpha)) + ...
-    (120 * (-1 + 2 * Ro^3) * alpha * gamma(7/6)) / (Ro * gamma(2/3)) + ...
+        (120 * (-1 + 2 * Ro^3) * alpha * gamma(7/6)) / (Ro * gamma(2/3)) + ...
         (-50 + 177 * alpha) * gamma(5/6) / gamma(4/3));
     
     % compute stress loss correction

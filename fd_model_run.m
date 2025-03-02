@@ -8,7 +8,7 @@ addpath('src');
 R0 = 2.447495043190468e-04;
 Req = 3.008409399929516e-05;
 % Req = 0.122917895573930*R0;
-ratio = Req/R0;
+% ratio = Req/R0;
 % Req = R0;
 tfin = R0/3;
 % pzero = 0.001887748193919;
@@ -43,11 +43,9 @@ varin = {'progdisplay',0,...
          't8',T8,...
          'rho8',rho8};
 
-[t1,R1,~] = m_imr_full_model(varin{:},'Nt',50,'Mt',50);
 [t3,R3,~] = m_imr_fd(varin{:},'Nt',50,'Mt',50);
 
 figure(1)
 hold on;
-plot(t1,R1,'k^')
 plot(t3,R3,'bs')
 ylim([0 1.2])

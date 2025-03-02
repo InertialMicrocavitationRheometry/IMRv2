@@ -6,16 +6,17 @@
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear
 % Jeffreys, linear Zener, UCM and Oldroyd-B
 function [J,JdotX,Z1dot,Z2dot] = ...
-        f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ivisco,id,LAM,zeNO,cdd)
+        f_stress_calc(stress,X,Req,R,Ca,De,Re8,U,alphax,ivisco,ivisco2,LAM,zeNO,cdd)
     % TODO Need to add non-Newtonian behavior to JdotX
     % ((1-U/C_star)*R + ...
         %  4/Re8/C_star - 6*ddintfnu*iDRe/C_star);
     
-    Z1dot = zeros(-1,1);
-    Z2dot = zeros(-1,1);
+    Z1dot = [];
+    Z2dot = [];
     
     % radial stretch
     Rst = Req/R;
+
     % no stress
     if stress == 0
         J = 0;
@@ -67,7 +68,8 @@ function [J,JdotX,Z1dot,Z2dot] = ...
         (2 * alphax / Ca) * ((2 * U / (Rst * R)) + (Rst^8 * U / R) + ...
             (Rst^5 * U / R) + (Rst^2 * U / R)));
         % stress auxiliary derivative
-        Z1dot = -(Z1-Ze)/De + ZdotSqNH + (3*U/R)*(Z1-Ze) + 4*(LAM-1)/(Re8*De)*R^2*U ;
+        Z1dot = -(Z1-Ze)/De + ZdotSqNH + (3*U/R)*(Z1-Ze) + ...
+            4*(LAM-1)/(Re8*De)*R^2*U ;
         % stress integral derivative
         JdotX = Z1dot/R^3 - 3*U/R^4*Z1 + 4*LAM/Re8*U^2/R^2;
         

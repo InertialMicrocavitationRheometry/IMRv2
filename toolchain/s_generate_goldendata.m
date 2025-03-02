@@ -23,8 +23,8 @@ for radial = 1:4
                         'vapor',vapor,...
                     'medtherm',medtherm,...
                         'stress',stress};
-                    [tf,Rf] = m_imrv2_finitediff(varin{:},'Nt',100,'Mt',100);
-                    [ts,Rs] = m_imrv2_spectral(varin{:},'Nt',12,'Mt',12);
+                    [tf,Rf] = m_imr_finitediff(varin{:},'Nt',100,'Mt',100);
+                    [ts,Rs] = m_imr_spectral(varin{:},'Nt',12,'Mt',12);
                     if (norm(Rs-Rf,2) < 1E-2)
                         disp('----> SUCCESS! <------');
                         save(filename1,"Rf");
@@ -57,7 +57,7 @@ for radial = 1:4
                     'medtherm',medtherm,...
                         'stress',stress,...
                     'masstrans',masstrans};
-                    [~,Rf] = m_imrv2_finitediff(varin{:},'Nt',100,'Mt',100);
+                    [~,Rf] = m_imr_finitediff(varin{:},'Nt',100,'Mt',100);
                     save(filename1,"Rf");
                     count = count + 1;
                 end
@@ -88,8 +88,8 @@ for radial = 1:4
                     'Req',Req,...
                         'R0',R0,...
                     't8',T8};
-                    [~,Rf] = m_imrv2_finitediff(varin{:},'Nt',100,'Mt',100);
-                    [~,Rs] = m_imrv2_spectral(varin{:},'Nt',12,'Mt',12);
+                    [~,Rf] = m_imr_finitediff(varin{:},'Nt',100,'Mt',100);
+                    [~,Rs] = m_imr_spectral(varin{:},'Nt',12,'Mt',12);
                     if (norm(Rf,2)/10-1 < 1e-6 && norm(Rs,2)/10-1 < 1e-6 )
                         disp('----> SUCCESS! <------');
                         save(filename1,"Rf");

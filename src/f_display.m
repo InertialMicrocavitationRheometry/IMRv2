@@ -41,19 +41,19 @@ function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, ...
     
     if stress == 0
         const = 'no stress applied';
-    elseif stress == 1 || stress == 2
+    elseif stress == 1 
         if Ca == Inf
             const = 'Newtonian fluid';
         else
             const = 'neo-Hookean Kelvin-Voigt';
         end
-    elseif stress == 3 || stress == 4
+    elseif stress == 2
         if Ca == Inf
             const = 'Newtonian fluid';
         else
             const = 'quadratic neo-Hookean Kelvin-Voigt';
         end
-    elseif stress == 5
+    elseif stress == 3 || stress == 4 || stress == 5
         if Ca ~= Inf && LAM == 0
             const = 'linear Zener';
         elseif Ca == Inf && LAM == 0
