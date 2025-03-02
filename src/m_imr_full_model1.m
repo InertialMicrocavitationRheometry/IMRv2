@@ -4,7 +4,7 @@
 % brief This module features a fourth- and sixth-order accurate finite
 % difference solver of the PDEs involving thermal transport and
 % viscoelasticity to solve Rayleigh-Plesset equations
-function varargout =  m_imr_full_model(varargin)
+function varargout =  m_imr_full_model1(varargin)
     
     % problem initialization
     [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts,...
@@ -110,7 +110,7 @@ function varargout =  m_imr_full_model(varargin)
     DD_Matrix_T_C = f_finite_diff_mat(Nt,2,0);
     D_Matrix_Tm = f_finite_diff_mat(Mt,1,1);
     DD_Matrix_Tm = f_finite_diff_mat(Mt,2,1);
-
+    
     % inside the bubble
     N = Nt-1;
     deltaY = 1/N;
@@ -123,14 +123,17 @@ function varargout =  m_imr_full_model(varargin)
     j = 1:1:Nm+1;
     xi = (1+(j-1)*deltaYm)';
     yT = ((2./(xi+1)-1)*Lt+1);
-    
-    % precomputations
+    yT2 = yT.^2;
+    yT3 = yT.^3;
+    yT6 = yT.^6;
+
+    % precomputations move these to f_call_params
     %LDR = LAM*De/Re8;
     sam = 1 - Pv_star + GAMa;
     no = (nstate-1)/nstate;
+    kapover = (kappa-1)/kappa;
     C1_pv = 1.17e11/P8;
     C2_pv = -5200/T8;
-
     % boundary conditions coefficients
     coeff = [-1.5 , 2 ,-0.5 ];
     Rva_ratio = Rv_star / Ra_star;
@@ -138,7 +141,7 @@ function varargout =  m_imr_full_model(varargin)
     Rva_diff = Rv_star - Ra_star;
     grad_Tm_coeff = 2*chi*iota/deltaYm*coeff;
     grad_Trans_coeff = -coeff*chi/deltaY;
-    grad_C_coeff = -coeff*Fom*L_heat_star/deltaY;    
+    grad_C_coeff = -coeff*Fom*L_heat_star/deltaY;  
     
     % index management
     if masstrans == 1
@@ -170,14 +173,14 @@ function varargout =  m_imr_full_model(varargin)
     cdd = preStressInt(Lv,Nv);
     
     % initial condition assembly
-        
+       
     % bubble temperature initial condition
     if bubtherm
         Tau0 = zeros(Nt,1);
     else
         Tau0 = [];
     end
-
+    
     % medium initial temperature
     if medtherm
         Tm0 = ones(Mt,1);
@@ -211,7 +214,7 @@ function varargout =  m_imr_full_model(varargin)
     Sp];
     
     guess = -0.0001;
-
+    
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, ...
         eps3, vapor, Re8, De, Ca, LAM, 'finite difference');
@@ -224,12 +227,11 @@ function varargout =  m_imr_full_model(varargin)
     P    = X(:,3);
     if bubtherm
         Tau = X(:,ibubtherm);
-        T = (alpha - 1 + sqrt(1+2*Tau*alpha)) / alpha; % Temp in bubble
+        T = TW(Tau);
         if medtherm
             Tm = X(:,imedtherm);
         end
     end
-    
     if masstrans
         C = X(:,imass);
     end
@@ -286,19 +288,16 @@ function varargout =  m_imr_full_model(varargin)
         % vapor concentration inside the bubble
         C       = X(imass);
 
+        % boundary condition evaluation
         prelim = fzero(@Boundary,guess);
         guess = prelim;
-        
-        % sets value at boundary conditions
         Tau(end) = prelim;
-        % using direct function for speed 
-        T = inv_alpha*(alpha - 1 + sqrt(1+2*Tau*alpha));
+        T = TW(Tau);
         Tm(1) = T(end);
-        
-        % calculate variables
-        K_star = alpha * T + beta;  
-        % using known repeated function here for speed
-        C(end) = 1./(1 + Rva_ratio*(P./(C1_pv*exp(C2_pv/T(end))) - 1));
+        C(end) =  CW(T(end),P);
+
+        % calculate thermal and mass transfer variables
+        K_star = alpha*T+beta;
         Rmix = C*Rv_star + (1-C)*Ra_star;
         
         % temperature field of the gas inside the bubble
@@ -317,45 +316,47 @@ function varargout =  m_imr_full_model(varargin)
         
         % internal pressure equation
         Pdot = 3/R*(1*chi*(kappa-1)*DTau(end)/R - kappa*P*Rdot +...
-            + 1*kappa*P*Fom*Rv_star*DC(end)/( T(end)*R* Rmix(end)* (1-C(end)) ) );
+            + kappa*P*Fom*Rv_star*DC(end)/(T(end)*R*Rmix(end)*(1-C(end))));
         
         % temperature of the gas inside the bubble
-        U_vel = (chi/R*(kappa-1).*DTau - y*R*Pdot/3)/(kappa*P);
-        first_term = (DDTau.*chi./R^2+Pdot).*(K_star.*T/P*(kappa-1)/kappa);
+        U_vel = (chi/R*(kappa-1).*DTau-y*R*Pdot/3)/(kappa*P);
+        first_term = (chi*DDTau./R^2+Pdot).*(kapover*K_star.*T/P);
         second_term = -DTau.*(U_vel-y*Rdot)./R;
-        
         Taudot = first_term+second_term;
         Taudot(end) = 0;
         
         % vapor concentration equation
-        U_mix = U_vel + Fom/R*((Rv_star - Ra_star)./Rmix).*DC;
-        two = DC.*(DTau./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*DC );
+        RDC = (Rva_diff./Rmix).*DC;
+        U_mix = U_vel + Fom/R*RDC;
+        two = DC.*(DTau./(K_star.*T)+RDC);
         three =  (U_mix-Rdot.*y)/R.*DC;
         
         Cdot = Fom/R^2*(DDC - two) - three;
         Cdot(end) = 0;
         
         % material temperature equations
-        first_term = (1+xi).^2./(Lt*R).*(Rdot./yT.^2.*(1-yT.^3)/2+Foh/R.*((xi+1)/(2*Lt)-1./yT)).* DTm;
+        first_term = (1+xi).^2./(Lt*R).*(Rdot./yT2.*(1-yT3)/2 +...
+            Foh/R.*((xi+1)/(2*Lt)-1./yT)).*DTm;
         second_term = Foh/R^2.*(xi+1).^4/Lt^2.*DDTm/4;
-        third_term =  3*Br./yT.^6.*(4/(3*Ca).*(1-1/R^3)+4.*Rdot/(Re8.*R)).*Rdot./R;
+        third_term =  3*Br./yT6.*(4/(3*Ca).*(1-1/R^3)+4.*Rdot^2/(Re8.*R^2));
         Tmdot = first_term+second_term+third_term;
-        % sets boundary condition on temp
+        % sets boundary condition on temperature
         Tmdot(end) = 0;
-        % previously calculated
         Tmdot(1) = 0;
         
         % pressure waveform
         [pf8,pf8dot] = f_pinfinity(t,pvarargin);
-        Pv = C1_pv*exp(C2_pv/T(end));
+        
+        Pv = (f_pvsat(T(end)*T8)/P8);
         
         % stress equation
         [J,JdotX,Z1dot,Z2dot] = ...
-            f_stress_calc(stress,X,Req,R,Ca,De,Re8,Rdot,alphax,ivisco,ivisco2,LAM,zeNO,cdd);
+            f_stress_calc(stress,X,Req,R,Ca,De,Re8,Rdot,alphax,ivisco,...
+            ivisco2,LAM,zeNO,cdd);
         
         % bubble wall acceleration
-        [Rddot] = f_radial_eq(radial, P, Pdot, (1-vapor)*Pv, pf8, pf8dot, iWe, ...
-            R, Rdot, J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
+        [Rddot] = f_radial_eq(radial, P, Pdot, (1-vapor)*Pv, pf8, pf8dot, ...
+            iWe, R, Rdot, J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
         
         % output assembly
         dXdt = [Rdot;
@@ -366,19 +367,30 @@ function varargout =  m_imr_full_model(varargin)
         Cdot;
         Z1dot;
         Z2dot];
-
+        
     end
     % end of solver
     
     % functions called by solver
-   
+    
+    % calculates the temperature at the bubble wall as a function of \tau
+    function Tw = TW(Tauw)
+        Tw = (alpha -1 + sqrt(1+2*Tauw*alpha)) / alpha;
+    end
+    
+    % calculates the concentration at the bubble wall
+    function Cw = CW(Tw,P)
+        theta = Rv_star/Ra_star*(P./(f_pvsat(Tw*T8)/P8)-1);
+        Cw = 1./(1+theta);
+    end
+    
     % solves temperature boundary conditions at the bubble wall
     function Tauw = Boundary(prelim)
         
         Tm_trans = Tm(2:3);
         T_trans = Tau(end-1:-1:end-2);
         C_trans = C(end-1:-1:end-2);
-        
+
         Tw_prelim = inv_alpha*(alpha - 1 + sqrt(1+2*prelim*alpha));
         Pv_prelim = C1_pv*exp(C2_pv/Tw_prelim);
                 
@@ -411,7 +423,7 @@ function varargout =  m_imr_full_model(varargin)
             y = 1+(K-1)*deltaY;
         end
         
-        Diff_Matrix = zeros(Nodes, Nodes);
+        Diff_Matrix = zeros(Nodes);
         
         if order == 1
             % in between
