@@ -2,7 +2,7 @@
 % brief contains script to test for compatibility conditions
 
 % brief This script runs both the finite difference and spectral codes to
-% test to ensure compabitility between including thermal conditions
+% test to ensure compatibility between including thermal conditions
 clc;
 clear;
 addpath('../src');
