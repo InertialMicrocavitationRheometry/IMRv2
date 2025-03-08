@@ -9,7 +9,7 @@ function varargout =  m_imr_full_model(varargin)
     % problem initialization
     [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts,...
         wave_opts, sigma_opts, thermal_opts, mass_opts]...
-    = f_call_params(varargin{:});
+        = f_call_params(varargin{:});
     
     % equations settings
     radial          = eqns_opts(1);
@@ -126,7 +126,7 @@ function varargout =  m_imr_full_model(varargin)
     yT2 = yT.^2;
     yT3 = yT.^3;
     yT6 = yT.^6;
-
+    
     % precomputations move these to f_call_params
     %LDR = LAM*De/Re8;
     sam = 1 - Pv_star + GAMa;
@@ -141,7 +141,7 @@ function varargout =  m_imr_full_model(varargin)
     Rva_diff = Rv_star - Ra_star;
     grad_Tm_coeff = 2*chi*iota/deltaYm*coeff;
     grad_Trans_coeff = -coeff*chi/deltaY;
-    grad_C_coeff = -coeff*Fom*L_heat_star/deltaY;  
+    grad_C_coeff = -coeff*Fom*L_heat_star/deltaY;
     
     % index management
     if masstrans == 1
@@ -173,7 +173,7 @@ function varargout =  m_imr_full_model(varargin)
     cdd = preStressInt(Lv,Nv);
     
     % initial condition assembly
-       
+    
     % bubble temperature initial condition
     if bubtherm
         Tau0 = zeros(Nt,1);
@@ -287,7 +287,7 @@ function varargout =  m_imr_full_model(varargin)
         Tm      = X(imedtherm);
         % vapor concentration inside the bubble
         C       = X(imass);
-
+        
         % boundary condition evaluation
         prelim = fzero(@Boundary,guess);
         guess = prelim;
@@ -295,7 +295,7 @@ function varargout =  m_imr_full_model(varargin)
         T = TW(Tau);
         Tm(1) = T(end);
         C(end) =  CW(T(end),P);
-
+        
         % calculate thermal and mass transfer variables
         K_star = alpha*T+beta;
         Rmix = C*Rv_star + (1-C)*Ra_star;
@@ -347,15 +347,13 @@ function varargout =  m_imr_full_model(varargin)
         % pressure waveform
         [pf8,pf8dot] = f_pinfinity(t,pvarargin);
         
-        Pv = (f_pvsat(T(end)*T8)/P8);
-        
         % stress equation
         [J,JdotX,Z1dot,Z2dot] = ...
             f_stress_calc(stress,X,Req,R,Ca,De,Re8,Rdot,alphax,ivisco,...
             ivisco2,LAM,zeNO,cdd);
         
         % bubble wall acceleration
-        [Rddot] = f_radial_eq(radial, P, Pdot, (1-vapor)*Pv, pf8, pf8dot, ...
+        [Rddot] = f_radial_eq(radial, P, Pdot, pf8, pf8dot, ...
             iWe, R, Rdot, J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
         
         % output assembly
@@ -390,17 +388,18 @@ function varargout =  m_imr_full_model(varargin)
         Tm_trans = Tm(2:3);
         T_trans = Tau(end-1:-1:end-2);
         C_trans = C(end-1:-1:end-2);
-
+        
         Tw_prelim = inv_alpha*(alpha - 1 + sqrt(1+2*prelim*alpha));
         Pv_prelim = C1_pv*exp(C2_pv/Tw_prelim);
-                
+        
         demCw = (1 + (Rva_ratio) * (P ./ Pv_prelim - 1));
         Cw_prelim = 1 / demCw;
-
+        
         Tauw = grad_Tm_coeff * [Tw_prelim; Tm_trans]  + ...
             grad_Trans_coeff * [prelim ;T_trans] + ...
-             grad_C_coeff * P * ((Cw_prelim * Rva_diff + Ra_star))^-1 * ...
-            (Tw_prelim * (1 - Cw_prelim))^-1 * [Cw_prelim; C_trans] ;
+            grad_C_coeff * P * ((Cw_prelim * Rva_diff + Ra_star))^-1 * ...
+            (Tw_prelim * (1 - Cw_prelim))^-1 * [Cw_prelim;
+        C_trans] ;
         
     end
     

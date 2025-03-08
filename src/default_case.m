@@ -46,7 +46,7 @@ R0              = 100E-6;
 % initial velocity (m/s)
 U0              = 0;
 % Equilibrium radius for pre-stress bubble, see Estrada JMPS 2017
-Req             = 50E-6;
+Req             = R0/10;
 
 % output options
 
@@ -58,7 +58,7 @@ progdisplay     = 0;
 % acoustic options
 
 % far-field density (kg/m^3)
-rho8            = 1000;
+rho8            = 1064;
 % state equation parameter (Pa)
 GAM             = 3049.13*1e5;
 % state equation parameter
@@ -91,7 +91,7 @@ vmaterial       = 'water';
 % (Pa) Medium Shear Modulus
 G               = 1e3;
 % relaxation time (s)
-lambda1         = 1e-8;
+lambda1         = 1e-7;
 % retardation time (s)
 lambda2         = 1e-8;
 % qKV term
@@ -111,7 +111,7 @@ AT              = 5.28e-5;
 % (W/m-K) thermal conductivity coeff
 BT              = 1.165e-2;
 % (K) far field temperature
-T8              = 300;
+T8              = 298.15;
 % (W/m-K) thermal conductivity medium
 Km              = 0.55;
 % (J/Kg K) specific heat medium

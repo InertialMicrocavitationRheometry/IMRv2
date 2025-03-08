@@ -1,4 +1,8 @@
-% toolchain/s_lint.m - MATLAB Lint Script for GitHub Actions
+% file s_lint.m
+% brief contains script run a lint checker throughout the code
+
+% brief This script runs the Matlab linter to check for inefficiencies in
+% the code
 clc;
 clear;
 

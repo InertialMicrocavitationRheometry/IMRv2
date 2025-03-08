@@ -9,7 +9,7 @@ function varargout =  m_imr_spectral(varargin)
     % problem Initialization
     [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts,...
         wave_opts, sigma_opts, thermal_opts, mass_opts]...
-    = f_call_params(varargin{:});
+        = f_call_params(varargin{:});
     
     % equations settings
     radial          = eqns_opts(1);
@@ -38,16 +38,18 @@ function varargout =  m_imr_spectral(varargin)
     % dimensionless initial conditions
     Rzero           = init_opts(1);
     Uzero           = init_opts(2);
-    P0star          = init_opts(3);
-    P8              = init_opts(4);
+    Pb_star         = init_opts(3);
+    % P8              = init_opts(4);
     T8              = init_opts(5);
     Pv_star         = init_opts(6);
     Req             = init_opts(7);
     alphax          = init_opts(8);
+    collapse        = init_opts(9);
     
     % time span options
     tspan = tspan_opts;
     tfin = tspan(end);
+    
     % output options
     dimensionalout  = out_opts(1);
     progdisplay     = out_opts(2);
@@ -59,6 +61,7 @@ function varargout =  m_imr_spectral(varargin)
     GAMa            = acos_opts(2);
     kappa           = acos_opts(3);
     nstate          = acos_opts(4);
+    
     % dimensionless waveform parameters
     om              = wave_opts(1);
     ee              = wave_opts(2);
@@ -83,9 +86,10 @@ function varargout =  m_imr_spectral(varargin)
     % v_lambda_star   = sigma_opts(11);
     zeNO            = sigma_opts(12);
     iWe             = 1/We;
-    if Ca==-1
-        Ca=Inf;
+    if Ca == -1
+        Ca = Inf;
     end
+    
     % dimensionless thermal
     Foh             = thermal_opts(1);
     Br              = thermal_opts(2);
@@ -93,9 +97,11 @@ function varargout =  m_imr_spectral(varargin)
     beta            = thermal_opts(4);
     chi             = thermal_opts(5);
     iota            = thermal_opts(6);
+    
     % dimensionaless mass transfer
-    % Fom             = mass_opts(1);
-    C0              = mass_opts(2);
+    Fom             = mass_opts(1);
+    iota = Fom*0 + iota;
+    % C0              = mass_opts(2);
     % Rv_star         = mass_opts(3);
     % Ra_star         = mass_opts(4);
     % L_heat_star     = mass_opts(5);
@@ -123,16 +129,14 @@ function varargout =  m_imr_spectral(varargin)
     
     % precomputations
     % LDR = LAM*De/Re8;
-    sam = 1 - Pv_star + GAMa;
+    sam = 1 + GAMa;
     no = (nstate-1)/nstate;
     kapover = (kappa-1)/kappa;
     yT = 2*Lt./(1+xi) - Lt + 1;
+    yT6 = yT.^6;
     % yV = 2*Lv./(1-ze) - Lv + 1;
     nn = ((-1).^(0:Nt).*(0:Nt).^2)';
     nn = sparse(nn);
-    
-    % TODO Change this!
-    Rddot = 0*C0;
     
     % precomputations for viscous dissipation
     zT = 1 - 2./(1 + (yT - 1)/Lv);
@@ -174,7 +178,12 @@ function varargout =  m_imr_spectral(varargin)
     if stress < 3
         Sp = zeros(2*(Nv - 1)*(spectral == 1),1);
     elseif stress == 3 || stress == 4
-        [Sp] = f_max_pre_stress(Req, Cstar, Pv_star, We, Re8, De, Ca, alphax);
+        if collapse
+            [Sp] = f_max_pre_stress(Req, kappa, Cstar, Pv_star, We, Re8, De, ...
+                Ca, alphax);
+        else
+            Sp = 0;
+        end
     elseif stress == 5
         Sp = zeros(2*(Nv - 1)*(spectral == 1) + 2,1);
     end
@@ -184,7 +193,7 @@ function varargout =  m_imr_spectral(varargin)
     % initial condition vector
     init = [Rzero;
     Uzero;
-    P0star;
+    Pb_star;
     Tau0;
     Tm0;
     Tm1;
@@ -204,20 +213,8 @@ function varargout =  m_imr_spectral(varargin)
     Rdot = X(:,2);
     P = X(:,3);
     % extracting the Chebyshev coefficients
-    % Z1 = X(:,ic);
-    % Z2 = X(:,id);
     a = X(:,ia)';
     b = X(:,ib)';
-    % if stress >= 3
-    %     c = X(:,ic)';
-    % end
-    % if stress > 4 && stress <= 7
-    %     d = X(:,id)';
-    % else
-    %     d = zeros(-1,1);
-    % end
-    % e = X(:,ie)';
-    %I = X(:,ie+1);
     if bubtherm
         T = (alpha-1+sqrt(1+2*alpha*gA*a))/alpha;
         if medtherm
@@ -226,6 +223,8 @@ function varargout =  m_imr_spectral(varargin)
     else
         T = R.^(-3*kappa);
     end
+    % Z1 = X(:,ic);
+    % Z2 = X(:,id);
     % if masstrans
     %     C = gC*e;
     % end
@@ -252,7 +251,6 @@ function varargout =  m_imr_spectral(varargin)
         P = P*p0;
         T = T*T8;
         %pA = pA*p0;
-        %I = I*p0;
         % c = c*p0;
         % d = d*p0;
         % e = e*C0;
@@ -283,18 +281,6 @@ function varargout =  m_imr_spectral(varargin)
     if masstrans == 1
         varargout{7} = C;
     end
-    %varargout{8} = trr;
-    %varargout{9} = t00;
-    % varargout{10} = I;
-    % if stress == 2
-    %     varargout{11} = Z1; % Z1
-    %     varargout{12} = Z2; % Z2
-    %     varargout{13} = (Z1)./R.^3 - 4*LAM/Re8.*Rdot./R; % J
-    % elseif stress == 3
-    %     varargout{11} = Z1; % Z1
-    %     varargout{12} = Z2; % Z2
-    %     varargout{13} = (Z1 + Z2)./R.^3 - 4*LAM./Re8.*Rdot./R; % J
-    % end
     
     % solver function
     function dXdt = SVBDODE(t,X)
@@ -310,7 +296,7 @@ function varargout =  m_imr_spectral(varargin)
             % updating the viscous forces/Reynolds number
             % [fnu,intfnu,dintfnu,ddintfnu] = ...
                 % [fnu,~,~,~] = ...
-            % f_nonNewtonian_integrals(vmaterial,Rdot,R,v_a,v_nc,v_lambda_star);
+                % f_nonNewtonian_integrals(vmaterial,Rdot,R,v_a,v_nc,v_lambda_star);
             
             % non-condensible gas pressure and temperature
             if bubtherm
@@ -325,9 +311,6 @@ function varargout =  m_imr_spectral(varargin)
                 % temperature and thermal diffusivity fields
                 T = (alpha - 1 + sqrt(1+2*alpha*SI))/alpha;
                 D = kapover*(alpha*T.^2 + beta*T)/P;
-                
-                % vapor pressure
-                Pvap = vapor*f_pvsat(T(end)*T8)/P8;
                 
                 % bubble pressure
                 Pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*P*Rdot);
@@ -345,19 +328,23 @@ function varargout =  m_imr_spectral(varargin)
                     % new derivative of medium temperature
                     first_term = (1+xi).^2/(Lt*R).*...
                         (Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
-                    Rdot/2*(1./yT.^2 - yT)).*(mAPd*TL);
+                        Rdot/2*(1./yT.^2 - yT)).*(mAPd*TL);
                     second_term = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
-                    TLdot =  first_term + second_term;
                     % include viscous heating
                     if spectral == 1
-                        TLdot = TLdot - 2*Br*Rdot./(R*yT.^3).*(ZZT*(X(ic) - X(id)));
-                    else %if stress == 1
-                        TLdot = TLdot + 4*Br./yT.^6*(Rdot/R*(1-1/R^3)/Ca + 3/Re8*(Rdot/R)^2);
+                        third_term = - 2*Br*Rdot./(R*yT.^3).*(ZZT*(X(ic) - X(id)));
+                    else
+                        %third_term = 4*Br./yT.^6*(Rdot/R*(1-1/R^3)/Ca + 3/Re8*(Rdot/R)^2);
+                        third_term =  3*Br./yT6.*(4/(3*Ca).*(1-1/R^3)+4.*Rdot^2/(Re8.*R^2));
                     end
+                    TLdot = first_term + second_term + third_term;
                     % enforce boundary condition and solve
                     TLdot(end) = 0;
                     qdot = [ones(1,Nt+1) -(alpha*(T(1)-1)+1)*ones(1,Mt+1); Q]...
-                        \[0; SIdot(2:end); TLdot(2:end); 0];
+                        \[0;
+                    SIdot(2:end);
+                    TLdot(2:end);
+                    0];
                 else % cold-liquid approximation
                     % solve auxiliary temperature with boundary condition
                     qdot = gAI*[0;
@@ -365,7 +352,6 @@ function varargout =  m_imr_spectral(varargin)
                 end
             else
                 % polytropic approximation
-                Pvap = vapor*Pv_star;
                 Pdot = -3*kappa*Rdot/R*P;
             end
             
@@ -377,8 +363,8 @@ function varargout =  m_imr_spectral(varargin)
             [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
             
             % bubble wall acceleration
-            [Rddot] = f_radial_eq(radial, P, Pdot, Pvap, Pf8, Pf8dot, iWe, R, Rdot, ...
-                J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
+            [Rddot] = f_radial_eq(radial, P, Pdot,Pf8, Pf8dot, ...
+                iWe, R, Rdot, J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
             
             % output assembly
             dXdt = [Rdot;

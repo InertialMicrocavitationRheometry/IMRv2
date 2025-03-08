@@ -3,7 +3,7 @@
 
 % brief This function sets up Victor to write this.
 function [Smaxpred] = f_max_pre_stress(Ro, kappa, al_nd, pwv_nd, We, Re, De, Ca, alpha)
-
+    
     % trc constant
     trc = sqrt(6*pi)*gamma(11/6)/(5*gamma(4/3));
     
@@ -30,7 +30,7 @@ function [Smaxpred] = f_max_pre_stress(Ro, kappa, al_nd, pwv_nd, We, Re, De, Ca,
     % elastic correction
     fbare = (1 / (60 * Ca * gamma(5/6))) * gamma(1/3) * ...
         ((40 * sqrt(pi) * Ro * (1 - 3 * alpha)) + ...
-    (120 * (-1 + 2 * Ro^3) * alpha * gamma(7/6)) / (Ro * gamma(2/3)) + ...
+        (120 * (-1 + 2 * Ro^3) * alpha * gamma(7/6)) / (Ro * gamma(2/3)) + ...
         (-50 + 177 * alpha) * gamma(5/6) / gamma(4/3));
     
     % stress loss correction

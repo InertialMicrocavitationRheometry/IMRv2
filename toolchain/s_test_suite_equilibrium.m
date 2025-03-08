@@ -1,23 +1,29 @@
-% MATLAB script to check L2 norm errors after unit tests
+% file s_test_suite_equilibrium.m
+% brief contains script to test for equilibrium conditions
+
+% brief This script runs both the finite difference and spectral codes to
+% test that initial equilibrium conditions are satisfied
 clc;
 clear;
-addpath('../src');
-load('file_ids.mat');
 
-num_tests = 4*2*2*2*6*3;
+addpath('../toolchain/');
+addpath('../src');
+
+num_tests = 4*2*2*2*6;
 errors_fd = zeros(num_tests,1);
 errors_sp = zeros(num_tests,1);
 failed_tests = zeros(size(errors_sp));
-threshold = 1E-10; % Define threshold
+threshold = 1E-14; % Define threshold
 
 fprintf('Checking L2 norm errors...\n');
-shift = 4*2*2*2*6*3;
 
+% equilibrium test case
 masstrans = 0;
+collapse = 0;
 Req = 100e-6;
 R0 = Req;
-T8 = 293;
-tfin = 1E-3;
+T8 = 298.15;
+tfin = 10E-6;
 tvector = linspace(0,tfin,100);
 
 % equation options
@@ -27,30 +33,27 @@ for radial = 1:4
         for bubtherm = 0:1
             for medtherm = 0:1
                 for stress = 0:5
-                    filename1 = strcat('../tests/',ids{count+0+shift},'.mat');
-                    filename2 = strcat('../tests/',ids{count+1+shift},'.mat');
-                    load(filename1);
-                    load(filename2);
                     varin = {'radial',radial,...
                         'bubtherm',bubtherm,...
-                    'masstrans',masstrans,...
+                        'masstrans',masstrans,...
                         'tvector',tvector,...
-                    'vapor',vapor,...
+                        'vapor',vapor,...
                         'medtherm',medtherm,...
-                    'stress',stress,...
+                        'stress',stress,...
+                        'collapse',collapse,...
                         'Req',Req,...
-                    'R0',R0,...
+                        'R0',R0,...
                         't8',T8};
-                    [~,Rf_test] = m_imr_finitediff(varin{:},'Nt',100,'Mt',100);
+                    [~,Rf_test] = m_imr_fd(varin{:},'Nt',150,'Mt',150);
                     [~,Rs_test] = m_imr_spectral(varin{:},'Nt',12,'Mt',12);
-                    errors_fd(count) = norm(Rf-Rf_test,2);
-                    errors_sp(count) = norm(Rs-Rs_test,2);
+                    errors_fd(count) = abs(norm(Rf_test,2)/10-1);
+                    errors_sp(count) = abs(norm(Rs_test,2)/10-1);
                     fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
                     fprintf('Test %d: L2 norm error = %.6e\n', count+1, errors_sp(count));
-                    if (errors_fd(count) > threshold)
+                    if ( errors_fd(count)  > threshold )
                         failed_tests(count) = count;
                     end
-                    if (errors_sp(count) > threshold)
+                    if( errors_sp(count) > threshold )
                         failed_tests(count+1) = count+1;
                     end
                     count = count + 2;
