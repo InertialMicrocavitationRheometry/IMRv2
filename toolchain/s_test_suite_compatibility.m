@@ -1,5 +1,5 @@
-% file s_test_suite_compatability.m
-% brief contains script to test for compatability conditions
+% file s_test_suite_compatibility.m
+% brief contains script to test for compatibility conditions
 
 % brief This script runs both the finite difference and spectral codes to
 % test to ensure compabitility between including thermal conditions

@@ -44,5 +44,5 @@ jobs:
         with:
           command: | 
             cd toolchain;
-            s_test_suite_thermal;
+            s_test_suite_compatibility;
 
