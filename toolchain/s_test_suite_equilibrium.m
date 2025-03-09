@@ -13,7 +13,7 @@ num_tests = 4*2*2*2*6;
 errors_fd = zeros(num_tests,1);
 errors_sp = zeros(num_tests,1);
 failed_tests = zeros(size(errors_sp));
-threshold = 1E-14; % Define threshold
+threshold = 1e-14; % Define threshold
 
 fprintf('Checking L2 norm errors...\n');
 
