@@ -378,60 +378,24 @@ end
 
 % inertial Rayleigh collapse out of equilibrium initial conditions
 opts = optimset('display','off');
-if collapse && vapor == 1
+if collapse && vapor
     
-    if masstrans
-        
-        Pv = f_pvsat(T8)/P8;
-        % Calculate the equilibrium radii ratio for initial stress state:
-        ma0 = P0_star/Ra_star;
-        % parameterized function
-        fun = @(x) Pv*(1+(ma0/x)*(Ra_star/Rv_star))-1-...
-            1/We*(Pv/(Rv_star*x))^(1/3);
-        MTotal0 = P0_star/Ra_star + Pv/Rv_star;
-        exp2 = MTotal0;
-        MVE = fzero(fun,exp2,opts);
-        while (isnan(MVE))
-            exp2 = exp2/1.11;
-            MVE = fzero(fun,exp2,opts);
-        end
-        Pb_star = P0_star + Pv;
-        % Need to recalculate initial concentration, mass air / mass vapor
-        theta = Rv_star/Ra_star*(Pb_star/Pv-1);
-        C0 = 1/(1+theta);
-        Req = (Rv_star*MVE/Pv)^(1/3);
-        
-    elseif bubtherm
-        
-        % Note: For very small initial mass content this case has a hard time
-        % finding roots. One fix is to just set Cgrad to 1. That always converges.
-        Pv = f_pvsat(T8)/P8;
-        
-        fun = @(x) P0_star + (Pv-1)*x^3 -x^2/(We);
-        exp2=1;
-        x = fzero(fun,exp2,opts);
-        while (isnan(x))
-            exp2 = exp2*1.01;
-            Req = fzero(fun,exp2,opts);
-        end
-        Pb_star = P0_star*Req^-3 + Pv;
-        theta = Rv_star/Ra_star*(Pb_star/Pv-1);
-        C0 = 1/(1+theta);
-        
-    else
-        
-        fun = @(x) P0_star*(1/x)^(3*kappa)+Pv-1-1/(We*x);
-        exp2 = 1;
-        x = fzero(fun,exp2,opts);
-        while (isnan(x))
-            exp2 = exp2*1.01;
-            Req = fzero(fun,exp2,opts);
-        end
-        Pb_star = P0_star*(Req/R0)^(3*kappa) + Pv;
-        theta = Rv_star/Ra_star*(Pb_star/Pv-1);
-        C0 = 1/(1+theta);
-        
+    Pv = f_pvsat(T8)/P8;
+    % Calculate the equilibrium radii ratio for initial stress state:
+    ma0 = P0_star/Ra_star;
+    % parameterized function
+    fun = @(x) Pv*(1+(ma0/x)*(Ra_star/Rv_star))-1-1/We*(Pv/(Rv_star*x))^(1/3);
+    MTotal0 = P0_star/Ra_star + Pv/Rv_star;
+    MVE = fzero(fun,MTotal0,opts);
+    while (isnan(MVE))
+        MTotal0 = MTotal0/1.11;
+        MVE = fzero(fun,MTotal0,opts);
     end
+    Pb_star = P0_star + Pv;
+    % Need to recalculate initial concentration, mass air / mass vapor
+    theta = Rv_star/Ra_star*(Pb_star/Pv-1);
+    C0 = 1/(1+theta);
+    Req = (Rv_star*MVE/Pv)^(1/3);
     
 else
     
