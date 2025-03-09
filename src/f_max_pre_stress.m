@@ -38,11 +38,11 @@ function [Smaxpred] = f_max_pre_stress(Ro, kappa, al_nd, pwv_nd, We, Re, De, Ca,
     
     % total stress sum
     fsum = fbarbc + fbarst + fbarc + fbarsls;
-
+    
     if fsum > 1
         error('INPUT ERROR: The Cauchy number lower than possible for prestress');
     end
-
+    
     % time constant tg
     tg = (5*sqrt(pi)*gamma(5/6) - ...
         6*Ro^(5/2)*gamma(4/3)*hypergeom([1/2, 5/6], 11/6, Ro^3))/...

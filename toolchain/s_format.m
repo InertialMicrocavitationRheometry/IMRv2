@@ -7,7 +7,7 @@ close;
 clear;
 clc;
 
-folders = ["../toolchain", "../src"];
+folders = ["../toolchain", "../src","../docs","../graphics"];
 fileList = cell(100,1);
 count = 1;
 thisScriptFile = strcat('s_format', '.m');

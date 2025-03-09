@@ -20,14 +20,14 @@ ntau_r = tau_r/max_tau_r;
 % f contour figure
 figure(5)
 hold on;
-xlabel('$t / t_c$', 'Interpreter', 'Latex', 'FontSize', 20); 
+xlabel('$t / t_c$', 'Interpreter', 'Latex', 'FontSize', 20);
 ylabel('log$_{10}(\it{r}/R_o)$','Interpreter','Latex','FontSize',24);
 colormap jet;
 cbar = colorbar;
 cbar.Label.String = '$m(\dot{\varsigma})$';
 set(cbar,'TickLabelInterpreter','latex');
 pos = get(cbar,'Position');
-cbar.Label.Position = [pos(1) -0.04]; 
+cbar.Label.Position = [pos(1) -0.04];
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
 caxis([0 1]);
@@ -40,14 +40,14 @@ xa = gca;
 xa.TickLength = [.015 .015];
 xa.LineWidth = 1.5;
 box on;
-plot(t, log10(R),lm,'LineWidth',3); 
+plot(t, log10(R),lm,'LineWidth',3);
 contourf(xcon',ycon',f_r,clevels,'edgecolor','none')
 saveas(gcf,'./figs/ML/fcon_T','png')
 
 % shear stress contour figure
 figure(6)
 hold on;
-xlabel('$t / t_c$', 'Interpreter', 'Latex', 'FontSize', 20); 
+xlabel('$t / t_c$', 'Interpreter', 'Latex', 'FontSize', 20);
 ylabel('log$_{10}(\it{r}/R_o)$','Interpreter','Latex','FontSize',24);
 colormap jet;
 cbar = colorbar;
@@ -67,6 +67,6 @@ xa = gca;
 xa.TickLength = [.015 .015];
 xa.LineWidth = 1.5;
 box on;
-plot(t, log10(R),lm,'LineWidth',3); 
+plot(t, log10(R),lm,'LineWidth',3);
 contourf(xcon',ycon',ntau_r,clevels,'edgecolor','none');
 saveas(gcf,'./figs/ML/taucon_T','png')

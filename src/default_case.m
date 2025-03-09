@@ -40,13 +40,13 @@ Lt              = 2;
 
 % initial conditions
 
-collapse        = 1;
+collapse        = 0;
 % initial bubble radius
-R0              = 100E-6;
+R0              = 50E-6;
 % initial velocity (m/s)
 U0              = 0;
 % Equilibrium radius for pre-stress bubble, see Estrada JMPS 2017
-Req             = R0/10;
+Req             = R0/5;
 
 % output options
 
@@ -71,9 +71,9 @@ C8              = 1484;
 % pressure wave options
 
 % pressure amplitude (Pa)
-pA              = 0*1e6;
+pA              = 1e6;
 % frequency (rad/s)
-omega           = 0*4e6*2*pi;
+omega           = 4e6*2*pi;
 % Gaussian width (s)
 TW              = 0;
 % delay (s)

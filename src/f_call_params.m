@@ -376,33 +376,70 @@ if (stress == 3 || stress == 4) && De == 0
     error('INPUT ERROR: De can not equal zero for stress = 3 or 4');
 end
 
-if collapse && vapor == 1
-    Pv = f_pvsat(T8)/P8;
-    Pb_star = P0_star + Pv;
-    % Need to recalculate initial concentration
-    theta = Rv_star/Ra_star*(Pb_star-Pv)/Pv; % mass air / mass vapor
-    C0 = 1/(1+theta);
-    % Calculate the equilibrium radii ratio for initial stress state:
-    ma0 = P0_star/Ra_star;
-    % parameterized function
-    fun = @(x) Pv*(1+(ma0/x)*(Ra_star/Rv_star))-1-...
-        1/We*(Pv/(Rv_star*x))^(1/3);
+% inertial Rayleigh collapse out of equilibrium
+if collapse && vapor
     
-    MTotal0 = P0_star/Ra_star + Pv/Rv_star;
-    exp2 = MTotal0;
-    x = fzero(fun,exp2,optimset('display','off'));
-    
-    while (isnan(x))
-        exp2 = exp2/1.11;
-        x = fzero(fun,exp2,optimset('display','off'));
+    if masstrans
+        
+        Pv = f_pvsat(T8)/P8;
+        % Calculate the equilibrium radii ratio for initial stress state:
+        ma0 = P0_star/Ra_star;
+        % parameterized function
+        fun = @(x) Pv*(1+(ma0/x)*(Ra_star/Rv_star))-1-...
+            1/We*(Pv/(Rv_star*x))^(1/3);
+        MTotal0 = P0_star/Ra_star + Pv/Rv_star;
+        exp2 = MTotal0;
+        MVE = fzero(fun,exp2,optimset('display','off'));
+        while (isnan(MVE))
+            exp2 = exp2/1.11;
+            MVE = fzero(fun,exp2,optimset('display','off'));
+        end
+        Pb_star = P0_star + Pv;
+        % Need to recalculate initial concentration, mass air / mass vapor
+        theta = Rv_star/Ra_star*(Pb_star/Pv-1);
+        C0 = 1/(1+theta);
+        Req = (Rv_star*MVE/Pv)^(1/3);
+        
+    elseif bubtherm
+        
+        % Note: For very small initial mass content this case has a hard time
+        % finding roots. One fix is to just set Cgrad to 1. That always converges.
+        Pv = f_pvsat(T8)/P8;
+        
+        fun = @(x) P0_star + (Pv-1)*x^3 -x^2/(We);
+        exp2=1;
+        x = fzero(fun,exp2);
+        while (isnan(x))
+            exp2 = exp2*1.01;
+            Req = fzero(fun,exp2);
+        end
+        Pb_star = P0_star*Req^-3 + Pv;
+        theta = Rv_star/Ra_star*(Pb_star/Pv-1);
+        C0 = 1/(1+theta);
+        
+    else
+        
+        fun = @(x) P0_star*(1/x)^(3*kappa)+Pv-1-1/(We*x);
+        exp2 = 1;
+        x = fzero(fun,exp2);
+        while (isnan(x))
+            exp2 = exp2*1.01;
+            Req = fzero(fun,exp2);
+        end
+        Pb_star = P0_star*(Req/R0)^(3*kappa) + Pv;
+        theta = Rv_star/Ra_star*(Pb_star/Pv-1);
+        C0 = 1/(1+theta);
+        
     end
-    MVE = x;
-    Req = (Rv_star*MVE/Pv)^(1/3);
+    
 else
+    
     Pv = f_pvsat(T8)/P8*vapor;
     Pb_star = P0_star + Pv;
     Req = Req/R0;
+    
 end
+
 Pv_star = Pv;
 Req_zero = Req;
 
@@ -431,4 +468,5 @@ sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA vmat v_lambda_star zeNO];
 thermal_opts = [Foh Br alpha beta chi iota];
 % dimensionaless mass transfer
 mass_opts = [Fom C0 Rv_star Ra_star L_heat_star mv0 ma0];
+
 end
