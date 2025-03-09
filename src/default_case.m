@@ -71,9 +71,9 @@ C8              = 1484;
 % pressure wave options
 
 % pressure amplitude (Pa)
-pA              = 1e6;
+pA              = 0;
 % frequency (rad/s)
-omega           = 4e6*2*pi;
+omega           = 0;
 % Gaussian width (s)
 TW              = 0;
 % delay (s)
