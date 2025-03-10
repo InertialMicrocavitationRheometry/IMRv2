@@ -49,7 +49,7 @@ end
 
 parpool('local',4);
 
-parfor idx = 1:total_comb
+for idx = 1:total_comb
     % convert linear index to subindices
     [lambda1idx, alphaxidx, Gidx, muidx, stress_idx, medtherm_idx, ...
         bubtherm_idx, radial_idx] = ...
