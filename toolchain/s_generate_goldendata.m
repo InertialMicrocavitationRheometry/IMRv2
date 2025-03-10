@@ -19,7 +19,6 @@ collapse = 1;
 masstrans = 0;
 vapor = 1;
 count = 1;
-counter = 1;
 R0 = 50e-6;
 Req = R0/12;
 
@@ -55,7 +54,6 @@ for radial = 1:4
                     error('error radial not working')
                 end
                 count = count + 2;
-                counter = counter + 1;
             end
         end
     end
