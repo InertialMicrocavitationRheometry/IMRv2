@@ -28,45 +28,63 @@ vapor = 1;
 count = 1;
 R0 = 50e-6;
 Req = R0/12;
+muvec = linspace(10^-4,10^-1,2);
+Gvec = linspace(10^2,0.25*10^4,2);
+alphaxvec = linspace(10^-3,10^0,2);
+lambda1vec = linspace(10^-7,10^-3,2);
 
 for radial = 1:4
     for bubtherm = 0:1
         for medtherm = 0:1
             for stress = 0:5
-
-                varin = {'progdisplay',0,...
-                    'radial',radial,...
-                    'bubtherm',bubtherm,...
-                    'tvector',tvector,...
-                    'vapor',vapor,...
-                    'medtherm',medtherm,...
-                    'masstrans',masstrans,...
-                    'collapse',collapse,...
-                    'lambda2',0,...
-                    'Req',Req,...
-                    'R0',R0,...
-                    'stress',stress};
-
-                filename1 = strcat('../tests/',ids{count+0},'.mat');
-                load(filename1);
-                [~,Rf_test] = m_imr_fd(varin{:},'Nt',50,'Mt',50);
-                errors_fd(count) = norm(Rf-Rf_test,2);
-                fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
-                if (errors_fd(count) > threshold)
-                    failed_tests(count) = count;
+                for muidx = 1:2
+                    for Gidx = 1:2
+                        for alphaxidx = 1:2
+                            for lambda1idx = 1:2
+                                mu = muvec(muidx);
+                                G = Gvec(Gidx);
+                                alphax = alphaxvec(alphaxidx);
+                                lambda1 = lambda1vec(lambda1idx);
+                                varin = {'progdisplay',0,...
+                                    'radial',radial,...
+                                    'bubtherm',bubtherm,...
+                                    'tvector',tvector,...
+                                    'vapor',vapor,...
+                                    'medtherm',medtherm,...
+                                    'masstrans',masstrans,...
+                                    'collapse',collapse,...
+                                    'lambda2',0,...
+                                    'Req',Req,...
+                                    'R0',R0,...
+                                    'mu',mu,...
+                                    'G',G,...
+                                    'alphax',alphax,...
+                                    'lambda1',lambda1,...
+                                    'stress',stress};
+                                
+                                filename1 = strcat('../tests/',ids{count+0},'.mat');
+                                load(filename1);
+                                [~,Rf_test] = m_imr_fd(varin{:},'Nt',70,'Mt',70);
+                                errors_fd(count) = norm(Rf-Rf_test,2);
+                                fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
+                                if (errors_fd(count) > threshold)
+                                    failed_tests(count) = count;
+                                end
+                                
+                                filename2 = strcat('../tests/',ids{count+1},'.mat');
+                                load(filename2);
+                                [~,Rs_test] = m_imr_spectral(varin{:},'Nt',12,'Mt',12);
+                                errors_sp(count) = norm(Rf-Rs_test,2);
+                                fprintf('Test %d: L2 norm error = %.6e\n', count+1, errors_sp(count));
+                                if (errors_sp(count) > threshold)
+                                    failed_tests(count+1) = count+1;
+                                end
+                                
+                                count = count + 2;
+                            end
+                        end
+                    end
                 end
-
-                filename2 = strcat('../tests/',ids{count+1},'.mat');
-                load(filename2);
-                [~,Rs_test] = m_imr_spectral(varin{:},'Nt',12,'Mt',12);
-                errors_sp(count) = norm(Rs-Rs_test,2);
-                fprintf('Test %d: L2 norm error = %.6e\n', count+1, errors_sp(count));
-                if (errors_sp(count) > threshold)
-                    failed_tests(count+1) = count+1;
-                end
-
-                count = count + 2;
-
             end
         end
     end

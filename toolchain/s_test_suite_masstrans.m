@@ -19,7 +19,7 @@ threshold = 1e-6;
 
 fprintf('Checking L2 norm errors...\n');
 count = 1;
-shift = 4*2*2*6*2;
+shift = 4*2*2*6*2*2*2*2*2;
 
 % mass transfer test case
 tvector = linspace(0,50E-6,100);
