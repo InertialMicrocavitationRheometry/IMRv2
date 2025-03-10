@@ -39,7 +39,7 @@ jobs:
             MATLAB
             Symbolic_Math_Toolbox
 
-      - name: Run Only `m_test_suite.m`
+      - name: Run `s_test_suite_compatibility.m`
         uses: matlab-actions/run-command@v2
         with:
           command: | 
