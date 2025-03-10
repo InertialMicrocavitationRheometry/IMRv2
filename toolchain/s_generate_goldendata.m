@@ -22,6 +22,7 @@ count = 1;
 counter = 1;
 R0 = 50e-6;
 Req = R0/12;
+
 for radial = 1:4
     for bubtherm = 0:1
         for medtherm = 0:1

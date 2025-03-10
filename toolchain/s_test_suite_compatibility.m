@@ -5,25 +5,27 @@
 % test to ensure compatibility between including thermal conditions
 clc;
 clear;
+close;
 
+addpath('../toolchain/');
 addpath('../src');
+addpath('../tests');
 load('file_ids.mat');
 
-num_tests = 4*2*2*2*6*2;
+num_tests = 4*2*2*6;
 errors_fd = zeros(num_tests,1);
 errors_sp = zeros(num_tests,1);
 failed_tests = zeros(size(errors_sp));
-count = 1;
-threshold = 1e-6;
 
 fprintf('Checking L2 norm errors...\n');
 
 % equation options
 tvector = linspace(0,15E-6,100);
-
+threshold = 1e-6;
 collapse = 1;
 masstrans = 0;
 vapor = 1;
+count = 1;
 R0 = 50e-6;
 Req = R0/12;
 
