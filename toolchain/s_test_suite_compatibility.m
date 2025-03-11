@@ -41,10 +41,12 @@ for radial = 1:4
                     for Gidx = 1:2
                         for alphaxidx = 1:2
                             for lambda1idx = 1:2
+                                
                                 mu = muvec(muidx);
                                 G = Gvec(Gidx);
                                 alphax = alphaxvec(alphaxidx);
                                 lambda1 = lambda1vec(lambda1idx);
+                                
                                 varin = {'progdisplay',0,...
                                     'radial',radial,...
                                     'bubtherm',bubtherm,...

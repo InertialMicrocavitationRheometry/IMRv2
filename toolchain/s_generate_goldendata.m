@@ -31,14 +31,11 @@ radial_vec = 1:4;
 bubtherm_vec = 0:1;
 medtherm_vec = 0:1;
 stress_vec = 0:5;
-mu_len = length(muvec);
-G_len = length(Gvec);
-alphax_len = length(alphaxvec);
-lambda1_len = length(lambda1vec);
 
 % calculate total number of combinations
 total_comb = numel(radial_vec)*numel(bubtherm_vec)*numel(medtherm_vec)*...
-    numel(stress_vec)*mu_len*G_len*alphax_len*lambda1_len;
+    numel(stress_vec)*numel(muvec)*numel(Gvec)*numel(alphaxvec)*...
+    numel(lambda1vec);
 
 filenames_fd = cell(total_comb,1);
 filenames_sp = cell(total_comb,1);
@@ -49,12 +46,14 @@ end
 
 parpool('local',4);
 
-for idx = 1:total_comb
+parfor idx = 1:total_comb
+    
     % convert linear index to subindices
     [lambda1idx, alphaxidx, Gidx, muidx, stress_idx, medtherm_idx, ...
         bubtherm_idx, radial_idx] = ...
-        ind2sub([lambda1_len, alphax_len, G_len, mu_len, numel(stress_vec),...
-        numel(medtherm_vec), numel(bubtherm_vec), numel(radial_vec)], idx);
+        ind2sub([numel(lambda1vec), numel(alphaxvec), numel(Gvec), ...
+        numel(muvec), numel(stress_vec), numel(medtherm_vec), ...
+        numel(bubtherm_vec), numel(radial_vec)], idx);
     
     radial = radial_vec(radial_idx);
     bubtherm = bubtherm_vec(bubtherm_idx);
@@ -64,6 +63,7 @@ for idx = 1:total_comb
     G = Gvec(Gidx);
     alphax = alphaxvec(alphaxidx);
     lambda1 = lambda1vec(lambda1idx);
+    
     varin = {'progdisplay',0,...
         'radial',radial,...
         'bubtherm',bubtherm,...
@@ -95,7 +95,7 @@ for idx = 1:total_comb
         error('error radial not working');
     end
 end
-
+%%
 % mass transfer test case
 tvector = linspace(0,50E-6,100);
 masstrans = 1;
@@ -112,16 +112,16 @@ stress_vec = 0:5;
 total_combinations = length(radial_vec)*length(bubtherm_vec)*...
     length(medtherm_vec)*length(stress_vec);
 
-filenames = cell(total_combinations,1);
+filenames_mass = cell(total_combinations,1);
 for idx = 1:total_combinations
-    filenames{idx} = sprintf('../tests/%s.mat', ids{idx+2*total_comb});
+    filenames_mass{idx} = sprintf('../tests/%s.mat', ids{idx+2*total_comb});
 end
 
-parfor idx = 1:total_combinations
+parfor idx_mass = 1:total_combinations
     % indices
     [stress_idx, medtherm_idx, bubtherm_idx, radial_idx] = ...
         ind2sub([length(stress_vec), length(medtherm_vec), ...
-        length(bubtherm_vec), length(radial_vec)], idx);
+        length(bubtherm_vec), length(radial_vec)], idx_mass);
     
     radial = radial_vec(radial_idx);
     bubtherm = bubtherm_vec(bubtherm_idx);
@@ -140,7 +140,7 @@ parfor idx = 1:total_combinations
         'masstrans', masstrans};
     [~, Rf] = m_imr_fd(varin{:}, 'Nt', 50, 'Mt', 50);
     % save safely in unique filenames
-    savefile_fd(filenames{idx},Rf);
+    savefile_fd(filenames_mass{idx_mass},Rf);
 end
 
 function savefile_fd(filename,data)
