@@ -80,8 +80,8 @@ parfor idx = 1:total_comb
         'alphax',alphax,...
         'lambda1',lambda1,...
         'stress',stress};
-    [tf,Rf] = m_imr_fd(varin{:},'Nt',70,'Mt',70);
-    [ts,Rs] = m_imr_spectral(varin{:},'Nt',12,'Mt',12);
+    [~,Rf] = m_imr_fd(varin{:},'Nt',70,'Mt',70);
+    [~,Rs] = m_imr_spectral(varin{:},'Nt',12,'Mt',12);
     % save safely in unique filenames
     if (norm(Rs-Rf,2) < threshold)
         disp('----> SUCCESS! <------');
@@ -95,7 +95,7 @@ parfor idx = 1:total_comb
         error('error radial not working');
     end
 end
-%%
+
 % mass transfer test case
 tvector = linspace(0,50E-6,100);
 masstrans = 1;

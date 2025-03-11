@@ -12,7 +12,7 @@ addpath('../src');
 addpath('../tests');
 load('file_ids.mat');
 
-num_tests = 4*2*2*6;
+num_tests = 4*2*2*6*2*2*2*2;
 errors_fd = zeros(num_tests,1);
 errors_sp = zeros(num_tests,1);
 failed_tests = zeros(size(errors_sp));
@@ -68,21 +68,21 @@ for radial = 1:4
                                 load(filename1);
                                 [~,Rf_test] = m_imr_fd(varin{:},'Nt',70,'Mt',70);
                                 errors_fd(count) = norm(Rf-Rf_test,2);
-                                fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
+                                fprintf('Finite test %d: L2 norm error = %.6e\n', count, errors_fd(count));
                                 if (errors_fd(count) > threshold)
                                     failed_tests(count) = count;
                                 end
                                 
-                                filename2 = strcat('../tests/',ids{count+1},'.mat');
+                                filename2 = strcat('../tests/',ids{count+num_tests},'.mat');
                                 load(filename2);
                                 [~,Rs_test] = m_imr_spectral(varin{:},'Nt',12,'Mt',12);
-                                errors_sp(count) = norm(Rf-Rs_test,2);
-                                fprintf('Test %d: L2 norm error = %.6e\n', count+1, errors_sp(count));
+                                errors_sp(count) = norm(Rs-Rs_test,2);
+                                fprintf('Spectral test %d: L2 norm error = %.6e\n', count, errors_sp(count));
                                 if (errors_sp(count) > threshold)
                                     failed_tests(count+1) = count+1;
                                 end
                                 
-                                count = count + 2;
+                                count = count + 1;
                             end
                         end
                     end
