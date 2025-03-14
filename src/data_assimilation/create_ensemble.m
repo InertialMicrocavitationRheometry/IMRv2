@@ -66,7 +66,12 @@ xi = (1 + spread .* randn(N,q)) .* repmat(x_init,1,q) + ...
 0;
 zeros(2*NT+NTM,1);
 0;
-0;0;0;0;0;0],1,q) .* randn(N,q);
+0;
+0;
+0;
+0;
+0;
+0],1,q) .* randn(N,q);
 
 %  using truncated distribution
 if Input_prior
