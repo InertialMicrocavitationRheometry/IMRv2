@@ -123,7 +123,7 @@ end
 if strcmp(Pext_type,'IC')
     Pv = Pvsat(1*T_inf)/P_inf;
     P0_star = Pext_Amp_Freq(1)/P_inf + Cgrad*Pvsat(1*T_inf)/P_inf;
-    % Need to recalculate intital concentration
+    % Need to recalculate initial concentration
     theta = Rv_star/Ra_star*(P0_star-Pv)/Pv; % mass air / mass vapor
     C0 = 1/(1+theta);
     
