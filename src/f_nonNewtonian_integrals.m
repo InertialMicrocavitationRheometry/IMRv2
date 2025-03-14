@@ -80,3 +80,31 @@ function dintf = sf_carreau_dd(r,nc,lambda,gammadot_num)
     % collecting terms for integration
     dintf = (1./r.^4).*(f+gammadot.*dfdgamma);
 end
+
+% function f = sf_carreau(nc,lambda,gammadot_R)
+%     f = (1+(lambda).^2.*(gammadot_R).^2).^((nc-1)./2);
+% end
+
+% function f = sf_carreau_yasuda(a,nc,lambda,gammadot_R)
+%     f = (1+(lambda).^a.*(gammadot_R).^a).^((nc-1)./a);
+% end
+%
+% function f = sf_cross(a,lambda,gammadot_R)
+%     f = 1/(1+(lambda*gammadot_R).^a);
+% end
+%
+% function f = sf_modified_cross(a,nc,lambda,gammadot_R)
+%     f = 1/((1+(lambda*gammadot_R)^nc).^a);
+% end
+%
+% function f = sf_modified_powell_eyring(nc,lambda,gammadot_R)
+%     f = log(lambda*gammadot_R+1)/(lambda*gammadot_R)^nc;
+% end
+%
+% function f = sf_powell_eyring(nc,lambda,gammadot_R)
+%     f = sinh(lambda*gammadot_R)/(lambda*gammadot_R)^nc;
+% end
+%
+% function f = sf_simplified_cross(lambda,gammadot_R)
+%     f = 1/(1+(lambda*gammadot_R));
+% end

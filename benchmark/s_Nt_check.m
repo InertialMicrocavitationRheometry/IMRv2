@@ -23,11 +23,11 @@ for idx = 1:total_comb
     relnormvec(idx) = norm((Rfd2048-Rvec{idx}(:))./Rfd2048,2);
 end
 
-C = 5 * 120;  
-D = 1 * (4^2);  
+C = 5 * 120;
+D = 1 * (4^2);
 y1 = @(x) C ./ x;
 y2 = @(x) D ./ (x.^2);
-xVals = logspace(-3, 6, 200);  
+xVals = logspace(-3, 6, 200);
 yVals1 = y1(xVals);
 yVals2 = y2(xVals);
 
@@ -35,7 +35,7 @@ figure(1)
 hold on;
 plot(Nt_vec,relnormvec,'rs','MarkerFaceColor','r','MarkerSize',7);
 plot(Nt_vec,normvec,'^k','MarkerFaceColor','k','MarkerSize',7);
-loglog(xVals, yVals1,'k-','LineWidth',2); 
+loglog(xVals, yVals1,'k-','LineWidth',2);
 loglog(xVals, yVals2,'b--','LineWidth',2);
 xlim([10^-2 10^6])
 ylim([10^-6 10^2])
@@ -64,7 +64,7 @@ saveas(gcf,'Nt_error.png')
 % box on;
 % xlabel('$t/t_c$','Interpreter','Latex','FontSize',12);
 % ylabel('$R(t)/R_o$','Interpreter','Latex','FontSize',12);
-% 
+%
 % leg1 = legend(legvec,'FontSize',12);
 % set(leg1,'Interpreter','latex');
 % set(gca,'TickLabelInterpreter','latex','FontSize',16);
