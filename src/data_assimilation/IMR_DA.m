@@ -1,14 +1,13 @@
-function [x,E2,model_params_post,params]= IMR_DA( model_params, load_info)
+function [x,E2,model_params_post,params]= IMR_DA( model_params )
     
     % data import
     
-    data_type      =   load_info{1}; % 'sim' or 'exp'
-    data_set       =   load_info{2};
-    data_filepath  =   load_info{3};
-    data_filename  =   load_info{4}; % name of file containing R vs T data
-    num_peaks      =   2; % number of 'peaks' to assimilate in radius data
+    % data_type      =   load_info{1}; % 'sim' or 'exp'
+    % data_set       =   load_info{2};
+    % data_filepath  =   load_info{3};
+    % data_filename  =   load_info{4}; % name of file containing R vs T data
+    % num_peaks      =   2; % number of 'peaks' to assimilate in radius data
     % (peaks = collapse points as in Estrada paper)
-    
     import_data;
     
     % run main for corresponding method:

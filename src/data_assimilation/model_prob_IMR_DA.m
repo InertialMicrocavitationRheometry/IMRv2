@@ -3,15 +3,17 @@
 % load models
 addpath ./results
 
+model_prob_all = zeros(11,11);
+ 
 for j1 = 1:11
     load('DA_En4D_NeoHook_exp.mat');
     
-    q_model_1 = squeeze(E2(:,:,[20]));
+    q_model_1 = squeeze(E2(:,:,20));
     q_model_1 = reshape(permute(q_model_1,[1,3,2]),[],size(q_model_1,2));
     
     load('DA_En4D_fung_exp.mat');
     
-    q_model_2 = squeeze(E2(:,:,[20]));
+    q_model_2 = squeeze(E2(:,:,20));
     q_model_2 = reshape(permute(q_model_2,[1,3,2]),[],size(q_model_2,2));
     
     Q_model = {q_model_1(:,:);
@@ -25,7 +27,7 @@ for j1 = 1:11
     
     data_type = 'exp'; % 'sim' or 'exp'
     data_set = 'SoftPA_nobeads';
-    data_filepath = (['data/PA_05%_0.03%/']);
+    data_filepath = ('data/PA_05%_0.03%/');
     data_filename = 'PA_05%_0.03%.mat'; % name of file containing R vs T data
     
     N_exp = 20;

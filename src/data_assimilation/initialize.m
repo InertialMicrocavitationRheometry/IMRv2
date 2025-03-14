@@ -131,7 +131,7 @@ if strcmp(Pext_type,'IC')
     if Req == 0
         [REq,~,~] = IMRCalc_Req(R0, Tgrad, Cgrad, Pext_Amp_Freq(1), G, G1, mu);
     end
-    REq = Req;
+    % REq = Req;
     %REq = 1; %removed 6/15/16 by Jon
     C0 = C0*ones(1,NT);
     %U0_star = -1*(1-P0_star)/(C_star); %Initial velocity due to shockwave
