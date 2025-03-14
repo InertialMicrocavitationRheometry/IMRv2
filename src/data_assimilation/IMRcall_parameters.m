@@ -26,13 +26,13 @@ function [P]  = IMRcall_parameters(R0,G,G1,mu)
     %4.181e3;
     % Specific Heat Medium J/Kg K;
     Dm = Km /(rho*Cp) ; % Thermal Diffusivity m^2/s
-    L = 2; % Strech variable to map domain outside the bubble
+    L = 2; % Stretch variable to map domain outside the bubble
     L_heat = 2264.76e3; % (J/Kg) Latent heat of evaporation
     C = 1430;
     %1540;
     %1484; % sound speed (m/s)
     
-    % Intermidiate calculated variables
+    % Intermediate calculated variables
     K_infy = A*T_inf+B;
     Uc = sqrt(P_inf/rho);
     Pv = Pvsat(T_inf );

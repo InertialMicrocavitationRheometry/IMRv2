@@ -10,8 +10,8 @@ rng('shuffle')
 
 % guess for parameters
 
-%NT = 500; %400 % Ammount of nodes inside the bubble (>=500 is a good to start)
-%NTM = 500; %20 % Ammount of nodes outside the bubble (>=10 is a good to start)
+%NT = 500; %400 % Amount of nodes inside the bubble (>=500 is a good to start)
+%NTM = 500; %20 % Amount of nodes outside the bubble (>=10 is a good to start)
 %Pext_type = 'IC'; % Type of external forcing. Refer to RP_Cav
 
 % Find Req and calculate initial partial pressure
