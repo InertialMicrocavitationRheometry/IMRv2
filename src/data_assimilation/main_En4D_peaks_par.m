@@ -79,7 +79,7 @@ tauspread = 0.0;
 Cspread = 0.000;
 Tmspread = 0.0000;
 Brspread = 0.00;
-fohspread = 0.00;
+Fohspread = 0.00;
 Despread = 0; % set to 0 if not used in model
 lambda_nuspread = 0; % set to 0 if not used in model
 
@@ -118,7 +118,7 @@ idx        =    1;
 % iterate
 
 vars = {NT Pext_type Pext_Amp_Freq disptime Tgrad Tmgrad ...
-    Cgrad comp t0 neoHook nhzen sls linkv k chi fom foh We Br A_star ...
+    Cgrad comp t0 neoHook nhzen sls linkv k chi Fom Foh We Br A_star ...
     B_star Rv_star Ra_star L L_heat_star Km_star P_inf T_inf C_star ...
     De deltaY yk deltaYm xk yk2 Pv REq D_Matrix_T_C DD_Matrix_T_C ...
     D_Matrix_Tm DD_Matrix_Tm tspan_star NTM rho R0 fung fung2 fungexp fungnlvis};

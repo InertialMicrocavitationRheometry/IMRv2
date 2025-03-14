@@ -42,7 +42,7 @@ function [P]  = IMRcall_parameters(R0,G,G1,mu)
     
     % Final non-dimensional variables
     chi = T_inf*K_infy/(P_inf*R0*Uc);
-    fom = D0/(Uc*R0);
+    Fom = D0/(Uc*R0);
     foh = Dm/(Uc*R0);
     Ca = P_inf/G;
     Re = P_inf*R0/(mu*Uc);
@@ -64,7 +64,7 @@ function [P]  = IMRcall_parameters(R0,G,G1,mu)
     Cgrad = 1; %1 Vapor-non-condensible gas diffusion
     Tmgrad = 0; %0 Off means cold liquid assumption
     
-    P = [k chi fom foh Ca Re We Br A_star...
+    P = [k chi Fom foh Ca Re We Br A_star...
         B_star Rv_star Ra_star P0_star t0 C0 L L_heat_star Km_star ...
         P_inf  T_inf C_star De ...
         rho Uc Tgrad Cgrad Tmgrad S];
