@@ -7,7 +7,6 @@ clear;
 close;
 
 addpath('../../src');
-load('resolution.mat');
 
 % material parameter test cases
 tvector = linspace(0,100E-6,500);
@@ -28,15 +27,17 @@ radial = 3;
 stress = 3;
 
 % define parameter vectors and limits
-Nt_vec = 50:25:675;
-
+Mt = 2048;
+Nt_vec = 2.^(2:10)+1;
 % calculate total number of combinations
 total_comb = numel(Nt_vec);
-reserrorvec = zeros(total_comb,1);
+tvec = cell(total_comb,1);
+Rvec = cell(total_comb,1);
 
+parpool('local',8);
 
-for idx = 1:total_comb
-
+parfor idx = 1:total_comb
+    
     % convert linear index to subindices
     [Nt_idx] = ind2sub([numel(Nt_vec)], idx);
     Nt = Nt_vec(Nt_idx);
@@ -58,13 +59,11 @@ for idx = 1:total_comb
         'lambda1',lambda1,...
         'stress',stress,...
         'Nt',Nt,...
-        'Mt',Nt};
-
-    [~,Rf] = m_imr_fd(varin{:});
-    % save safely in unique filenames
-    reserrorvec(idx) = norm(Rf-Rres,2);
+        'Mt',Mt};
+    
+    [tf,Rf] = m_imr_fd(varin{:});
+    % save safely
+    tvec{idx} = tf;
+    Rvec{idx} = Rf;
 end
-save("resolution_data.mat","reserrorvec");
-% figure(1)
-% hold on;
-% plot(Ntvec,reserrorvec,'rs');
+save("fdres_Nt.mat","tvec","Rvec");

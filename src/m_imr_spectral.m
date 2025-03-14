@@ -278,9 +278,6 @@ function varargout =  m_imr_spectral(varargin)
     else
         varargout{6} = ((T8 - 1)*dimensionalout + 1)*ones(size(t,1),1);
     end
-    if masstrans == 1
-        varargout{7} = C;
-    end
     
     % solver function
     function dXdt = SVBDODE(t,X)

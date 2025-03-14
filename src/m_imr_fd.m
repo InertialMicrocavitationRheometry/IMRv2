@@ -231,7 +231,7 @@ function varargout =  m_imr_fd(varargin)
     Sp];
     
     guess = -0.0001;
-    
+    foptions = optimset('TolFun',1e-10);
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, ...
         eps3, vapor, Re8, De, Ca, LAM, 'finite difference');
@@ -317,15 +317,16 @@ function varargout =  m_imr_fd(varargin)
         if medtherm && masstrans
             % temperature in the material
             Tm = X(imedtherm);
-            prelim = fzero(@Boundary_full,guess);
+            % prelim = fzero(@Boundary_full,guess);
+            prelim = fzero(@Boundary_full,guess,foptions);
             guess = prelim;
         elseif medtherm
             % temperature in the material
             Tm = X(imedtherm);
-            prelim = fzero(@Boundary_medtherm,guess);
+            prelim = fzero(@Boundary_medtherm,guess,foptions);
             guess = prelim;
         elseif masstrans
-            prelim = fzero(@Boundary_mass,guess);
+            prelim = fzero(@Boundary_mass,guess,foptions);
             guess = prelim;
         else
             prelim = 0;

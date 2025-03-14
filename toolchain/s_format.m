@@ -3,11 +3,11 @@
 % folders
 
 % brief This script runs formats the toolchain and src code
-close; 
+close;
 clear;
 clc;
 
-folders = ["../toolchain", "../src","../docs","../graphics"];
+folders = ["../toolchain", "../src","../docs","../graphics","../simdata"];
 fileList = cell(100,1);
 count = 1;
 thisScriptFile = strcat('s_format', '.m');
@@ -22,7 +22,7 @@ for folder = folders
             fprintf('Skipping self: %s\n', filePath);
             continue;
         end
-        
+
         fileList{count} = filePath;
         count = count + 1;
     end
@@ -33,7 +33,7 @@ fileList = fileList(1:lastNonEmptyIdx);
 
 for i = 1:length(fileList)
     filePath = fileList{i};
-    
+
     try
         fid = fopen(filePath, 'r');
         lines = cell(5000,1);
@@ -63,7 +63,7 @@ for i = 1:length(fileList)
 
             semicolonIdx = strfind(line, ';');
             if length(semicolonIdx) > 1
-                newLine1 = line(1:semicolonIdx(1)); 
+                newLine1 = line(1:semicolonIdx(1));
                 newLine2 = strtrim(line(semicolonIdx(1) + 1:end));
                 formattedLines{count} = [repmat(indentStep, 1, indentLevel), newLine1];
                 count = count + 1;

@@ -1,4 +1,6 @@
-clear; close all; clc;
+clear;
+close all;
+clc;
 load patterson_waveform_data.mat
 
 data = pattersonwaveformdataall;
@@ -21,10 +23,10 @@ pnew = ppval(pp_ML,trange);
 dpnew = ppval(dp_ML,trange);
 plot(trange,pnew,'k','LineWidth',3)
 % plot(trange,dpnew)
-xlabel('\it{t} / $t_c$', 'Interpreter', 'Latex', 'FontSize', 20); 
-ylabel('$p / p_{\infty}$', 'Interpreter', 'Latex', 'FontSize', 20); 
-set(gcf,'color','w'); %Changes background to white 
-set(gca, 'FontName', 'Times', 'FontSize',20); 
+xlabel('\it{t} / $t_c$', 'Interpreter', 'Latex', 'FontSize', 20);
+ylabel('$p / p_{\infty}$', 'Interpreter', 'Latex', 'FontSize', 20);
+set(gcf,'color','w'); %Changes background to white
+set(gca, 'FontName', 'Times', 'FontSize',20);
 set(gca,'TickLabelInterpreter','latex')
 xa = gca;
 xa.TickLength = [.03 .03];
@@ -35,7 +37,7 @@ box on;
 saveas(gcf,'../figs/ML/P_T','png')
 
 %Moderately Nonlinear
-t_MN = data(:,3); %time [nondimensional]              
+t_MN = data(:,3); %time [nondimensional]
 p_MN = data(:,4); %input pressure [nondimensional]
 rmzeros = (t_MN~=0);
 t_MN = t_MN(rmzeros);
@@ -50,10 +52,10 @@ pnew = ppval(pp_MN,trange);
 % dpnew = ppval(dp_MN,trange);
 plot(trange,pnew,'k','LineWidth',3);
 % plot(trange,dpnew);
-xlabel('\it{t} / $t_c$', 'Interpreter', 'Latex', 'FontSize', 20); 
-ylabel('$p / p_{\infty}$', 'Interpreter', 'Latex', 'FontSize', 20); 
-set(gcf,'color','w'); %Changes background to white 
-set(gca, 'FontName', 'Times', 'FontSize',20); 
+xlabel('\it{t} / $t_c$', 'Interpreter', 'Latex', 'FontSize', 20);
+ylabel('$p / p_{\infty}$', 'Interpreter', 'Latex', 'FontSize', 20);
+set(gcf,'color','w'); %Changes background to white
+set(gca, 'FontName', 'Times', 'FontSize',20);
 set(gca,'TickLabelInterpreter','latex')
 xa = gca;
 xa.TickLength = [.03 .03];
@@ -64,7 +66,7 @@ box on;
 saveas(gcf,'../figs/MN/P_T','png')
 
 %Highly Nonlinear
-t_HN = data(:,5); %time [nondimensional]              
+t_HN = data(:,5); %time [nondimensional]
 p_HN = data(:,6); %input pressure [nondimensional]
 rmzeros = (t_HN~=0);
 t_HN = t_HN(rmzeros);
@@ -79,10 +81,10 @@ pnew = ppval(pp_HN,trange);
 dpnew = ppval(dp_HN,trange);
 plot(trange,pnew,'k','LineWidth',3);
 % plot(trange,dpnew);
-xlabel('\it{t} / $t_c$', 'Interpreter', 'Latex', 'FontSize', 20); 
-ylabel('$p / p_{\infty}$', 'Interpreter', 'Latex', 'FontSize', 20); 
-set(gcf,'color','w'); %Changes background to white 
-set(gca, 'FontName', 'Times', 'FontSize',20); 
+xlabel('\it{t} / $t_c$', 'Interpreter', 'Latex', 'FontSize', 20);
+ylabel('$p / p_{\infty}$', 'Interpreter', 'Latex', 'FontSize', 20);
+set(gcf,'color','w'); %Changes background to white
+set(gca, 'FontName', 'Times', 'FontSize',20);
 set(gca,'TickLabelInterpreter','latex')
 xa = gca;
 xa.TickLength = [.03 .03];

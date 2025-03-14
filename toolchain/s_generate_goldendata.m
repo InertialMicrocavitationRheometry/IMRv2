@@ -138,7 +138,7 @@ parfor idx_mass = 1:total_combinations
         'r0', R0, ...
         'req', Req, ...
         'masstrans', masstrans};
-    [~, Rf] = m_imr_fd(varin{:}, 'Nt', 50, 'Mt', 50);
+    [~, Rf] = m_imr_fd(varin{:}, 'Nt', 70, 'Mt', 70);
     % save safely in unique filenames
     savefile_fd(filenames_mass{idx_mass},Rf);
 end
