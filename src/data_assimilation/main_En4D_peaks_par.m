@@ -13,25 +13,25 @@ exp_i           =    1;
 % data assimilation parameters
 
 % data assimilation method ('En4D','EnKS',('EnKF'))
-method          =   'En4D';
+% method          =   'En4D';
 
 % Initial parameter guesses (all must be specified even if not used, in
 % order to run):
-model           =    Model_params{1};
-P_prior         =    Model_params{3};
-mu_theta        =    P_prior.mu;
-sigma_theta     =    P_prior.sigma;
-theta_params    =    mvnrnd(mu_theta,sigma_theta,q);
-G_prior         =    theta_params(:,1) ;
-mu_prior        =    theta_params(:,2)  ;
-alpha_prior     =    theta_params(:,3);
-G_guess         =    mean(G_prior);
-mu_guess        =    mean(mu_prior);
-alpha_guess     =    mean(alpha_prior);
-Input_prior     =    true;
-G1_guess        =    1e9;
-lambda_nu_guess =    0.1;
-init_scheme     =    2; % leave as 2, initializes ensemble with truth + noise
+% model           =    Model_params{1};
+% P_prior         =    Model_params{3};
+% mu_theta        =    P_prior.mu;
+% sigma_theta     =    P_prior.sigma;
+% theta_params    =    mvnrnd(mu_theta,sigma_theta,q);
+% G_prior         =    theta_params(:,1) ;
+% mu_prior        =    theta_params(:,2)  ;
+% alpha_prior     =    theta_params(:,3);
+% G_guess         =    mean(G_prior);
+% mu_guess        =    mean(mu_prior);
+% alpha_guess     =    mean(alpha_prior);
+% % Input_prior     =    true;
+% G1_guess        =    1e9;
+% lambda_nu_guess =    0.1;
+% init_scheme     =    2; % leave as 2, initializes ensemble with truth + noise
 
 % The following are ending criteria for iterative optimization:
 epsilon         =    1e-10; % threshold difference in norm of state vector between steps
@@ -46,50 +46,50 @@ max_iter        =    5; % max # of iterations until end optimization (5 to 10 is
 NT = 240; % Amount of nodes inside the bubble
 NTM = 240; % Amount of nodes outside the bubble
 Pext_type = 'IC'; % Type of external forcing
-ST = 0.056; % (N/m) Liquid Surface Tension
+% ST = 0.056; % (N/m) Liquid Surface Tension
 Tgrad = 1; % Thermal effects inside bubble
 Tmgrad = 1; % Thermal effects outside bubble
 Cgrad = 1; % Vapor diffusion effects
 comp = 1; % Activates the effect of compressibility (0=Rayleigh-Plesset, 1=Keller-Miksis)
-disp_timesteps = 1; % displays timesteps in En4D run (for debugging)
+% disp_timesteps = 1; % displays timesteps in En4D run (for debugging)
 
 % following should not be changed (untested):
 disptime = 0; % 1 = display simulation time
-Dim = 0; % 1 = output variables in dimensional form
+% Dim = 0; % 1 = output variables in dimensional form
 
 % covariance inflation parameters
 % The following is only used for the IEnKS. Default values provided below
 % See Spratt et al. (2020) section 3.3 for details on theta, lambda
 
-CI_scheme = 2; % 1 is scalar alpha CI, 2 is RTPS (BEST)
+% CI_scheme = 2; % 1 is scalar alpha CI, 2 is RTPS (BEST)
 CI_theta = 0.7; % multiplicative covariance parameter (0.5 < theta < 0.95)
-CI_add = 0; % Set to 1 for additive covariance (else 0)
+% CI_add = 0; % Set to 1 for additive covariance (else 0)
 
-beta = 1.02; % additive covariance parameter (lambda in paper) (1.005 < beta < 1.05)
+% beta = 1.02; % additive covariance parameter (lambda in paper) (1.005 < beta < 1.05)
 
-alpha = 0.005; % random noise in forecast step (only for EnKF)
+% alpha = 0.005; % random noise in forecast step (only for EnKF)
 
 % spread of parameters in the ensemble
 
-Rspread = 0.00;
-Uspread = 0.0;
-Pspread = 0.0;
-Sspread = 0.0;
-tauspread = 0.0;
-Cspread = 0.000;
-Tmspread = 0.0000;
-Brspread = 0.00;
-Fohspread = 0.00;
-Despread = 0; % set to 0 if not used in model
-lambda_nuspread = 0; % set to 0 if not used in model
+% Rspread = 0.00;
+% Uspread = 0.0;
+% Pspread = 0.0;
+% Sspread = 0.0;
+% tauspread = 0.0;
+% Cspread = 0.000;
+% Tmspread = 0.0000;
+% Brspread = 0.00;
+% Fohspread = 0.00;
+% Despread = 0; % set to 0 if not used in model
+% lambda_nuspread = 0; % set to 0 if not used in model
 
 % do not modify
-visco_params = struct('G',G_guess,'G1',G1_guess,'mu',mu_guess, ...
-    'alpha',alpha_guess,'lambda_nu',lambda_nu_guess);
-est_params = [];
+% visco_params = struct('G',G_guess,'G1',G1_guess,'mu',mu_guess, ...
+%     'alpha',alpha_guess,'lambda_nu',lambda_nu_guess);
+% est_params = [];
 
 %rng(99)
-tic
+% tic
 
 % initialize and import data
 
@@ -105,7 +105,7 @@ E_est      =    zeros(2*NT+NTM+11,q,max_iter);
 E2         =    zeros(q,max(peak_time_idx)-1);
 tspan      =    tspan_all(exp_i);
 R0         =    R0_all(exp_i);
-Req        =    Req_all(exp_i);
+% Req        =    Req_all(exp_i);
 
 run create_ensemble;
 
@@ -123,12 +123,12 @@ vars = {NT Pext_type Pext_Amp_Freq disptime Tgrad Tmgrad ...
     De deltaY yk deltaYm xk yk2 Pv REq D_Matrix_T_C DD_Matrix_T_C ...
     D_Matrix_Tm DD_Matrix_Tm tspan_star NTM rho R0 fung fung2 fungexp fungnlvis};
 
-opts.POSDEF = true;
-opts.SYM = true;
+% opts.POSDEF = true;
+% opts.SYM = true;
 
 
 %delta = 1.005; %inflation param
-delta = beta;
+% delta = beta;
 %epsilon = 0.001;
 
 
@@ -151,6 +151,9 @@ timestep_time       =   zeros(1,n-l+1);
 time_index          =   1;
 j_max               =   3;                % Numbers of DA cycles
 params              =   [];
+
+
+
 
 for j = 1:j_max
     
@@ -273,7 +276,7 @@ for j = 1:j_max
             A1(j1,:) = mvnrnd(0,(RTPS(j1).*std_post(j1))^2,q);
         end
         
-        Input_prior =  false;
+        % Input_prior =  false;
         E1 = x1*ones(1,q) + A1;
     end
     
@@ -291,7 +294,7 @@ alpha_post]');
 P_post.mu              =   mu_post;
 P_post.sigma           =   sigma_post;
 
-c = clock;
-run_time = toc
+% c = clock;
+% run_time = toc
 
 end
