@@ -85,7 +85,7 @@ CI_theta = 0.7; % multiplicative covariance parameter (0.5 < theta < 0.95)
 
 % do not modify
 % visco_params = struct('G',G_guess,'G1',G1_guess,'mu',mu_guess, ...
-%     'alpha',alpha_guess,'lambda_nu',lambda_nu_guess);
+    %     'alpha',alpha_guess,'lambda_nu',lambda_nu_guess);
 % est_params = [];
 
 %rng(99)
