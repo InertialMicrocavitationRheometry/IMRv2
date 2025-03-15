@@ -86,8 +86,8 @@ function varargout =  m_imr_spectral(varargin)
     LAM             = sigma_opts(7);
     De              = sigma_opts(8);
     JdotA           = sigma_opts(9);
-    % vmaterial       = sigma_opts(10);
-    % v_lambda_star   = sigma_opts(11);
+    nu_model        = sigma_opts(10);
+    v_lambda_star   = sigma_opts(11);
     zeNO            = sigma_opts(12);
     iWe             = 1/We;
     if Ca == -1
@@ -297,7 +297,7 @@ function varargout =  m_imr_spectral(varargin)
             % updating the viscous forces/Reynolds number
             % [fnu,intfnu,dintfnu,ddintfnu] = ...
                 % [fnu,~,~,~] = ...
-                % f_nonNewtonian_integrals(vmaterial,Rdot,R,v_a,v_nc,v_lambda_star);
+                % f_nonNewtonian_integrals(nu_model,Rdot,R,v_a,v_nc,v_lambda_star);
             
             % non-condensible gas pressure and temperature
             if bubtherm

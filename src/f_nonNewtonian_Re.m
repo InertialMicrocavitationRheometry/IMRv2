@@ -1,4 +1,4 @@
-function [mu8,Dmu,a,nc,lambda,vmat] = f_nonNewtonian_Re(vmaterial)
+function [mu8,Dmu,a,nc,lambda] = f_nonNewtonian_Re(vmaterial)
     %F_NONNEWTONIAN Outputs the Reynolds number that is dynamically changes
     % with the shear rate. Note: Re = P8*R0/(m8*Uc). Units are in Pascal
     % seconds.
@@ -8,11 +8,9 @@ function [mu8,Dmu,a,nc,lambda,vmat] = f_nonNewtonian_Re(vmaterial)
     if strcmp('water',vmaterial)==1
         mu8 = 8.3283e-4;
         muo = 8.3283e-4;
-        vmat = 1;
     elseif strcmp('blood_infinity', vmaterial) == 1
         mu8 = 0.00345;
         muo = mu8;
-        vmat = 2;
     elseif strcmp('blood_zero', vmaterial) == 1
         mu8 = 0.056;
         muo = mu8;

@@ -113,7 +113,7 @@ for n = 1:2:nargin
         % P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         case 'vmaterial',   vmaterial = varargin{n+1};
         visflag = visflag + 1;
-        [mu8,Dmu,v_a,v_nc,v_lambda,vmat] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity
+        [mu8,Dmu,v_a,v_nc,v_lambda] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity
         
         % thermal options
         case 't8',          T8 = varargin{n+1};
@@ -444,7 +444,7 @@ acos_opts = [Cstar GAMa kappa nstate];
 % dimensionless waveform parameters
 wave_opts = [om ee tw dt mn wave_type wave_poly wave_dpoly];
 % dimensionless viscoelastic
-sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA vmat v_lambda_star zeNO];
+sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_material v_lambda_star zeNO];
 % dimensionless thermal
 thermal_opts = [Foh Br alpha beta chi iota];
 % dimensionaless mass transfer

@@ -86,8 +86,8 @@ function varargout =  m_imr_fd(varargin)
     LAM             = sigma_opts(7);
     De              = sigma_opts(8);
     JdotA           = sigma_opts(9);
-    % vmaterial       = sigma_opts(10);
-    % v_lambda_star   = sigma_opts(11);
+    nu_model        = sigma_opts(10);
+    v_lambda_star   = sigma_opts(11);
     zeNO            = sigma_opts(12);
     iWe             = 1/We;
     if Ca == -1

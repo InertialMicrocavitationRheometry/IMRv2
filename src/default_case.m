@@ -131,7 +131,7 @@ Rv              = Ru/(18.01528e-3);
 Ra              = Ru/(28.966e-3);
 
 % viscosity variables
-[mu8,Dmu,v_a,v_nc,v_lambda,vmat] = f_nonNewtonian_Re(vmaterial);
+[mu8,Dmu,v_a,v_nc,v_lambda,nu_model] = f_nonNewtonian_Re(vmaterial);
 
 % pressure variables
 Pv              = f_pvsat(T8);
