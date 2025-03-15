@@ -279,6 +279,12 @@ if Dmu ~= 0
 else
     DRe = 0;
 end
+if DRe==0
+    iDRe = 0;
+else
+    iDRe = 1/DRe;
+end
+
 % Weber number
 log_We = log(0.5) + log(Pref) + log(R0) - log(S);
 We = exp(log_We);
@@ -356,6 +362,10 @@ elseif stress == 6
 elseif stress == 7
     Ca = -1;
     spectral = 1;
+end
+
+if Ca == -1
+    Ca = Inf;
 end
 
 if stress == 1 || stress == 2 || stress == 3 || stress == 4
@@ -444,7 +454,7 @@ acos_opts = [Cstar GAMa kappa nstate];
 % dimensionless waveform parameters
 wave_opts = [om ee tw dt mn wave_type wave_poly wave_dpoly];
 % dimensionless viscoelastic
-sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_material v_lambda_star zeNO];
+sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_material v_lambda_star zeNO iDRe];
 % dimensionless thermal
 thermal_opts = [Foh Br alpha beta chi iota];
 % dimensionaless mass transfer

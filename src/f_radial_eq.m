@@ -6,7 +6,7 @@
 % Rayleigh-Plesset, Keller-Miksis in pressure and enthalpy, and Gilmore are
 % available in the solver.
 function [Rddot] = f_radial_eq(radial, P, pdot, Pf8, Pf8dot, iWe, ...
-    R, Rdot, J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA )
+    R, Rdot, J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA, ddintfnu, iDRe )
 
 % Rayleigh-Plesset
 if radial == 1
@@ -16,7 +16,8 @@ if radial == 1
 elseif radial == 2
     Rddot = ((1+Rdot./Cstar)*(P - 1 - Pf8 - iWe/R + J) ...
         + R/Cstar*(pdot + iWe*Rdot/R^2 +  JdotX - Pf8dot) ...
-        - 1.5*(1-Rdot/(3*Cstar))*Rdot^2)/((1-Rdot/Cstar)*R + JdotA/Cstar);
+        - 1.5*(1-Rdot/(3*Cstar))*Rdot^2)/((1-Rdot/Cstar)*R + JdotA/Cstar ...
+        - 6*ddintfnu*iDRe/Cstar);
     
     % if fdkv == 1
     %     RHS = (1+Rdot/Cstar)...
@@ -34,7 +35,8 @@ elseif radial == 3
     hH = (sam/(P - iWe/R + GAMa + J))^(1/nstate);
     Rddot = ((1 + Rdot/Cstar)*(hB - Pf8) - R/Cstar*Pf8dot ...
         + R/Cstar*hH*(pdot + iWe*Rdot/R^2 + JdotX) ...
-        - 1.5*(1 - Rdot/(3*Cstar))*Rdot^2)/((1 - Rdot/Cstar)*R + JdotA*hH/Cstar);
+        - 1.5*(1 - Rdot/(3*Cstar))*Rdot^2)/((1 - Rdot/Cstar)*R + ...
+        JdotA*hH/Cstar - 6*hH*ddintfnu*iDRe/C_star);
     
     % Gilmore equation
 elseif radial == 4
@@ -42,7 +44,8 @@ elseif radial == 4
     hH = (sam/(P - iWe/R + GAMa + J))^(1/nstate);
     Rddot = ((1 + Rdot/Cstar)*(hB - Pf8) - R/Cstar*Pf8dot ...
         + R/Cstar*(hB + hH*(pdot + iWe*Rdot/R^2 + JdotX)) ...
-        - 1.5*(1 - Rdot/(3*Cstar))*Rdot^2) / ((1 - Rdot/Cstar)*R + JdotA*hH/Cstar);
+        - 1.5*(1 - Rdot/(3*Cstar))*Rdot^2) / ((1 - Rdot/Cstar)*R + ...
+        JdotA*hH/Cstar - 6*hH*ddintfnu*iDRe/C_star);
     
 end
 

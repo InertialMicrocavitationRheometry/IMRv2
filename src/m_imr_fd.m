@@ -79,9 +79,9 @@ function varargout =  m_imr_fd(varargin)
     % dimensionless viscoelastic
     We              = sigma_opts(1);
     Re8             = sigma_opts(2);
-    % DRe             = sigma_opts(3);
-    % v_a             = sigma_opts(4);
-    % v_nc            = sigma_opts(5);
+    DRe             = sigma_opts(3);
+    v_a             = sigma_opts(4);
+    v_nc            = sigma_opts(5);
     Ca              = sigma_opts(6);
     LAM             = sigma_opts(7);
     De              = sigma_opts(8);
@@ -89,10 +89,13 @@ function varargout =  m_imr_fd(varargin)
     nu_model        = sigma_opts(10);
     v_lambda_star   = sigma_opts(11);
     zeNO            = sigma_opts(12);
+    iDRe            = sigma_opts(13);
     iWe             = 1/We;
-    if Ca == -1
-        Ca = Inf;
-    end
+    
+    fnu = 0;
+    intfnu = 0;
+    dintfnu = 0;
+    ddintfnu = 0;
     
     % dimensionless thermal
     Foh             = thermal_opts(1);
@@ -420,6 +423,12 @@ function varargout =  m_imr_fd(varargin)
             Pdot = -3*kappa*Rdot/R*P;
         end
         
+        % updating the viscous forces/Reynolds number
+        if nu_model ~= 0
+            [fnu,intfnu,dintfnu,ddintfnu] = ...
+                f_nonNewtonian_integrals(nu_model,Rdot,R,v_a,v_nc,v_lambda_star);
+        end
+        
         if medtherm
             % boundary temperature
             Tm(1) = T(end);
@@ -430,7 +439,8 @@ function varargout =  m_imr_fd(varargin)
             first_term = (1+xi).^2./(Lt*R).*(Rdot./yT2.*(1-yT3)/2 +...
                 Foh/R.*((xi+1)/(2*Lt)-1./yT)).*DTm;
             second_term = Foh/R^2.*(xi+1).^4/Lt^2.*DDTm/4;
-            third_term =  3*Br./yT6.*(4/(3*Ca).*(1-1/R^3)+4.*Rdot^2/(Re8.*R^2));
+            third_term =  3*Br./yT6.*(4/(3*Ca).*(1-1/R^3) + ...
+                4*(Rdot/R)^2/(Re8++DRe*fnu));
             Tmdot = first_term+second_term+third_term;
             % sets boundary condition on temperature
             Tmdot(end) = 0;
@@ -443,11 +453,12 @@ function varargout =  m_imr_fd(varargin)
         % stress equation
         [J,JdotX,Z1dot,Z2dot] = ...
             f_stress_calc(stress,X,Req,R,Ca,De,Re8,Rdot,alphax,ivisco1,...
-            ivisco2,LAM,zeNO,cdd);
+            ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
         
         % bubble wall acceleration
         [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, ...
-            iWe, R, Rdot, J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
+            iWe, R, Rdot, J, JdotX, Cstar, sam, no, GAMa, nstate, ...
+            JdotA, ddintfnu, iDRe );
         
         % output assembly
         dXdt = [Rdot;

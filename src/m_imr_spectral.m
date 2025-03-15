@@ -79,9 +79,9 @@ function varargout =  m_imr_spectral(varargin)
     % dimensionless viscoelastic
     We              = sigma_opts(1);
     Re8             = sigma_opts(2);
-    % DRe             = sigma_opts(3);
-    % v_a             = sigma_opts(4);
-    % v_nc            = sigma_opts(5);
+    DRe             = sigma_opts(3);
+    v_a             = sigma_opts(4);
+    v_nc            = sigma_opts(5);
     Ca              = sigma_opts(6);
     LAM             = sigma_opts(7);
     De              = sigma_opts(8);
@@ -89,10 +89,13 @@ function varargout =  m_imr_spectral(varargin)
     nu_model        = sigma_opts(10);
     v_lambda_star   = sigma_opts(11);
     zeNO            = sigma_opts(12);
+    iDRe            = sigma_opts(13);
     iWe             = 1/We;
-    if Ca == -1
-        Ca = Inf;
-    end
+    
+    fnu = 0;
+    intfnu = 0;
+    dintfnu = 0;
+    ddintfnu = 0;
     
     % dimensionless thermal
     Foh             = thermal_opts(1);
@@ -165,8 +168,8 @@ function varargout =  m_imr_spectral(varargin)
     % end
     ia = 4:(4+Nt);
     ib = (5+Nt):(5+Nt+Mt);
-    ic = (6+Nt+Mt):(5+Nt+Mt+Nv);
-    id = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
+    ivisco1 = (6+Nt+Mt):(5+Nt+Mt+Nv);
+    ivisco2 = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
     % ie = (6+Nt+Mt+2*Nv):(5+Nt+Mt+2*Nv+Nm);
     
     % initial condition assembly
@@ -227,8 +230,8 @@ function varargout =  m_imr_spectral(varargin)
     else
         T = R.^(-3*kappa);
     end
-    % Z1 = X(:,ic);
-    % Z2 = X(:,id);
+    % Z1 = X(:,ivisco1);
+    % Z2 = X(:,ivisco2);
     % if masstrans
     %     C = gC*e;
     % end
@@ -295,9 +298,10 @@ function varargout =  m_imr_spectral(varargin)
             qdot = [];
             
             % updating the viscous forces/Reynolds number
-            % [fnu,intfnu,dintfnu,ddintfnu] = ...
-                % [fnu,~,~,~] = ...
-                % f_nonNewtonian_integrals(nu_model,Rdot,R,v_a,v_nc,v_lambda_star);
+            if nu_model ~= 0
+                [fnu,intfnu,dintfnu,ddintfnu] = ...
+                    f_nonNewtonian_integrals(nu_model,Rdot,R,v_a,v_nc,v_lambda_star);
+            end
             
             % non-condensible gas pressure and temperature
             if bubtherm
@@ -333,10 +337,10 @@ function varargout =  m_imr_spectral(varargin)
                     second_term = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
                     % include viscous heating
                     if spectral == 1
-                        third_term = -2*Br*Rdot./(R*yT.^3).*(ZZT*(X(ic)-X(id)));
+                        third_term = -2*Br*Rdot./(R*yT.^3).*(ZZT*(X(ivisco1)-X(ivisco2)));
                     else
                         third_term =  3*Br./yT6.*(4/(3*Ca).*(1-1/R^3) + ...
-                            4.*Rdot^2/(Re8.*R^2));
+                            4*(Rdot/R)^2/(Re8++DRe*fnu));
                     end
                     TLdot = first_term + second_term + third_term;
                     % enforce boundary condition and solve
@@ -358,14 +362,16 @@ function varargout =  m_imr_spectral(varargin)
             
             % stress equation
             [J,JdotX,Z1dot,Z2dot] = ...
-                f_stress_calc(stress,X,Req,R,Ca,De,Re8,Rdot,alphax,ic,id,LAM,zeNO,cdd);
+                f_stress_calc(stress,X,Req,R,Ca,De,Re8,Rdot,alphax,ivisco1,...
+                ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
             
             % pressure waveform
             [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
             
             % bubble wall acceleration
             [Rddot] = f_radial_eq(radial, P, Pdot,Pf8, Pf8dot, ...
-                iWe, R, Rdot, J, JdotX, Cstar, sam, no, GAMa, nstate, JdotA );
+                iWe, R, Rdot, J, JdotX, Cstar, sam, no, GAMa, nstate, ...
+                JdotA, ddintfnu, iDRe );
             
             % output assembly
             dXdt = [Rdot;
