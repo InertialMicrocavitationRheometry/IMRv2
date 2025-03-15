@@ -72,7 +72,7 @@ function varargout =  m_imr_spectral(varargin)
     if wave_type < 0
         wave_poly = wave_opts(7);
         wave_dpoly = wave_opts(8);
-    end    
+    end
     
     pvarargin = [om,ee,tw,dt,mn,wave_type,wave_poly,wave_dpoly];
     

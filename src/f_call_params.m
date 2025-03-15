@@ -168,7 +168,7 @@ if wave_type < 0
         waveform_dir = './waveform_data/ml.mat';
     end
     wave_poly = load(waveform_dir,'poly');
-    wave_dpoly = load(waveform_dir,'dpoly'); 
+    wave_dpoly = load(waveform_dir,'dpoly');
 else
     wave_poly = [];
     wave_dpoly = [];
