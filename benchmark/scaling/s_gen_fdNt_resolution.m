@@ -6,8 +6,7 @@ clc;
 clear;
 close;
 
-addpath('../../src');
-
+addpath('../../../src');
 % material parameter test cases
 tvector = linspace(0,100E-6,500);
 threshold = 5e-2;
@@ -27,20 +26,22 @@ radial = 3;
 stress = 3;
 
 % define parameter vectors and limits
-Mt = 2048;
-Nt_vec = 2.^(2:10)+1;
+Mt_vec = 2.^(5:10);
+Nt_vec = 2.^(4:9)+1;
+
 % calculate total number of combinations
 total_comb = numel(Nt_vec);
 tvec = cell(total_comb,1);
 Rvec = cell(total_comb,1);
 
-parpool('local',8);
-
+parpool('local',4);
 parfor idx = 1:total_comb
     
     % convert linear index to subindices
     [Nt_idx] = ind2sub([numel(Nt_vec)], idx);
+    [Mt_idx] = ind2sub([numel(Mt_vec)], idx);
     Nt = Nt_vec(Nt_idx);
+    Mt = Mt_vec(Mt_idx);
     
     varin = {'progdisplay',0,...
         'radial',radial,...
@@ -66,4 +67,4 @@ parfor idx = 1:total_comb
     tvec{idx} = tf;
     Rvec{idx} = Rf;
 end
-save("fdres_Nt.mat","tvec","Rvec");
+save("fd_scaling.mat","tvec","Rvec");

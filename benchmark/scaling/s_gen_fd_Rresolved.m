@@ -6,7 +6,7 @@ clc;
 clear;
 close;
 
-addpath('../../src');
+addpath('../../../src');
 
 % material parameter test cases
 tvector = linspace(0,100E-6,500);
