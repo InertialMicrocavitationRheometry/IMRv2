@@ -158,6 +158,22 @@ if dmset == 0
     Dm = Km / (rho8*Cp);
 end
 
+% loading waveform data
+if wave_type < 0
+    if wave_type == -1
+        waveform_dir = './waveform_data/hn.mat';
+    elseif wave_type == -2
+        waveform_dir = './waveform_data/mn.mat';
+    elseif wave_type == -3
+        waveform_dir = './waveform_data/ml.mat';
+    end
+    wave_poly = load(waveform_dir,'poly');
+    wave_dpoly = load(waveform_dir,'dpoly'); 
+else
+    wave_poly = [];
+    wave_dpoly = [];
+end
+
 check = 1-isnumeric(radial);
 if check || radial > 4 || radial <= 0
     error('INPUT ERROR: radial must be 1, 2, 3, or 4');
@@ -186,7 +202,7 @@ elseif check || masstrans == 1 && vapor == 0
 end
 check = 1-isnumeric(wave_type);
 if check || wave_type > 5 || wave_type <= -3
-    error('INPUT ERROR: wavetype must be between -2 to 5');
+    error('INPUT ERROR: wavetype must be between -3 and 5');
 end
 if (tflag > 1)
     error('INPUT ERROR: Only tvector or tfin can be specified, not both');
@@ -426,7 +442,7 @@ out_opts = [dimensionalout progdisplay];
 % acoustic parameters
 acos_opts = [Cstar GAMa kappa nstate];
 % dimensionless waveform parameters
-wave_opts = [om ee tw dt mn wave_type];
+wave_opts = [om ee tw dt mn wave_type wave_poly wave_dpoly];
 % dimensionless viscoelastic
 sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA vmat v_lambda_star zeNO];
 % dimensionless thermal

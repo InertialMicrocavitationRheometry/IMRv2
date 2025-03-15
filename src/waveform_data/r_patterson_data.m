@@ -13,13 +13,13 @@ p_ML = data(:,2); %input pressure [nondimensional]
 rmzeros = (t_ML~=0);
 t_ML = t_ML(rmzeros);
 p_ML = p_ML(rmzeros);
-pp_ML = interp1(t_ML,p_ML,'spline');
-dp_ML = fnder(pp_ML,1);
+poly = spline(t_ML,p_ML);
+dpoly = fnder(poly,1);
 figure(1)
 hold on;
 % plot(t_ML,p_ML,'.')
 trange = linspace(0,15,1E4);
-pnew = ppval(pp_ML,trange);
+pnew = ppval(poly,trange);
 % dpnew = ppval(dp_ML,trange);
 plot(trange,pnew,'k','LineWidth',3)
 % plot(trange,dpnew)
@@ -34,7 +34,8 @@ xa.LineWidth = 1.5;
 % xticks(tickrange)
 % xlim([0 fig_tend])
 box on;
-saveas(gcf,'../figs/ML/P_T','png')
+% saveas(gcf,'../figs/ML/P_T','png')
+save('ml.mat','poly','dpoly');
 
 %Moderately Nonlinear
 t_MN = data(:,3); %time [nondimensional]
@@ -42,13 +43,13 @@ p_MN = data(:,4); %input pressure [nondimensional]
 rmzeros = (t_MN~=0);
 t_MN = t_MN(rmzeros);
 p_MN = p_MN(rmzeros);
-pp_MN = interp1(t_MN,p_MN,'spline');
-dp_MN = fnder(pp_MN,1);
+poly = spline(t_MN,p_MN);
+dpoly = fnder(poly,1);
 figure(2)
 hold on;
 % plot(t_MN,p_MN,'.');
 trange = linspace(0,14,1E5);
-pnew = ppval(pp_MN,trange);
+pnew = ppval(poly,trange);
 % dpnew = ppval(dp_MN,trange);
 plot(trange,pnew,'k','LineWidth',3);
 % plot(trange,dpnew);
@@ -63,7 +64,8 @@ xa.LineWidth = 1.5;
 % xticks(tickrange)
 % xlim([0 fig_tend])
 box on;
-saveas(gcf,'../figs/MN/P_T','png')
+% saveas(gcf,'../figs/MN/P_T','png')
+save('mn.mat','poly','dpoly');
 
 %Highly Nonlinear
 t_HN = data(:,5); %time [nondimensional]
@@ -71,13 +73,13 @@ p_HN = data(:,6); %input pressure [nondimensional]
 rmzeros = (t_HN~=0);
 t_HN = t_HN(rmzeros);
 p_HN = p_HN(rmzeros);
-pp_HN = interp1(t_HN,p_HN,'spline');
-dp_HN = fnder(pp_HN,1);
+poly = spline(t_HN,p_HN);
+dpoly = fnder(poly,1);
 figure(3)
 hold on;
 % plot(t_HN,p_HN,'.');
 trange = linspace(0,14,1E5);
-pnew = ppval(pp_HN,trange);
+pnew = ppval(poly,trange);
 % dpnew = ppval(dp_HN,trange);
 plot(trange,pnew,'k','LineWidth',3);
 % plot(trange,dpnew);
@@ -92,7 +94,5 @@ xa.LineWidth = 1.5;
 % xticks(tickrange)
 % xlim([0 fig_tend])
 box on;
-saveas(gcf,'../figs/HN/P_T','png')
-
-
-save workspace;
+% saveas(gcf,'../figs/HN/P_T','png')
+save('hn.mat','poly','dpoly');

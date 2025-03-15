@@ -81,7 +81,7 @@ DT              = 0;
 % power shift for waveform
 mn              = 0;
 % wave type oscillating bubble, see f_pinfinity
-wave_type       = 2;
+wave_type       = 0;
 
 % stress options
 

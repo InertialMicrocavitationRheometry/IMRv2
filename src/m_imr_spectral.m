@@ -69,8 +69,12 @@ function varargout =  m_imr_spectral(varargin)
     dt              = wave_opts(4);
     mn              = wave_opts(5);
     wave_type       = wave_opts(6);
+    if wave_type < 0
+        wave_poly = wave_opts(7);
+        wave_dpoly = wave_opts(8);
+    end    
     
-    pvarargin = [om,ee,tw,dt,mn,wave_type];
+    pvarargin = [om,ee,tw,dt,mn,wave_type,wave_poly,wave_dpoly];
     
     % dimensionless viscoelastic
     We              = sigma_opts(1);
@@ -329,10 +333,10 @@ function varargout =  m_imr_spectral(varargin)
                     second_term = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
                     % include viscous heating
                     if spectral == 1
-                        third_term = - 2*Br*Rdot./(R*yT.^3).*(ZZT*(X(ic) - X(id)));
+                        third_term = -2*Br*Rdot./(R*yT.^3).*(ZZT*(X(ic)-X(id)));
                     else
-                        %third_term = 4*Br./yT.^6*(Rdot/R*(1-1/R^3)/Ca + 3/Re8*(Rdot/R)^2);
-                        third_term =  3*Br./yT6.*(4/(3*Ca).*(1-1/R^3)+4.*Rdot^2/(Re8.*R^2));
+                        third_term =  3*Br./yT6.*(4/(3*Ca).*(1-1/R^3) + ...
+                            4.*Rdot^2/(Re8.*R^2));
                     end
                     TLdot = first_term + second_term + third_term;
                     % enforce boundary condition and solve
