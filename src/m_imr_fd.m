@@ -17,8 +17,7 @@ function varargout =  m_imr_fd(varargin)
     medtherm        = eqns_opts(3);
     stress          = eqns_opts(4);
     eps3            = eqns_opts(5);
-    vapor           = eqns_opts(6);
-    masstrans       = eqns_opts(7);
+    masstrans       = eqns_opts(6);
     % if (stress == 4)
     %     ptt = 1;
     % else
@@ -240,8 +239,8 @@ function varargout =  m_imr_fd(varargin)
     guess = -0.0001;
     foptions = optimset('TolFun',1e-10);
     % solver start
-    f_display(radial, bubtherm, medtherm, masstrans, stress, spectral, ...
-        eps3, vapor, Re8, De, Ca, LAM, 'finite difference');
+    f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
+        eps3, Pv_star, Re8, De, Ca, LAM, 'finite difference');
     bubble = @SVBDODE;
     [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);
     

@@ -17,8 +17,7 @@ function varargout =  m_imr_spectral(varargin)
     medtherm        = eqns_opts(3);
     stress          = eqns_opts(4);
     eps3            = eqns_opts(5);
-    vapor           = eqns_opts(6);
-    masstrans       = eqns_opts(7);
+    masstrans       = eqns_opts(6);
     % if (stress == 4)
     %     ptt = 1;
     % else
@@ -208,7 +207,7 @@ function varargout =  m_imr_spectral(varargin)
     
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
-        eps3, vapor, Re8, De, Ca, LAM, 'spectral');
+        eps3, Pv_star, Re8, De, Ca, LAM, 'spectral');
     stepcount = 0;
     bubble = @SVBDODE;
     [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);

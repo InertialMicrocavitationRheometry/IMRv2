@@ -111,9 +111,15 @@ for n = 1:2:nargin
         case 'alphax',      alphax = varargin{n+1};
         case 'surft',       S = varargin{n+1};
         % P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
-        case 'vmaterial',   vmaterial = varargin{n+1};
-        visflag = visflag + 1;
-        [mu8,Dmu,v_a,v_nc,v_lambda] = f_nonNewtonian_Re(vmaterial); % non-Newtonian viscosity
+
+        % viscosity options
+        case 'du',          Dmu         = varargin{n+1};          
+        case 'mu0',         muo         = varargin{n+1};
+            Dmu = muo - mu8;
+        case 'v_a',         v_a         = varargin{n+1};
+        case 'v_nc',        v_nc        = varargin{n+1};
+        case 'v_lambda',    v_lambda    = varargin{n+1};
+        case 'v_model',     nu_model     = varargin{n+1};
         
         % thermal options
         case 't8',          T8 = varargin{n+1};
@@ -206,9 +212,6 @@ if check || wave_type > 5 || wave_type <= -3
 end
 if (tflag > 1)
     error('INPUT ERROR: Only tvector or tfin can be specified, not both');
-end
-if (visflag > 1)
-    error('INPUT ERROR: Only vmaterial or mu8 can be specified, not both');
 end
 if TVector == 0
     TVector = [0 TFin];
@@ -437,7 +440,7 @@ Req_zero = Req;
 % out parameters
 
 % equation settings
-eqns_opts = [radial bubtherm medtherm stress eps3 vapor masstrans];
+eqns_opts = [radial bubtherm medtherm stress eps3 masstrans];
 % solver options
 solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
 % dimensionless initial conditions
@@ -454,7 +457,7 @@ acos_opts = [Cstar GAMa kappa nstate];
 % dimensionless waveform parameters
 wave_opts = [om ee tw dt mn wave_type wave_poly wave_dpoly];
 % dimensionless viscoelastic
-sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_material v_lambda_star zeNO iDRe];
+sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iDRe];
 % dimensionless thermal
 thermal_opts = [Foh Br alpha beta chi iota];
 % dimensionaless mass transfer

@@ -3,7 +3,7 @@
 
 % brief This function features the display output on the command window
 function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, ...
-    spectral, eps3, vapor, Re8, De, Ca, LAM, mode)
+    spectral, eps3, Pv_star, Re8, De, Ca, LAM, mode)
 
 % Command window display
 
@@ -33,7 +33,7 @@ else
     mass = 'no mass transfer in bubble';
 end
 
-if vapor == 1
+if Pv_star ~= 0
     vap = 'vapor in bubble';
 else
     vap = 'no vapor in bubble';
