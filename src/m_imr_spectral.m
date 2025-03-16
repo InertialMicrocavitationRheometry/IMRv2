@@ -213,7 +213,7 @@ function varargout =  m_imr_spectral(varargin)
     
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
-        eps3, Pv_star, Re8, De, Ca, LAM, 'spectral');
+        nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'spectral');
     stepcount = 0;
     bubble = @SVBDODE;
     [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);

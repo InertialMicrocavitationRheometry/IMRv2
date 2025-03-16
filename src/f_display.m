@@ -3,7 +3,7 @@
 
 % brief This function features the display output on the command window
 function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, ...
-    spectral, eps3, Pv_star, Re8, De, Ca, LAM, mode)
+    spectral, nu_model, eps3, Pv_star, Re8, De, Ca, LAM, mode)
 
 % Command window display
 
@@ -77,6 +77,24 @@ else
     const = ['Giesekus(' num2str(eps3) ')'];
 end
 
+if nu_model == 0
+    visco = 'Newtonian';
+elseif nu_model == 1
+    visco = 'Carreau';
+elseif nu_model == 2
+    visco = 'Carreau-Yasuda';
+elseif nu_model == 3
+    visco = 'Powell-Eyring';
+elseif nu_model == 4
+    visco = 'Modified Powell-Eyring';
+elseif nu_model == 5
+    visco = 'Cross';
+elseif nu_model == 6
+    visco = 'Simplified Cross';
+elseif nu_model == 7
+    visco = 'Modified Cross';
+end
+
 if spectral == 1
     solut = 'spectral method';
 else
@@ -86,7 +104,8 @@ end
 % display run settings
 disp(['Mode: ' mode]);
 disp(['Radial dynamics: ' eqn]);
-disp(['Medium rheology: ' const]);
+disp(['Constitutive model: ' const]);
+disp(['Viscosity rheology: ' visco]);
 disp(['Thermal effects: ' therm]);
 disp(['Mass effects: ' mass]);
 disp(['Vapor effects: ' vap]);
@@ -96,4 +115,5 @@ disp(['Re8 = ' num2str(Re8,'%10.10f')]);
 disp(['De = ' num2str(De,'%10.10f')]);
 disp(['Ca = ' num2str(Ca,'%10.10f')]);
 disp(['LM = ' num2str(LAM,'%10.10f')]);
+
 end

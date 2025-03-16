@@ -245,7 +245,7 @@ function varargout =  m_imr_fd(varargin)
     
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
-        eps3, Pv_star, Re8, De, Ca, LAM, 'finite difference');
+        nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'finite difference');
     bubble = @SVBDODE;
     [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);
     
