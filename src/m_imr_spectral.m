@@ -91,10 +91,11 @@ function varargout =  m_imr_spectral(varargin)
     iDRe            = sigma_opts(13);
     iWe             = 1/We;
     
-    fnu = 0;
-    intfnu = 0;
-    dintfnu = 0;
-    ddintfnu = 0;
+    % viscosity parameters
+    fnu             = 0;
+    intfnu          = 0;
+    dintfnu         = 0;
+    ddintfnu        = 0;
     
     % dimensionless thermal
     Foh             = thermal_opts(1);
@@ -139,6 +140,8 @@ function varargout =  m_imr_spectral(varargin)
     no = (nstate-1)/nstate;
     kapover = (kappa-1)/kappa;
     yT = 2*Lt./(1+xi) - Lt + 1;
+    yT2 = yT.^2;
+    yT3 = yT.^3;
     yT6 = yT.^6;
     % yV = 2*Lv./(1-ze) - Lv + 1;
     nn = ((-1).^(0:Nt).*(0:Nt).^2)';
@@ -320,7 +323,7 @@ function varargout =  m_imr_spectral(varargin)
                 Pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*P*Rdot);
                 
                 % auxiliary temperature derivative
-                SIdot = Pdot*D + chi/R^2*(2*D./y - kapover/P*(dSI - dSI(1)*y)).*dSI ...
+                SIdot = Pdot*D + chi/R^2*(2*D./y - kapover/P*(dSI-dSI(1)*y)).*dSI ...
                     + chi*D/R^2.*ddSI;
                 
                 SIdot(end) = Pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
@@ -332,11 +335,12 @@ function varargout =  m_imr_spectral(varargin)
                     % new derivative of medium temperature
                     first_term = (1+xi).^2/(Lt*R).*...
                         (Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
-                        Rdot/2*(1./yT.^2 - yT)).*(mAPd*TL);
+                        Rdot/2*(1./yT2 - yT)).*(mAPd*TL);
                     second_term = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
                     % include viscous heating
                     if spectral == 1
-                        third_term = -2*Br*Rdot./(R*yT.^3).*(ZZT*(X(ivisco1)-X(ivisco2)));
+                        third_term = -2*Br*Rdot./(R*yT3).* ...
+                            (ZZT*(X(ivisco1)-X(ivisco2)));
                     else
                         third_term =  3*Br./yT6.*(4/(3*Ca).*(1-1/R^3) + ...
                             4*(Rdot/R)^2/(Re8+DRe*fnu));

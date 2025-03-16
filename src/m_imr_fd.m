@@ -69,8 +69,8 @@ function varargout =  m_imr_fd(varargin)
     mn              = wave_opts(5);
     wave_type       = wave_opts(6);
     if wave_type < 0
-        wave_poly = wave_opts(7);
-        wave_dpoly = wave_opts(8);
+        wave_poly   = wave_opts(7);
+        wave_dpoly  = wave_opts(8);
     end
     
     pvarargin = [om,ee,tw,dt,mn,wave_type,wave_poly,wave_dpoly];
@@ -91,10 +91,11 @@ function varargout =  m_imr_fd(varargin)
     iDRe            = sigma_opts(13);
     iWe             = 1/We;
     
-    fnu = 0;
-    intfnu = 0;
-    dintfnu = 0;
-    ddintfnu = 0;
+    % viscosity parameters
+    fnu             = 0;
+    intfnu          = 0;
+    dintfnu         = 0;
+    ddintfnu        = 0;
     
     % dimensionless thermal
     Foh             = thermal_opts(1);
@@ -238,6 +239,7 @@ function varargout =  m_imr_fd(varargin)
     
     guess = -0.0001;
     foptions = optimset('TolFun',1e-10);
+    
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
         eps3, Pv_star, Re8, De, Ca, LAM, 'finite difference');
