@@ -426,7 +426,7 @@ function varargout =  m_imr_fd(varargin)
             % polytropic gas
             Pdot = -3*kappa*Rdot/R*P;
         end
-
+        
         % updating the viscous forces/Reynolds number
         if nu_model ~= 0
             [fnu,intfnu,dintfnu,ddintfnu] = f_viscosity(nu_model,Rdot, ...

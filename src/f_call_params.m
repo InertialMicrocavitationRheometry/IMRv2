@@ -111,11 +111,11 @@ for n = 1:2:nargin
         case 'alphax',      alphax = varargin{n+1};
         case 'surft',       S = varargin{n+1};
         % P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
-
+        
         % viscosity options
-        case 'du',          Dmu         = varargin{n+1};          
+        case 'du',          Dmu         = varargin{n+1};
         case 'mu0',         muo         = varargin{n+1};
-            Dmu = muo - mu8;
+        Dmu = muo - mu8;
         case 'v_a',         v_a         = varargin{n+1};
         case 'v_nc',        v_nc        = varargin{n+1};
         case 'v_lambda',    v_lambda    = varargin{n+1};

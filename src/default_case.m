@@ -142,7 +142,7 @@ v_a             = 0;
 % power factor 2
 v_nc            = 0;
 % viscosity time scale
-v_lambda        = 0;        
+v_lambda        = 0;
 % viscosity model
 nu_model        = 0;
 
