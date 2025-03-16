@@ -8,10 +8,10 @@
 % on the input arguments when invoking either the finite difference or
 % spectral module.
 function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
-    acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
-    = f_call_params(varargin)
+    acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] = ...
+    f_call_params(varargin)
 
-disp('--- Inertial Microcavitation Rheometry Forward Solver ---');
+disp('--- Inertial Microcavitation Rheometry forward solver ---');
 % check that all inputs are matched
 if mod(nargin,2) == 1
     error('input error: unmatched inputs');
