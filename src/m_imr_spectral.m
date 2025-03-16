@@ -299,8 +299,8 @@ function varargout =  m_imr_spectral(varargin)
             
             % updating the viscous forces/Reynolds number
             if nu_model ~= 0
-                [fnu,intfnu,dintfnu,ddintfnu] = ...
-                    f_nonNewtonian_integrals(nu_model,Rdot,R,v_a,v_nc,v_lambda_star);
+                [fnu,intfnu,dintfnu,ddintfnu] = f_viscosity(nu_model,Rdot, ...
+                    R,v_a,v_nc,v_lambda_star);
             end
             
             % non-condensible gas pressure and temperature
@@ -340,7 +340,7 @@ function varargout =  m_imr_spectral(varargin)
                         third_term = -2*Br*Rdot./(R*yT.^3).*(ZZT*(X(ivisco1)-X(ivisco2)));
                     else
                         third_term =  3*Br./yT6.*(4/(3*Ca).*(1-1/R^3) + ...
-                            4*(Rdot/R)^2/(Re8++DRe*fnu));
+                            4*(Rdot/R)^2/(Re8+DRe*fnu));
                     end
                     TLdot = first_term + second_term + third_term;
                     % enforce boundary condition and solve

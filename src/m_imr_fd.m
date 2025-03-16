@@ -422,11 +422,11 @@ function varargout =  m_imr_fd(varargin)
             % polytropic gas
             Pdot = -3*kappa*Rdot/R*P;
         end
-        
+
         % updating the viscous forces/Reynolds number
         if nu_model ~= 0
-            [fnu,intfnu,dintfnu,ddintfnu] = ...
-                f_nonNewtonian_integrals(nu_model,Rdot,R,v_a,v_nc,v_lambda_star);
+            [fnu,intfnu,dintfnu,ddintfnu] = f_viscosity(nu_model,Rdot, ...
+                R,v_a,v_nc,v_lambda_star);
         end
         
         if medtherm
@@ -440,7 +440,7 @@ function varargout =  m_imr_fd(varargin)
                 Foh/R.*((xi+1)/(2*Lt)-1./yT)).*DTm;
             second_term = Foh/R^2.*(xi+1).^4/Lt^2.*DDTm/4;
             third_term =  3*Br./yT6.*(4/(3*Ca).*(1-1/R^3) + ...
-                4*(Rdot/R)^2/(Re8++DRe*fnu));
+                4*(Rdot/R)^2/(Re8+DRe*fnu));
             Tmdot = first_term+second_term+third_term;
             % sets boundary condition on temperature
             Tmdot(end) = 0;

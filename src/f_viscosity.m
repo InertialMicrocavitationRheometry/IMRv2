@@ -1,12 +1,12 @@
-% file f_nonNewtonian_integrals.m
-% brief contains function f_nonNewtonian_integrals
+% file f_viscosity.m
+% brief contains function f_viscosity
 
 % brief This function computes the nonNewtonian integrals and accounts for
 % Newtonian, Carreau, Carreau-Yasuda, Powell-Eyring, modified
 % Powell-Eyring, Cross, simplified Cross, and modified Cross
 
 function [f,intf,dintf,ddintf] = ...
-    f_nonNewtonian_integrals(vmodel,Rdot,R,a,nc,lambda)
+    f_viscosity(vmodel,Rdot,R,a,nc,lambda)
 
 gammadot_R   = -2*Rdot/R;
 gammadot_num = -2*Rdot*R*R;

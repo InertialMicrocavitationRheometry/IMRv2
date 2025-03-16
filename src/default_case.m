@@ -87,7 +87,6 @@ wave_type       = 0;
 
 % (N/m) Liquid Surface Tension
 S               = 0.072;
-vmaterial       = 'water';
 % (Pa) Medium Shear Modulus
 G               = 1e3;
 % relaxation time (s)
@@ -131,8 +130,25 @@ Rv              = Ru/(18.01528e-3);
 Ra              = Ru/(28.966e-3);
 
 % viscosity variables
-[mu8,Dmu,v_a,v_nc,v_lambda,nu_model] = f_nonNewtonian_Re(vmaterial);
+
+% infinite strain rate viscosity
+mu8             = 8.3283e-4;
+% zero strain rate viscosity
+muo             = 8.3283e-4;
+% viscosity difference
+Dmu             = muo-mu8;
+% power factor 1
+v_a             = 0;
+% power factor 2
+v_nc            = 0;
+% viscosity time scale
+v_lambda        = 0;        
+% viscosity model
+v_model = 0;
 
 % pressure variables
+
+% vapor pressure
 Pv              = f_pvsat(T8);
+% internal bubble pressure w/o vapor
 P0              = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
