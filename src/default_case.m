@@ -144,7 +144,7 @@ v_nc            = 0;
 % viscosity time scale
 v_lambda        = 0;        
 % viscosity model
-v_model = 0;
+nu_model        = 0;
 
 % pressure variables
 

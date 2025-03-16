@@ -119,7 +119,7 @@ for n = 1:2:nargin
         case 'v_a',         v_a         = varargin{n+1};
         case 'v_nc',        v_nc        = varargin{n+1};
         case 'v_lambda',    v_lambda    = varargin{n+1};
-        case 'v_model',     nu_model     = varargin{n+1};
+        case 'nu_model',    nu_model     = varargin{n+1};
         
         % thermal options
         case 't8',          T8 = varargin{n+1};
