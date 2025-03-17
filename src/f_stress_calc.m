@@ -5,7 +5,7 @@
 % solver. The solver accounts for the Kelvin-Voigt with neo-Hookean
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear
 % Jeffreys, linear Zener, UCM and Oldroyd-B
-function [J,JdotX,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8,...
+function [J,Jdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8,...
     Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe)
 
 Z1dot = [];
@@ -17,19 +17,19 @@ Rst = Req/R;
 % no stress
 if stress == 0
     J = 0;
-    JdotX = 0;
+    Jdot = 0;
     
     % Kelvin-Voigt with neo-Hookean elasticity
 elseif stress == 1
     J = -(5 - 4*Rst - Rst^4)/(2*Ca) - 4/Re8*Rdot/R - 6*intfnu*iDRe;
-    JdotX = -2*Rdot/R*(Rst + Rst^4)/Ca + 4/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe;
+    Jdot = -2*Rdot/R*(Rst + Rst^4)/Ca + 4/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe;
     
     % quadratic Kelvin-Voigt with neo-Hookean elasticity
 elseif stress == 2
     J = (3*alphax-1)*(5 - Rst^4 - 4*Rst)/(2*Ca) - 4/Re8*Rdot/R - 6*intfnu*iDRe + ...
         (2*alphax/Ca)*(27/40 + (1/8)*Rst^8 + (1/5)*Rst^5 + ...
         Rst^2 - 2/Rst);
-    JdotX = (Rdot/R)*((3*alphax - 1)/(2*Ca))*(4*Rst^4+4*Rst) + ...
+    Jdot = (Rdot/R)*((3*alphax - 1)/(2*Ca))*(4*Rst^4+4*Rst) + ...
         4*(Rdot/R)^2/Re8 - 6*dintfnu*iDRe -...
         2*alphax/Ca*Rdot/R*(Rst^8 + Rst^5 + 2*Rst^2 + 2*Rst^(-1));
     
@@ -39,15 +39,15 @@ elseif stress == 3
     Z1 = X(ivisco1);
     J = Z1/R^3 - 4*LAM/Re8*Rdot/R - 6*LAM*intfnu*iDRe;
     % elastic shift Ze
-    Ze = -0.5 * (R^3 / Ca) * (5 - Rst^4 - 4*Rst);
-    % simplified ZdotSqNH equation
-    ZdotSqNH = -1.5 * (R^2 * Rdot / Ca) * (5 - Rst^4 - 4*Rst) ...
-        - 2 * (R^3 * Rdot / Ca) * (Rst^4 / R + Rst);
+    Ze = -0.5*(R^3/Ca)*(5 - Rst^4 - 4*Rst);
+    % simplified ZdotNH equation
+    ZdotSqNH = -1.5*(R^2*Rdot/Ca)*(5 - Rst^4 - 4*Rst) ...
+        -2*(R^3*Rdot/Ca)*(Rst^4/R + Rst);
     % stress auxiliary variable integral derivative
-    Z1dot = -(Z1 - Ze) / De + ZdotSqNH + (3 * Rdot / R) * (Z1 - Ze) ...
-        + 4 * (LAM - 1) / (Re8 * De) * R^2 * Rdot;
+    Z1dot = -(Z1 - Ze)/De + ZdotSqNH + (3*Rdot/R)*(Z1 - Ze) ...
+        +4*(LAM - 1)/(Re8*De)*R^2*Rdot;
     % stress integral derivative
-    JdotX = Z1dot/R^3 - 3*Rdot/R^4*Z1 + 4*LAM/Re8*(Rdot/R)^2;
+    Jdot = Z1dot/R^3 - 3*Rdot/R^4*Z1 + 4*LAM/Re8*(Rdot/R)^2;
     
     % linear Maxwell, Jeffreys, Zener -- quadratic neo-Hookean
 elseif stress == 4
@@ -68,7 +68,7 @@ elseif stress == 4
     Z1dot = -(Z1-Ze)/De + ZdotSqNH + (3*Rdot/R)*(Z1-Ze) + ...
         4*(LAM-1)/(Re8*De)*R^2*Rdot ;
     % stress integral derivative
-    JdotX = Z1dot/R^3 - 3*Rdot/R^4*Z1 + 4*LAM/Re8*Rdot^2/R^2;
+    Jdot = Z1dot/R^3 - 3*Rdot/R^4*Z1 + 4*LAM/Re8*Rdot^2/R^2;
     
     % upper-convected Maxwell, OldRoyd-B
 elseif stress == 5
@@ -80,16 +80,17 @@ elseif stress == 5
     Z2dot = -(1/De +   Rdot/R)*Z2 + 2*(LAM-1)/(Re8*De)*R^2*Rdot;
     % stress integral and derivative
     J = (Z1 + Z2)/R^3 - 4*LAM/Re8*Rdot/R;
-    JdotX = (Z1dot+Z2dot)/R^3 - 3*Rdot/R^4*(Z1+Z2) + 4*LAM/Re8*Rdot^2/R^2;
+    Jdot = (Z1dot+Z2dot)/R^3 - 3*Rdot/R^4*(Z1+Z2) + 4*LAM/Re8*Rdot^2/R^2;
     
 elseif stress == -1
-    JdotX = cdd*zeNO;
+    Jdot = cdd*zeNO;
     
 else
     error('stress setting is not available');
 end
 
 end
+
 % % Giesekus, PTT, or forced spectral
 % elseif spectral
 %     % extract stress spectrum
@@ -111,7 +112,7 @@ end
     %         + LDR*(2*Rdot^2/R^2 + Udot/R))/De - zeNO*10*LAM/Re8*(Rdot/R)^2./yV.^6);
 %     % compute stress integral
 %     J = 2*sum(cdd.*(c-d));
-%     JdotX = 2*sum(cdd.*(Z1dot - Z2dot));
+%     Jdot = 2*sum(cdd.*(Z1dot - Z2dot));
 
 %  functions called by solver
 %
