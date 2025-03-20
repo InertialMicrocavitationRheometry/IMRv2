@@ -7,7 +7,7 @@
 % code will read in the default case. The default case can be altered based
 % on the input arguments when invoking either the finite difference or
 % spectral module.
-function [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, ...
+function [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
     acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] = ...
     f_call_params(varargin)
 
@@ -359,14 +359,14 @@ if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4
         Nv = 0;
     end
 elseif stress == 5
-    Nv = 2*((Nv - 1)*(spectral == 1) + 1);
+    Nv = (Nv - 1)*(spectral == 1) + 1;
     Ca = -1;
 elseif stress == 6
-    Nv = 2*((Nv - 1)*(spectral == 1) + 1);
+    Nv = (Nv - 1)*(spectral == 1) + 1;
     Ca = -1;
     spectral = 1;
 elseif stress == 7
-    Nv = 2*((Nv - 1)*(spectral == 1) + 1);
+    Nv = (Nv - 1)*(spectral == 1) + 1;
     Ca = -1;
     spectral = 1;
 end
@@ -442,21 +442,19 @@ Pv_star = Pv;
 Req_zero = Req;
 
 % initial stress field for bubble collapse
-if collapse
-    if stress < 3
-        Szero = [];
-    elseif stress == 3 || stress == 4
-        if collapse
-            if isempty(Szero)
-                [Szero] = f_initial_stress_calc(Req, Re, Ca, De, We, CStar, Pv_star);
-            end
-        else
-            Szero = 0;
+if stress < 3
+    Szero = [];
+elseif stress == 3 || stress == 4
+    if collapse
+        if isempty(Szero)
+            [Szero] = f_initial_stress_calc(Req, Re, Ca, De, We, CStar, Pv_star);
         end
-    elseif stress == 5
-        % TODO initial max stress for UCM and Oldroyd-B
-        Szero = zeros((Nv - 1)*(spectral == 1) + 2,1);
+    else
+        Szero = 0;
     end
+elseif stress == 5
+    % TODO initial max stress for UCM and Oldroyd-B
+    Szero = zeros((Nv - 1)*(spectral == 1) + 2,1);
 end
 
 % out parameters
@@ -466,7 +464,9 @@ eqns_opts = [radial bubtherm medtherm stress eps3 masstrans];
 % solver options
 solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
 % dimensionless initial conditions
-init_opts = [Rzero Uzero Pb_star P8 T8 Pv_star Req_zero alphax Szero];
+init_opts = [Rzero Uzero Pb_star P8 T8 Pv_star Req_zero alphax];
+% dimensionaless initial stress
+init_stress = Szero;
 % time span options
 tspan_opts = tvector;
 % output options

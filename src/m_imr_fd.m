@@ -7,8 +7,8 @@
 function varargout =  m_imr_fd(varargin)
     
     % problem initialization
-    [eqns_opts, solve_opts, init_opts, tspan_opts, out_opts, acos_opts, ...
-        wave_opts, sigma_opts, thermal_opts, mass_opts] ...
+    [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
+        acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
         = f_call_params(varargin{:});
     
     % equations settings
@@ -43,7 +43,9 @@ function varargout =  m_imr_fd(varargin)
     Pv_star         = init_opts(6);
     Req             = init_opts(7);
     alphax          = init_opts(8);
-    S0              = init_opts(9);
+    
+    % dimensionaless initial stress
+    Szero           = init_stress;
     
     % time span options
     tspan = tspan_opts;
@@ -163,9 +165,6 @@ function varargout =  m_imr_fd(varargin)
     else
         Nc = 0;
     end
-    if spectral == 0
-        Nv = 0;
-    end
     if bubtherm == 0
         Nt = 0;
         Mt = 0;
@@ -219,7 +218,7 @@ function varargout =  m_imr_fd(varargin)
     Tau0;
     Tm0;
     C0vec;
-    S0];
+    Szero];
     
     guess = -0.0001;
     foptions = optimset('TolFun',1e-10);
