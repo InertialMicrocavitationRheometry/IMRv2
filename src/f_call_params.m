@@ -73,7 +73,9 @@ for n = 1:2:nargin
         case 'lt',          Lt = varargin{n+1};
         case 'tfin',        TFin = varargin{n+1};
         tflag = tflag + 1;
-        %TVector = 0;
+        case 'tvector',     TVector = varargin{n+1};
+        tflag = tflag + 1;
+        TFin = 0;
         
         % initial options
         case 'collapse',    collapse = varargin{n+1};
@@ -82,6 +84,7 @@ for n = 1:2:nargin
         case 'u0',          U0 = varargin{n+1};
         case 'req',         Req = varargin{n+1};
         P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
+        case 'stress0',     Szero = varargin{n+1};
         
         % output options
         case 'dimout',      dimensionalout = varargin{n+1};
@@ -141,9 +144,7 @@ for n = 1:2:nargin
         case 'pv',          Pv = varargin{n+1};
         P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         case 'p0',          P0 = varargin{n+1};
-        case 'tvector',     TVector = varargin{n+1};
-        tflag = tflag + 1;
-        TFin = 0;
+        
         otherwise,          misscount = misscount + 1;
         
     end
@@ -350,7 +351,7 @@ if medtherm == 1
 end
 
 % 1 : N-H, 2: qN-H, 3: linear Maxwell, Jeffreys, Zener, 5: UCM or OldB, 6: PTT, 7: Giesekus
-if stress == 1 || stress == 2 || stress == 3 || stress == 4
+if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4
     spectral = 0;
     if stress == 3 || stress == 4
         Nv = 1;
@@ -358,11 +359,14 @@ if stress == 1 || stress == 2 || stress == 3 || stress == 4
         Nv = 0;
     end
 elseif stress == 5
+    Nv = 2*((Nv - 1)*(spectral == 1) + 1);
     Ca = -1;
 elseif stress == 6
+    Nv = 2*((Nv - 1)*(spectral == 1) + 1);
     Ca = -1;
     spectral = 1;
 elseif stress == 7
+    Nv = 2*((Nv - 1)*(spectral == 1) + 1);
     Ca = -1;
     spectral = 1;
 end
@@ -437,6 +441,24 @@ end
 Pv_star = Pv;
 Req_zero = Req;
 
+% initial stress field for bubble collapse
+if collapse
+    if stress < 3
+        Szero = [];
+    elseif stress == 3 || stress == 4
+        if collapse
+            if isempty(Szero)
+                [Szero] = f_initial_stress_calc(Req, Re, Ca, De, We, CStar, Pv_star);
+            end
+        else
+            Szero = 0;
+        end
+    elseif stress == 5
+        % TODO initial max stress for UCM and Oldroyd-B
+        Szero = zeros((Nv - 1)*(spectral == 1) + 2,1);
+    end
+end
+
 % out parameters
 
 % equation settings
@@ -444,7 +466,7 @@ eqns_opts = [radial bubtherm medtherm stress eps3 masstrans];
 % solver options
 solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
 % dimensionless initial conditions
-init_opts = [Rzero Uzero Pb_star P8 T8 Pv_star Req_zero alphax collapse];
+init_opts = [Rzero Uzero Pb_star P8 T8 Pv_star Req_zero alphax Szero];
 % time span options
 tspan_opts = tvector;
 % output options

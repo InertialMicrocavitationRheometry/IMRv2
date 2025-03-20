@@ -43,7 +43,7 @@ function varargout =  m_imr_fd(varargin)
     Pv_star         = init_opts(6);
     Req             = init_opts(7);
     alphax          = init_opts(8);
-    collapse        = init_opts(9);
+    S0              = init_opts(9);
     
     % time span options
     tspan = tspan_opts;
@@ -183,6 +183,9 @@ function varargout =  m_imr_fd(varargin)
     % precomputations for viscous dissipation
     % zT = 1 - 2./(1 + (yT - 1)/Lv);
     cdd = preStressInt(Lv,Nv);
+    % stress spectra index management
+    ivisco1 = (4+Nt+Mt+Nc):(3+Nt+Mt+Nc+Nv);
+    ivisco2 = (4+Nt+Mt+Nc+Nv):(3+Nt+Mt+Nc+2*Nv);
     
     % initial condition assembly
     
@@ -209,28 +212,6 @@ function varargout =  m_imr_fd(varargin)
         C0vec = [];
     end
     
-    % stress spectra, ODE version only for now
-    if stress < 3
-        Sp = zeros(2*(Nv - 1)*(spectral == 1),1);
-        Nv1 = 0;
-        Nv2 = 0;
-    elseif stress == 3 || stress == 4
-        if collapse
-            [Sp] = f_max_pre_stress(Req, kappa, Cstar, Pv_star, We, Re8, De, ...
-                Ca, alphax);
-        else
-            Sp = 0;
-        end
-        Nv1 = 1;
-        Nv2 = 0;
-    elseif stress == 5
-        Sp = zeros((Nv - 1)*(spectral == 1) + 2,1);
-        Nv1 = size(Sp)-1;
-        Nv2 = size(Sp)-1;
-    end
-    ivisco1 = (4+Nt+Mt+Nc):(3+Nt+Mt+Nc+Nv1);
-    ivisco2 = (4+Nt+Mt+Nc+Nv1):(3+Nt+Mt+Nc+Nv1+Nv2);
-    
     % initial condition vector
     init = [Rzero;
     Uzero;
@@ -238,7 +219,7 @@ function varargout =  m_imr_fd(varargin)
     Tau0;
     Tm0;
     C0vec;
-    Sp];
+    S0];
     
     guess = -0.0001;
     foptions = optimset('TolFun',1e-10);

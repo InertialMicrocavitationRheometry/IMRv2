@@ -1,8 +1,13 @@
 % file f_max_pre_stress.m
-% brief contains function f_call_params
+% brief contains function f_max_pre_stress
 
-% brief This function sets up Victor to write this.
-function [Smaxpred] = f_max_pre_stress(Ro, kappa, al_nd, pwv_nd, We, Re, De, Ca, alpha)
+% brief This function computes the stress value at the bubble maximum
+% radius. The implementation is the approximate/analytical model as opposed
+% to the numerical model that performs a shooting method to determine the
+% initial stress (see f_initial_stress_calc.m). This model should be
+% treated as approximate and of lower fidelity relative to the numerical
+% model.
+function [Smaxpred] = f_approx_init_stress(Ro, kappa, al_nd, pwv_nd, We, Re, De, Ca, alpha)
     
     % trc constant
     trc = sqrt(6*pi)*gamma(11/6)/(5*gamma(4/3));

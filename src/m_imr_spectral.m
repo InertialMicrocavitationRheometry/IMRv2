@@ -43,7 +43,7 @@ function varargout =  m_imr_spectral(varargin)
     Pv_star         = init_opts(6);
     Req             = init_opts(7);
     alphax          = init_opts(8);
-    collapse        = init_opts(9);
+    S0              = init_opts(9);
     
     % time span options
     tspan = tspan_opts;
@@ -186,20 +186,6 @@ function varargout =  m_imr_spectral(varargin)
     Tm0 = ones(Mt ~= -1);
     Tm1 = zeros(Mt,1);
     
-    % stress spectra
-    if stress < 3
-        Sp = zeros(2*(Nv - 1)*(spectral == 1),1);
-    elseif stress == 3 || stress == 4
-        if collapse
-            [Sp] = f_max_pre_stress(Req, kappa, Cstar, Pv_star, We, Re8, De, ...
-                Ca, alphax);
-        else
-            Sp = 0;
-        end
-    elseif stress == 5
-        Sp = zeros(2*(Nv - 1)*(spectral == 1) + 2,1);
-    end
-    
     % TODO ADD THE MASS Transfer structure here
     
     % initial condition vector
@@ -209,7 +195,7 @@ function varargout =  m_imr_spectral(varargin)
     Tau0;
     Tm0;
     Tm1;
-    Sp];
+    S0];
     
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
