@@ -446,8 +446,8 @@ if stress < 3
     Szero = [];
 elseif stress == 3 || stress == 4
     if collapse
-        if isempty(Szero)
-            [Szero] = f_initial_stress_calc(Req, Re, Ca, De, We, CStar, Pv_star);
+        if ~exist('Szero','var')
+            [Szero] = f_init_stress(Req_zero, Re8, Ca, De, We, Cstar, Pv_star);
         end
     else
         Szero = 0;

@@ -9,51 +9,51 @@ function [S0] = f_init_stress(Req, Re, Ca, De, We, CL, Pv_star)
     Rdotic = fminsearch(@(Rdoti) abs(1-f_maxwell_growth_iter(Rdoti, Req, Re, Ca, De, We, CL)),1, sopts);
     tf_nd = 2;
     tspan = [0, tf_nd];
-    opts = odeset('RelTol',1e-10,'AbsTol',1e-10);
-    z0 = [Req, Rdotic, 0];
-    [~,z] = ode23tb(@(t,z) f_RP_bub_collapse_comp(z, Req, Re, Ca, De, We, CL),tspan,z0, opts);
-    [~,Imax] = max(abs(z(:,1)));
-    S0 = z(Imax,3);
+    opts = odeset('RelTol',1e-6,'AbsTol',1e-6);
+    X0 = [Req, Rdotic, 0];
+    [~,X] = ode23tb(@(t,X) f_RP_bub_collapse_comp(X, Req, Re, Ca, De, We, CL),tspan, X0, opts);
+    [~,Imax] = max(abs(X(:,1)));
+    S0 = X(Imax,3);
     
     function Rmax = f_maxwell_growth_iter(Rdoti, Req, Re, Ca, De, We, CL)
-        z0 = [Req, Rdoti, 0];
+        X0 = [Req, Rdoti, 0];
         % final time
         tf_nd = 2;
         tspan = [0, tf_nd];
-        opts = odeset('RelTol',1e-10,'AbsTol',1e-10);
-        [~,z] = ode23tb(@(t,z) f_RP_bub_collapse_comp(z, Req, Re, Ca, De, We, CL),tspan,z0, opts);
-        [Rmax, ~] = max(abs(z(:,1)));
+        opts = odeset('RelTol',1e-6,'AbsTol',1e-6);
+        [~,X] = ode23tb(@(t,X) f_RP_bub_collapse_comp(X, Req, Re, Ca, De, We, CL),tspan, X0, opts);
+        [Rmax, ~] = max(abs(X(:,1)));
     end
     
     % non-dimensional rayleigh plesset solver
-    function [Xdot] = f_RP_bub_collapse_comp(z, Req, Re, Ca, De, We, CL)
+    function [Xdot] = f_RP_bub_collapse_comp(X, Req, Re, Ca, De, We, CL)
         
         % bubble radius R(t)
         R = X(1);
-        % bubble wall velocity R'(t)
-        U = z(2);
+        % bubble wall velocity Rdot(t)
+        Rdot = X(2);
         % stress integral
-        S = z(3);
+        S = X(3);
         
         Pgo = 1-Pv_star+1/(We*Req);
         Pb = Pv_star+Pgo*(Req/R)^(3);
-        Pbdot = -3*Pgo*(Req/R)^(3)*U/R;
+        Pbdot = -3*Pgo*(Req/R)^(3)*Rdot/R;
         if De == 0 || De == Inf
-            S = (-0.5/Ca*(5-4*Req/R - (Req/R)^4) - 4*U/(Re*R))*R^3;
-            S_prime = (2*U*((Req/R)^2 - (Req/R)^5)/Ca - 4/Re*U^2/R^2)*R^3;
-            U_prime = ((1+U/CL)*(Pb - 1 -1/(We*R) + S/z1^3) + R/CL*(Pbdot + 1/We*U/R^2+ ...
-                (S_prime-3*U*R^2*S/R^3)/R^3) ...
-                - 1.5*(1-U/(3*CL))*U^2)/((1-U/CL)*R + 4/Re/CL);
+            S = (-0.5/Ca*(5-4*Req/R - (Req/R)^4) - 4*Rdot/(Re*R))*R^3;
+            Sdot = (2*Rdot*((Req/R)^2 - (Req/R)^5)/Ca - 4/Re*Rdot^2/R^2)*R^3;
+            Rddot = ((1+Rdot/CL)*(Pb - 1 -1/(We*R) + S/z1^3) + R/CL*(Pbdot + 1/We*Rdot/R^2+ ...
+                (Sdot-3*Rdot*R^2*S/R^3)/R^3) ...
+                - 1.5*(1-Rdot/(3*CL))*Rdot^2)/((1-Rdot/CL)*R + 4/Re/CL);
         else % SLS or Maxwell
-            S_prime = 1/De*(-4*U/(Re*R)-2*De/Ca*U/R*((Req/R)^4+Req/R)- ...
+            Sdot = 1/De*(-4*Rdot/(Re*R)-2*De/Ca*Rdot/R*((Req/R)^4+Req/R)- ...
                 (S+1/2*1/Ca*(5-(Req/R)^4-4*Req/R)));
-            U_prime = ((1+U/CL)...
-                *(pB - 1 + S -1/(We*R)) + R/CL*(Pbdot + 1/We*U/R^2 + S_prime) ...
-                - 1.5*(1-U/(3*CL))*U^2)/((1-U/CL)*R + 4/Re/CL);
+            Rddot = ((1+Rdot/CL)...
+                *(Pb - 1 + S -1/(We*R)) + R/CL*(Pbdot + 1/We*Rdot/R^2 + Sdot) ...
+                - 1.5*(1-Rdot/(3*CL))*Rdot^2)/((1-Rdot/CL)*R + 4/Re/CL);
         end
-        Xdot = [U;
-        U_prime;
-        S_prime];
+        Xdot = [Rdot;
+        Rddot;
+        Sdot];
     end
     
 end
