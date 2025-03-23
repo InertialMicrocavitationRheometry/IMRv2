@@ -310,12 +310,14 @@ function varargout =  m_imr_spectral(varargin)
                 T = (alpha - 1 + sqrt(1+2*alpha*SI))/alpha;
                 D = kapover*(alpha*T.^2 + beta*T)/P;
                 
-                % bubble pressure
+                % internal bubble pressure
                 Pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*P*Rdot);
                 
+                % internal bubble velocity
+                U_vel = chi/R^2*(2*D./y - kapover/P*(dSI-dSI(1)*y));
+                
                 % auxiliary temperature derivative
-                SIdot = Pdot*D + chi/R^2*(2*D./y - kapover/P*(dSI-dSI(1)*y)).*dSI ...
-                    + chi*D/R^2.*ddSI;
+                SIdot = Pdot*D + U_vel.*dSI + chi*D/R^2.*ddSI;
                 
                 SIdot(end) = Pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
                     + kapover/P*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);
@@ -323,11 +325,13 @@ function varargout =  m_imr_spectral(varargin)
                 if medtherm % warm-liquid
                     % extract medium temperature
                     TL = mA*X(ib);
+                    
                     % new derivative of medium temperature
                     first_term = (1+xi).^2/(Lt*R).*...
                         (Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
                         Rdot/2*(1./yT2 - yT)).*(mAPd*TL);
                     second_term = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
+                    
                     % include viscous heating
                     if spectral == 1
                         third_term = -2*Br*Rdot./(R*yT3).* ...
@@ -337,6 +341,7 @@ function varargout =  m_imr_spectral(varargin)
                             4*(Rdot/R)^2/(Re8+DRe*fnu));
                     end
                     TLdot = first_term + second_term + third_term;
+                    
                     % enforce boundary condition and solve
                     TLdot(end) = 0;
                     qdot = [ones(1,Nt+1) -(alpha*(T(1)-1)+1)*ones(1,Mt+1); Q]...

@@ -343,24 +343,26 @@ function varargout =  m_imr_fd(varargin)
             DC  = D_Matrix_T_C*C;
             DDC = DD_Matrix_T_C*C;
             Rmix = C*Rv_star + (1-C)*Ra_star;
+            RDC = (Rva_diff./Rmix).*DC;
             
             % internal pressure equation
             Pdot = 3/R*(chi*(kappa-1)*DTau(end)/R - kappa*P*Rdot +...
                 + kappa*P*Fom*Rv_star*DC(end)/(T(end)*R*Rmix(end)*(1-C(end))));
             
+            % internal bubble velocity
+            U_vel = (chi/R*(kappa-1).*DTau-y*R*Pdot/3)/(kappa*P) + Fom/R*RDC;
+            
             % temperature of the gas inside the bubble
-            U_vel = (chi/R*(kappa-1).*DTau-y*R*Pdot/3)/(kappa*P);
             first_term = (chi*DDTau./R^2+Pdot).*(kapover*K_star.*T/P);
             second_term = -DTau.*(U_vel-y*Rdot)./R;
-            Taudot = first_term+second_term;
+            third_term = (Fom/(R^2)).*(Rva_diff./Rmix).*DC.*DTau;
+            Taudot = first_term + second_term + third_term;
             Taudot(end) = 0;
             
-            % vapor concentration equation
-            RDC = (Rva_diff./Rmix).*DC;
-            U_mix = U_vel + Fom/R*RDC;
-            two = DC.*(DTau./(K_star.*T)+RDC);
-            three =  (U_mix-Rdot.*y)/R.*DC;
-            Cdot = Fom/R^2*(DDC - two) - three;
+            % vapor equations inside the bubble
+            term_one = DC.*(DTau./(K_star.*T)+RDC);
+            term_two =  (U_vel-Rdot.*y)/R.*DC;
+            Cdot = Fom/R^2*(DDC - term_one) - term_two;
             Cdot(end) = 0;
             
         elseif bubtherm
@@ -371,11 +373,13 @@ function varargout =  m_imr_fd(varargin)
             % internal pressure equation
             Pdot = 3/R*(chi*(kappa-1)*DTau(end)/R - kappa*P*Rdot);
             
-            % temperature of the gas inside the bubble
+            % internal bubble velocity
             U_vel = (chi/R*(kappa-1).*DTau-y*R*Pdot/3)/(kappa*P);
+            
+            % temperature of the gas inside the bubble
             first_term = (chi*DDTau./R^2+Pdot).*(kapover*K_star.*T/P);
             second_term = -DTau.*(U_vel-y*Rdot)./R;
-            Taudot = first_term+second_term;
+            Taudot = first_term + second_term;
             Taudot(end) = 0;
             
         elseif masstrans
@@ -386,21 +390,22 @@ function varargout =  m_imr_fd(varargin)
             % concentration of vapor inside the bubble
             DC  = D_Matrix_T_C*C;
             DDC = DD_Matrix_T_C*C;
+            RDC = (Rva_diff./Rmix).*DC;
             
             % internal pressure equation
             Pdot = 3/R*(-kappa*P*Rdot + ...
                 kappa*P*Fom*Rv_star*DC(end)/(T*R*Rmix(end)*(1-C(end))));
             
+            % internal bubble velocity
+            U_vel = (-y*R*Pdot/3)/(kappa*P) + Fom/R*RDC;
+            
             % temperature of the gas inside the bubble
             Taudot = Pdot.*(kapover*K_star.*T/P);
             
-            U_vel = (-y*R*Pdot/3)/(kappa*P);
             % vapor concentration equation
-            RDC = (Rva_diff./Rmix).*DC;
-            U_mix = U_vel + Fom/R*RDC;
-            two = RDC.*DC;
-            three =  (U_mix-Rdot.*y)/R.*DC;
-            Cdot = Fom/R^2*(DDC - two) - three;
+            term_one = RDC.*DC;
+            term_two =  (U_vel-Rdot.*y)/R.*DC;
+            Cdot = Fom/R^2*(DDC - term_one) - term_two;
             Cdot(end) = 0;
         else
             % polytropic gas
