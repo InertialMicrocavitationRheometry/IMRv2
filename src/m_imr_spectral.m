@@ -105,10 +105,12 @@ function varargout =  m_imr_spectral(varargin)
     % dimensionless thermal
     Foh             = thermal_opts(1);
     Br              = thermal_opts(2);
-    alpha           = thermal_opts(3);
-    beta            = thermal_opts(4);
-    chi             = thermal_opts(5);
-    iota            = thermal_opts(6);
+    alpha_g         = thermal_opts(3);
+    beta_g          = thermal_opts(4);
+    % alpha_v         = thermal_opts(5);
+    % beta_v          = thermal_opts(6);
+    chi             = thermal_opts(7);
+    iota            = thermal_opts(8);
     
     % dimensionaless mass transfer
     Fom             = mass_opts(1);
@@ -216,7 +218,7 @@ function varargout =  m_imr_spectral(varargin)
     a = X(:,ia)';
     b = X(:,ib)';
     if bubtherm
-        T = (alpha-1+sqrt(1+2*alpha*gA*a))/alpha;
+        T = (alpha_g-1+sqrt(1+2*alpha_g*gA*a))/alpha_g;
         if medtherm
             TL = mA*b;
         end
@@ -307,8 +309,8 @@ function varargout =  m_imr_spectral(varargin)
                 % second order derivative
                 ddSI = gAPdd*SI;
                 % temperature and thermal diffusivity fields
-                T = (alpha - 1 + sqrt(1+2*alpha*SI))/alpha;
-                D = kapover*(alpha*T.^2 + beta*T)/P;
+                T = (alpha_g - 1 + sqrt(1+2*alpha_g*SI))/alpha_g;
+                D = kapover*(alpha_g*T.^2 + beta_g*T)/P;
                 
                 % internal bubble pressure
                 Pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*P*Rdot);
@@ -344,7 +346,7 @@ function varargout =  m_imr_spectral(varargin)
                     
                     % enforce boundary condition and solve
                     TLdot(end) = 0;
-                    qdot = [ones(1,Nt+1) -(alpha*(T(1)-1)+1)*ones(1,Mt+1); Q]...
+                    qdot = [ones(1,Nt+1) -(alpha_g*(T(1)-1)+1)*ones(1,Mt+1); Q]...
                         \[0;
                     SIdot(2:end);
                     TLdot(2:end);

@@ -128,8 +128,10 @@ for n = 1:2:nargin
         case 't8',          T8 = varargin{n+1};
         tempset = 1;
         case 'kappa',       kappa = varargin{n+1};
-        case 'at',          AT = varargin{n+1};
-        case 'bt',          BT = varargin{n+1};
+        case 'atg',         ATg = varargin{n+1};
+        case 'btg',         BTg = varargin{n+1};
+        case 'atv',         ATv = varargin{n+1};
+        case 'btv',         BTv = varargin{n+1};
         case 'km',          Km = varargin{n+1};
         case 'dm',          Dm = varargin{n+1};
         dmset = 1;
@@ -221,7 +223,7 @@ end
 % intermediate calculated variables
 
 % far-field thermal conductivity (W/(m K))
-K8      = AT*T8+BT;
+K8      = ATg*T8+BTg;
 % dimensional parameter for gas constants
 Rnondim = P8/(rho8*T8);
 % characteristic velocity (m/s)
@@ -252,8 +254,10 @@ Cstar   = C8/Uc;
 chi     = T8*K8/(P8*R0*Uc);
 iota    = Km/(K8*Lt);
 Foh     = Dm/(Uc*R0);
-alpha   = AT*T8/K8;
-beta    = BT/K8;
+alpha_g   = ATg*T8/K8;
+beta_g    = BTg/K8;
+alpha_v   = ATv*T8/K8;
+beta_v   = BTv/K8;
 Br      = Uc^2/(Cp*T8);
 % mass diffusion
 Fom     = D0/(Uc*R0);
@@ -325,7 +329,10 @@ if isempty(varargin) == 0
             case 'br',      Br = varargin{n+1};
             case 'fom',     Fom = varargin{n+1};
             % dimensionless thermal quantities
-            case 'alpha',   alpha = varargin{n+1};
+            case 'alpha_g', alpha_g = varargin{n+1};
+            case 'beta_g',  beta_g = varargin{n+1};
+            case 'alpha_v', alpha_v = varargin{n+1};
+            case 'beta_v',  beta_v = varargin{n+1};
             case 'chi',     chi = varargin{n+1};
             case 'iota',    iota = varargin{n+1};
             % dimensionless initial conditions
@@ -392,8 +399,8 @@ end
 % elseif sls==1 || nhzen==1 || fdkv==1 || zzzen==1 || fdmax==1  % ZZ - Not exactly true for FDKV, but I also don't think this matters ...
     % JdotA = 0;
 % elseif nhkv_pld==1
-%     %JdotA = 4/Re8*(2^alpha+1)/3*(abs(Rdot)/R)^(alpha-1);
-%     JdotA = 4/Re8/3*(2^alpha+1)*sign(Rdot)*(abs(Rdot)/R)^(alpha)*R^2/Rdot^2;
+%     %JdotA = 4/Re8*(2^alpha_g+1)/3*(abs(Rdot)/R)^(alpha_g-1);
+%     JdotA = 4/Re8/3*(2^alpha_g+1)*sign(Rdot)*(abs(Rdot)/R)^(alpha_g)*R^2/Rdot^2;
 %     if isnan(SdotA)
 %         SdotA=4/Re8;
 %     end
@@ -481,7 +488,7 @@ wave_opts = [om ee tw dt mn wave_type wave_poly wave_dpoly];
 % dimensionless viscoelastic
 sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iDRe];
 % dimensionless thermal
-thermal_opts = [Foh Br alpha beta chi iota];
+thermal_opts = [Foh Br alpha_g beta_g alpha_v beta_v chi iota];
 % dimensionaless mass transfer
 mass_opts = [Fom C0 Rv_star Ra_star L_heat_star mv0 ma0];
 

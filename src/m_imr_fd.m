@@ -105,10 +105,12 @@ function varargout =  m_imr_fd(varargin)
     % dimensionless thermal
     Foh             = thermal_opts(1);
     Br              = thermal_opts(2);
-    alpha           = thermal_opts(3);
-    beta            = thermal_opts(4);
-    chi             = thermal_opts(5);
-    iota            = thermal_opts(6);
+    alpha_g         = thermal_opts(3);
+    beta_g          = thermal_opts(4);
+    alpha_v         = thermal_opts(5);
+    beta_v          = thermal_opts(6);
+    chi             = thermal_opts(7);
+    iota            = thermal_opts(8);
     
     % dimensionaless mass transfer
     Fom             = mass_opts(1);
@@ -153,7 +155,7 @@ function varargout =  m_imr_fd(varargin)
     % boundary conditions coefficients
     coeff = [-1.5 , 2 ,-0.5 ];
     Rva_ratio = Rv_star / Ra_star;
-    inv_alpha = 1/alpha;
+    inv_alpha = 1/alpha_g;
     Rva_diff = Rv_star - Ra_star;
     grad_Tm_coeff = 2*chi*iota/deltaYm*coeff;
     grad_Trans_coeff = -coeff*chi/deltaY;
@@ -326,8 +328,6 @@ function varargout =  m_imr_fd(varargin)
         if bubtherm || masstrans
             Tau(end) = prelim;
             T = TW(Tau);
-            % calculate thermal transfer variable
-            K_star = alpha*T+beta;
         end
         
         % equations of motion
@@ -352,20 +352,28 @@ function varargout =  m_imr_fd(varargin)
             % internal bubble velocity
             U_vel = (chi/R*(kappa-1).*DTau-y*R*Pdot/3)/(kappa*P) + Fom/R*RDC;
             
+            % calculate mixture thermal conductivity
+            Kstar_g = alpha_g*T+beta_g;
+            Kstar_v = alpha_v*T+beta_v;
+            Kstar = C.*Kstar_v + (1-C).*Kstar_g;
+            
             % temperature of the gas inside the bubble
-            first_term = (chi*DDTau./R^2+Pdot).*(kapover*K_star.*T/P);
+            first_term = (chi*DDTau./R^2+Pdot).*(kapover*Kstar.*T/P);
             second_term = -DTau.*(U_vel-y*Rdot)./R;
             third_term = (Fom/(R^2)).*(Rva_diff./Rmix).*DC.*DTau;
             Taudot = first_term + second_term + third_term;
             Taudot(end) = 0;
             
             % vapor equations inside the bubble
-            term_one = DC.*(DTau./(K_star.*T)+RDC);
+            term_one = DC.*(DTau./(Kstar.*T)+RDC);
             term_two =  (U_vel-Rdot.*y)/R.*DC;
             Cdot = Fom/R^2*(DDC - term_one) - term_two;
             Cdot(end) = 0;
             
         elseif bubtherm
+            % calculate mixture thermal conductivity
+            Kstar = alpha_g*T+beta_g;
+            
             % temperature gradients
             DTau  = D_Matrix_T_C*Tau;
             DDTau = DD_Matrix_T_C*Tau;
@@ -377,12 +385,15 @@ function varargout =  m_imr_fd(varargin)
             U_vel = (chi/R*(kappa-1).*DTau-y*R*Pdot/3)/(kappa*P);
             
             % temperature of the gas inside the bubble
-            first_term = (chi*DDTau./R^2+Pdot).*(kapover*K_star.*T/P);
+            first_term = (chi*DDTau./R^2+Pdot).*(kapover*Kstar.*T/P);
             second_term = -DTau.*(U_vel-y*Rdot)./R;
             Taudot = first_term + second_term;
             Taudot(end) = 0;
             
         elseif masstrans
+            % calculate mixture thermal conductivity
+            Kstar = alpha_g*T+beta_g;
+            
             % computing mass transfer at the wall
             C(end) = CW(T,P);
             % calculate mass transfer variable
@@ -400,7 +411,7 @@ function varargout =  m_imr_fd(varargin)
             U_vel = (-y*R*Pdot/3)/(kappa*P) + Fom/R*RDC;
             
             % temperature of the gas inside the bubble
-            Taudot = Pdot.*(kapover*K_star.*T/P);
+            Taudot = Pdot.*(kapover*Kstar.*T/P);
             
             % vapor concentration equation
             term_one = RDC.*DC;
@@ -466,7 +477,7 @@ function varargout =  m_imr_fd(varargin)
     
     % calculates the temperature at the bubble wall as a function of \tau
     function Tw = TW(Tauw)
-        Tw = (alpha -1 + sqrt(1+2*Tauw*alpha)) / alpha;
+        Tw = (alpha_g -1 + sqrt(1+2*Tauw*alpha_g)) / alpha_g;
     end
     
     % calculates the concentration at the bubble wall
@@ -481,7 +492,7 @@ function varargout =  m_imr_fd(varargin)
         Tm_trans = Tm(2:3);
         T_trans = Tau(end-1:-1:end-2);
         
-        Tw_prelim = inv_alpha*(alpha - 1 + sqrt(1+2*prelim*alpha));
+        Tw_prelim = inv_alpha*(alpha_g - 1 + sqrt(1+2*prelim*alpha_g));
         Pv_prelim = C1_pv*exp(C2_pv/Tw_prelim);
         demCw = (1 + (Rva_ratio) * (P ./ Pv_prelim - 1));
         Cw_prelim = 1 / demCw;
@@ -501,7 +512,7 @@ function varargout =  m_imr_fd(varargin)
         Tm_trans = Tm(2:3);
         T_trans = Tau(end-1:-1:end-2);
         
-        Tw_prelim = inv_alpha*(alpha - 1 + sqrt(1+2*prelim*alpha));
+        Tw_prelim = inv_alpha*(alpha_g - 1 + sqrt(1+2*prelim*alpha_g));
         
         Tauw = grad_Tm_coeff * [Tw_prelim; Tm_trans]  + ...
             grad_Trans_coeff * [prelim ;
@@ -515,7 +526,7 @@ function varargout =  m_imr_fd(varargin)
         Tm_trans = ones(2,1);
         T_trans = zeros(2,1);
         
-        Tw_prelim = inv_alpha*(alpha - 1 + sqrt(1+2*prelim*alpha));
+        Tw_prelim = inv_alpha*(alpha_g - 1 + sqrt(1+2*prelim*alpha_g));
         Pv_prelim = C1_pv*exp(C2_pv/Tw_prelim);
         demCw = (1 + (Rva_ratio) * (P ./ Pv_prelim - 1));
         Cw_prelim = 1 / demCw;
