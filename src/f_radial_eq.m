@@ -40,12 +40,15 @@ elseif radial == 3
     
     % Gilmore equation
 elseif radial == 4
-    hB = sam/no*(((P - iWe/R + GAMa + J)/sam)^no - 1);
-    hH = (sam/(P - iWe/R + GAMa + J))^(1/nstate);
-    Rddot = ((1 + Rdot/Cstar)*(hB - Pf8) - R/Cstar*Pf8dot ...
-        + R/Cstar*(hB + hH*(Pdot + iWe*Rdot/R^2 + Jdot)) ...
-        - 1.5*(1 - Rdot/(3*Cstar))*Rdot^2) / ((1 - Rdot/Cstar)*R + ...
-        JdotA*hH/Cstar - 6*hH*ddintfnu*iDRe/Cstar);
+    Pb = P - iWe/R + GAMa + J;
+    rho = (Pb/sam)^(1/nstate);
+    C = sqrt(nstate*Pb/rho);
+    hB = sam/no*((Pb/sam)^no - 1);
+    hH = (sam/Pb)^(1/nstate);
+    Rddot = ((1 + Rdot/C)*(hB - Pf8) - R/C*Pf8dot ...
+        + R/C*hH*(Pdot + iWe*Rdot/R^2 + Jdot) ...
+        - 1.5*(1 - Rdot/(3*C))*Rdot^2) / ((1 - Rdot/C)*R + ...
+        JdotA*hH/C - 6*hH*ddintfnu*iDRe/C);
     
 end
 
