@@ -62,6 +62,7 @@ function varargout =  m_imr_fd(varargin)
     GAMa            = acos_opts(2);
     kappa           = acos_opts(3);
     nstate          = acos_opts(4);
+    hugoniot_s      = acos_opts(5);
     
     % dimensionless waveform parameters
     om              = wave_opts(1);
@@ -149,6 +150,7 @@ function varargout =  m_imr_fd(varargin)
     %LDR = LAM*De/Re8;
     sam = 1 + GAMa;
     no = (nstate-1)/nstate;
+    nog = (nstate-1)/2;
     kapover = (kappa-1)/kappa;
     C1_pv = 1.17e11/P8;
     C2_pv = -5200/T8;
@@ -456,9 +458,9 @@ function varargout =  m_imr_fd(varargin)
             ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
         
         % bubble wall acceleration
-        [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, ...
-            iWe, R, Rdot, J, Jdot, Cstar, sam, no, GAMa, nstate, ...
-            JdotA, ddintfnu, iDRe );
+        [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, J, ...
+            Jdot, Cstar, sam, no, GAMa, nstate, nog, hugoniot_s, JdotA, ...
+            ddintfnu, iDRe);
         
         % output assembly
         dXdt = [Rdot;

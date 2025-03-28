@@ -62,6 +62,7 @@ function varargout =  m_imr_spectral(varargin)
     GAMa            = acos_opts(2);
     kappa           = acos_opts(3);
     nstate          = acos_opts(4);
+    hugoniot_s      = acos_opts(5);
     
     % dimensionless waveform parameters
     om              = wave_opts(1);
@@ -145,6 +146,7 @@ function varargout =  m_imr_spectral(varargin)
     % LDR = LAM*De/Re8;
     sam = 1 + GAMa;
     no = (nstate-1)/nstate;
+    nog = (nstate-1)/2;
     kapover = (kappa-1)/kappa;
     yT = 2*Lt./(1+xi) - Lt + 1;
     yT2 = yT.^2;
@@ -370,9 +372,9 @@ function varargout =  m_imr_spectral(varargin)
             [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
             
             % bubble wall acceleration
-            [Rddot] = f_radial_eq(radial, P, Pdot,Pf8, Pf8dot, ...
-                iWe, R, Rdot, J, Jdot, Cstar, sam, no, GAMa, nstate, ...
-                JdotA, ddintfnu, iDRe );
+            [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, J, ...
+                Jdot, Cstar, sam, no, GAMa, nstate, nog, hugoniot_s, JdotA, ...
+                ddintfnu, iDRe);
             
             % output assembly
             dXdt = [Rdot;

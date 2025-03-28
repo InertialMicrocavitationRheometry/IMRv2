@@ -482,7 +482,7 @@ out_opts = [dimensionalout progdisplay];
 % physical parameters
 
 % acoustic parameters
-acos_opts = [Cstar GAMa kappa nstate];
+acos_opts = [Cstar GAMa kappa nstate hugoniot_s];
 % dimensionless waveform parameters
 wave_opts = [om ee tw dt mn wave_type wave_poly wave_dpoly];
 % dimensionless viscoelastic

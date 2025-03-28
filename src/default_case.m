@@ -63,6 +63,8 @@ rho8            = 1064;
 GAM             = 3049.13*1e5;
 % state equation parameter
 nstate          = 7.15;
+% hugoniot slope
+hugoniot_s      = 10;
 % far-field pressure (Pa)
 P8              = 101325;
 % far-field sound speed (m/s)
