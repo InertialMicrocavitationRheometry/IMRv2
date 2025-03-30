@@ -1,5 +1,5 @@
 % file m_imr_fd.m
-% brief contains module m_imrv2_fd
+% brief contains module m_imr_fd
 
 % brief This module features a fourth- and sixth-order accurate finite
 % difference solver of the PDEs involving thermal transport and
@@ -144,7 +144,9 @@ function varargout =  m_imr_fd(varargin)
     yT = ((2./(xi+1)-1)*Lt+1);
     yT2 = yT.^2;
     yT3 = yT.^3;
-    yT6 = yT.^6;
+    iyT3 = yT.^-3;
+    iyT4 = yT.^-4;
+    iyT6 = yT.^-6;
     
     % precomputations move these to f_call_params
     %LDR = LAM*De/Re8;
@@ -185,6 +187,7 @@ function varargout =  m_imr_fd(varargin)
     
     % precomputations for viscous dissipation
     % zT = 1 - 2./(1 + (yT - 1)/Lv);
+    ZZT = 0;
     cdd = preStressInt(Lv,Nv);
     % stress spectra index management
     ivisco1 = (4+Nt+Mt+Nc):(3+Nt+Mt+Nc+Nv);
@@ -283,7 +286,7 @@ function varargout =  m_imr_fd(varargin)
     function [dXdt] = SVBDODE(t,X)
         
         % showing output
-        if progdisplay == 1
+        if progdisplay
             disp(t/tfin);
         end
         
@@ -360,16 +363,16 @@ function varargout =  m_imr_fd(varargin)
             Kstar = C.*Kstar_v + (1-C).*Kstar_g;
             
             % temperature of the gas inside the bubble
-            first_term = (chi*DDTau./R^2+Pdot).*(kapover*Kstar.*T/P);
-            second_term = -DTau.*(U_vel-y*Rdot)./R;
-            third_term = (Fom/(R^2)).*(Rva_diff./Rmix).*DC.*DTau;
-            Taudot = first_term + second_term + third_term;
+            nonlinear_term = (chi*DDTau./R^2+Pdot).*(kapover*Kstar.*T/P);
+            advection_term = -DTau.*(U_vel-y*Rdot)./R;
+            mass_diffusion = (Fom/(R^2)).*(Rva_diff./Rmix).*DC.*DTau;
+            Taudot = advection_term + nonlinear_term + mass_diffusion;
             Taudot(end) = 0;
             
             % vapor equations inside the bubble
-            term_one = DC.*(DTau./(Kstar.*T)+RDC);
-            term_two =  (U_vel-Rdot.*y)/R.*DC;
-            Cdot = Fom/R^2*(DDC - term_one) - term_two;
+            nonlinear_diffusion = DC.*(DTau./(Kstar.*T)+RDC);
+            advection_term =  (U_vel-Rdot.*y)/R.*DC;
+            Cdot = Fom/R^2*(DDC - nonlinear_diffusion) - advection_term;
             Cdot(end) = 0;
             
         elseif bubtherm
@@ -387,9 +390,9 @@ function varargout =  m_imr_fd(varargin)
             U_vel = (chi/R*(kappa-1).*DTau-y*R*Pdot/3)/(kappa*P);
             
             % temperature of the gas inside the bubble
-            first_term = (chi*DDTau./R^2+Pdot).*(kapover*Kstar.*T/P);
-            second_term = -DTau.*(U_vel-y*Rdot)./R;
-            Taudot = first_term + second_term;
+            diffusion_term = (chi*DDTau./R^2+Pdot).*(kapover*Kstar.*T/P);
+            advection_term = -DTau.*(U_vel-y*Rdot)./R;
+            Taudot = advection_term + diffusion_term;
             Taudot(end) = 0;
             
         elseif masstrans
@@ -416,9 +419,9 @@ function varargout =  m_imr_fd(varargin)
             Taudot = Pdot.*(kapover*Kstar.*T/P);
             
             % vapor concentration equation
-            term_one = RDC.*DC;
-            term_two =  (U_vel-Rdot.*y)/R.*DC;
-            Cdot = Fom/R^2*(DDC - term_one) - term_two;
+            nonlinear_diffusion = RDC.*DC;
+            advection =  (U_vel-Rdot.*y)/R.*DC;
+            Cdot = Fom/R^2*(DDC - nonlinear_diffusion) - advection;
             Cdot(end) = 0;
         else
             % polytropic gas
@@ -438,12 +441,14 @@ function varargout =  m_imr_fd(varargin)
             DTm = D_Matrix_Tm*Tm;
             DDTm = DD_Matrix_Tm*Tm;
             % material temperature equations
-            first_term = (1+xi).^2./(Lt*R).*(Rdot./yT2.*(1-yT3)/2 +...
+            advection = (1+xi).^2./(Lt*R).*(Rdot./yT2.*(1-yT3)/2 +...
                 Foh/R.*((xi+1)/(2*Lt)-1./yT)).*DTm;
-            second_term = Foh/R^2.*(xi+1).^4/Lt^2.*DDTm/4;
-            third_term =  3*Br./yT6.*(4/(3*Ca).*(1-1/R^3) + ...
-                4*(Rdot/R)^2/(Re8+DRe*fnu));
-            Tmdot = first_term+second_term+third_term;
+            diffusion = Foh/R^2.*(xi+1).^4/Lt^2.*DDTm/4;
+            % stress dissipation
+            [taudivu] = f_stress_dissipation(stress,Req,R,Rdot, ...
+                Ca,Br,Re8,alphax,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
+                ivisco2,fnu,DRe);
+            Tmdot = advection + diffusion + taudivu;
             % sets boundary condition on temperature
             Tmdot(end) = 0;
             Tmdot(1) = 0;
@@ -452,14 +457,13 @@ function varargout =  m_imr_fd(varargin)
         % pressure waveform
         [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
         
-        % stress equation
-        [J,Jdot,Z1dot,Z2dot] = ...
-            f_stress_calc(stress,X,Req,R,Ca,De,Re8,Rdot,alphax,ivisco1,...
-            ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
+        % stress equation evolution
+        [S,Sdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8, ...
+            Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
         
         % bubble wall acceleration
-        [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, J, ...
-            Jdot, Cstar, sam, no, GAMa, nstate, nog, hugoniot_s, JdotA, ...
+        [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, S, ...
+            Sdot, Cstar, sam, no, GAMa, nstate, nog, hugoniot_s, JdotA, ...
             ddintfnu, iDRe);
         
         % output assembly

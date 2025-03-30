@@ -15,7 +15,7 @@ function [p8,p8dot] = f_pinfinity(t,vararg)
     wave_type =  vararg(6);
     
     if wave_type < 0
-        % incoming waveform
+        % experimentally-derived incoming waveform
         p8 = ppval(wave_poly,t);
         p8dot = ppval(wave_dpoly,t);
     elseif wave_type == 0

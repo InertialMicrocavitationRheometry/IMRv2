@@ -1,5 +1,5 @@
-% file m_imrv2_spectral.m
-% brief contains module m_imrv2_spectral
+% file m_imr_spectral.m
+% brief contains module m_imr_spectral
 
 % brief This module features a Chebyshev spectral collocation solver of the
 % PDEs involving thermal transport and viscoelasticity to solve
@@ -151,7 +151,9 @@ function varargout =  m_imr_spectral(varargin)
     yT = 2*Lt./(1+xi) - Lt + 1;
     yT2 = yT.^2;
     yT3 = yT.^3;
-    yT6 = yT.^6;
+    iyT3 = yT.^-3;
+    iyT4 = yT.^-4;
+    iyT6 = yT.^-6;
     % yV = 2*Lv./(1-ze) - Lv + 1;
     nn = ((-1).^(0:Nt).*(0:Nt).^2)';
     nn = sparse(nn);
@@ -206,7 +208,6 @@ function varargout =  m_imr_spectral(varargin)
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
         nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'spectral');
-    stepcount = 0;
     bubble = @SVBDODE;
     [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);
     
@@ -285,238 +286,234 @@ function varargout =  m_imr_spectral(varargin)
     
     % solver function
     function dXdt = SVBDODE(t,X)
-        stepcount = stepcount + 1;
-        if progdisplay == 1, disp(t/tfin); end
-            
-            % extract standard inputs
-            R = X(1);
-            Rdot = X(2);
-            P = X(3);
-            qdot = [];
-            
-            % updating the viscous forces/Reynolds number
-            if nu_model ~= 0
-                [fnu,intfnu,dintfnu,ddintfnu] = f_viscosity(nu_model,Rdot, ...
-                    R,v_a,v_nc,v_lambda_star);
-            end
-            
-            % non-condensible gas pressure and temperature
-            if bubtherm
-                % extract auxiliary temperature
-                SI = gA*X(ia);
-                % auxiliary temperature derivatives
-                
-                % first order derivative
-                dSI = gAPd*SI;
-                % second order derivative
-                ddSI = gAPdd*SI;
-                % temperature and thermal diffusivity fields
-                T = (alpha_g - 1 + sqrt(1+2*alpha_g*SI))/alpha_g;
-                D = kapover*(alpha_g*T.^2 + beta_g*T)/P;
-                
-                % internal bubble pressure
-                Pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*P*Rdot);
-                
-                % internal bubble velocity
-                U_vel = chi/R^2*(2*D./y - kapover/P*(dSI-dSI(1)*y));
-                
-                % auxiliary temperature derivative
-                SIdot = Pdot*D + U_vel.*dSI + chi*D/R^2.*ddSI;
-                
-                SIdot(end) = Pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
-                    + kapover/P*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);
-                
-                if medtherm % warm-liquid
-                    % extract medium temperature
-                    TL = mA*X(ib);
-                    
-                    % new derivative of medium temperature
-                    first_term = (1+xi).^2/(Lt*R).*...
-                        (Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
-                        Rdot/2*(1./yT2 - yT)).*(mAPd*TL);
-                    second_term = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
-                    
-                    % include viscous heating
-                    if spectral == 1
-                        third_term = -2*Br*Rdot./(R*yT3).* ...
-                            (ZZT*(X(ivisco1)-X(ivisco2)));
-                    else
-                        third_term =  3*Br./yT6.*(4/(3*Ca).*(1-1/R^3) + ...
-                            4*(Rdot/R)^2/(Re8+DRe*fnu));
-                    end
-                    TLdot = first_term + second_term + third_term;
-                    
-                    % enforce boundary condition and solve
-                    TLdot(end) = 0;
-                    qdot = [ones(1,Nt+1) -(alpha_g*(T(1)-1)+1)*ones(1,Mt+1); Q]...
-                        \[0;
-                    SIdot(2:end);
-                    TLdot(2:end);
-                    0];
-                else % cold-liquid approximation
-                    % solve auxiliary temperature with boundary condition
-                    qdot = gAI*[0;
-                    SIdot(2:end)];
-                end
-            else
-                % polytropic approximation
-                Pdot = -3*kappa*Rdot/R*P;
-            end
-            
-            % stress equation
-            [J,Jdot,Z1dot,Z2dot] = ...
-                f_stress_calc(stress,X,Req,R,Ca,De,Re8,Rdot,alphax,ivisco1,...
-                ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
-            
-            % pressure waveform
-            [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
-            
-            % bubble wall acceleration
-            [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, J, ...
-                Jdot, Cstar, sam, no, GAMa, nstate, nog, hugoniot_s, JdotA, ...
-                ddintfnu, iDRe);
-            
-            % output assembly
-            dXdt = [Rdot;
-            Rddot;
-            Pdot;
-            qdot;
-            Z1dot;
-            Z2dot];
-            
+        
+        % showing output
+        if progdisplay
+            disp(t/tfin);
         end
-        % end of solver
         
-        % function Cw= CW(Tw,P)
-        %   % Calculates the concentration at the bubble wall
-        %   %Function of P and temp at the wall
-        %   thetha = Rv_star/Ra_star*(P./(f_pvsat(Tw*T8)/P8) -1);
-        %   Cw = 1./(1+thetha);
-        % end
+        % extract standard inputs
+        R = X(1);
+        Rdot = X(2);
+        P = X(3);
+        qdot = [];
+        
+        % updating the viscous forces/Reynolds number
+        if nu_model ~= 0
+            [fnu,intfnu,dintfnu,ddintfnu] = f_viscosity(nu_model,Rdot, ...
+                R,v_a,v_nc,v_lambda_star);
+        end
+        
+        % non-condensible gas pressure and temperature
+        if bubtherm
+            % extract auxiliary temperature
+            SI = gA*X(ia);
+            % auxiliary temperature derivatives
+            
+            % first order derivative
+            dSI = gAPd*SI;
+            % second order derivative
+            ddSI = gAPdd*SI;
+            % temperature and thermal diffusivity fields
+            T = (alpha_g - 1 + sqrt(1+2*alpha_g*SI))/alpha_g;
+            D = kapover*(alpha_g*T.^2 + beta_g*T)/P;
+            
+            % internal bubble pressure
+            Pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*P*Rdot);
+            
+            % internal bubble velocity
+            U_vel = chi/R^2*(2*D./y - kapover/P*(dSI-dSI(1)*y));
+            
+            % auxiliary temperature derivative
+            SIdot = Pdot*D + U_vel.*dSI + chi*D/R^2.*ddSI;
+            
+            SIdot(end) = Pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
+                + kapover/P*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);
+            
+            if medtherm % warm-liquid
+                % extract medium temperature
+                TL = mA*X(ib);
+                
+                % new derivative of medium temperature
+                first_term = (1+xi).^2/(Lt*R).*...
+                    (Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
+                    Rdot/2*(1./yT2 - yT)).*(mAPd*TL);
+                second_term = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
+                [taudivu] = f_stress_dissipation(stress,Req,R,Rdot, ...
+                    Ca,Br,Re8,alphax,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
+                    ivisco2,fnu,DRe);
+                TLdot = first_term + second_term + taudivu;
+                
+                % enforce boundary condition and solve
+                TLdot(end) = 0;
+                qdot = [ones(1,Nt+1) -(alpha_g*(T(1)-1)+1)*ones(1,Mt+1); Q]...
+                    \[0;
+                SIdot(2:end);
+                TLdot(2:end);
+                0];
+            else % cold-liquid approximation
+                % solve auxiliary temperature with boundary condition
+                qdot = gAI*[0;
+                SIdot(2:end)];
+            end
+        else
+            % polytropic approximation
+            Pdot = -3*kappa*Rdot/R*P;
+        end
+        
+        % pressure waveform
+        [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
+        
+        % stress equation evolution
+        [S,Sdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8, ...
+            Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
+        
+        % bubble wall acceleration
+        [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, S, ...
+            Sdot, Cstar, sam, no, GAMa, nstate, nog, hugoniot_s, JdotA, ...
+            ddintfnu, iDRe);
+        
+        % output assembly
+        dXdt = [Rdot;
+        Rddot;
+        Pdot;
+        qdot;
+        Z1dot;
+        Z2dot];
         
     end
+    % end of solver
     
-    % precomputation functions
-    function [A,B,D,E,C,F] = dcdmtx(N)
-        %FCD	Discrete Chebyshev derivative matrices
-        
-        jj = 0:N;
-        jj2 = jj.^2;
-        theta = pi*jj'/N;
-        
-        % matrix for a -> p
-        A = cos(theta*jj);
-        
-        % matrix for p -> a
-        B = 2*cos(theta*jj)'/N;
-        B(:,[1 N+1]) = 0.5*B(:,[1 N+1]);
-        B([1 N+1],:) = 0.5*B([1 N+1],:);
-        
-        theta = theta(2:N);
-        
-        % matrix for a -> dp/dx
-        D = zeros(N+1);
-        D(1,:) = jj2;
-        D(2:N,:) = csc(theta)*jj.*sin(theta*jj);
-        D(N+1,:) = jj2.*((-1).^(jj+1));
-        
-        % matrix for a -> d2p/dx2
-        E = zeros(N+1);
-        E(1,:) = jj2.*(jj2-1)/3;
-        E(2:N,:) = (cos(theta)./sin(theta).^3)*jj.*sin(theta*jj) ...
-            - (csc(theta).^2)*((0:N).^2).*cos(theta*jj);
-        E(N+1,:) = jj2.*(jj2-1).*(-1).^jj/3;
-        
-        % matrix for p -> dp/dx
-        C = D*B;
-        
-        % matrix for p -> d2p/dx2
-        F = E*B;
-        
-    end
+    % function Cw= CW(Tw,P)
+    %   % Calculates the concentration at the bubble wall
+    %   %Function of P and temp at the wall
+    %   thetha = Rv_star/Ra_star*(P./(f_pvsat(Tw*T8)/P8) -1);
+    %   Cw = 1./(1+thetha);
+    % end
     
-    function [A,B,D,E,C,F] = dcdmtxe(N)
-        %FCD	Even discrete Chebyshev derivative matrices
-        
-        jj = 2*(0:N);
-        jj2 = jj.^2;
-        theta = pi*jj'/(4*N);
-        
-        % matrix for a -> p
-        A = cos(theta*jj);
-        
-        % matrix for p -> a
-        B = 2*cos(theta*jj)'/N;
-        B(:,[1 N+1]) = 0.5*B(:,[1 N+1]);
-        B([1 N+1],:) = 0.5*B([1 N+1],:);
-        
-        theta = theta(2:N+1);
-        
-        % matrix for a -> dp/dx
-        D = zeros(N+1);
-        D(1,:) = jj2;
-        D(2:N+1,:) = csc(theta)*jj.*sin(theta*jj);
-        
-        % matrix for a -> d2p/dx2
-        E = zeros(N+1);
-        E(1,:) = jj2.*(jj2-1)/3;
-        E(2:N+1,:) = (cos(theta)./sin(theta).^3)*jj.*sin(theta*jj) ...
-            - (csc(theta).^2)*(jj2).*cos(theta*jj);
-        
-        % matrix for p -> dp/dx
-        C = D*B;
-        
-        % matrix for p -> d2p/dx2
-        F = E*B;
-        
-    end
+end
+
+% precomputation functions
+function [A,B,D,E,C,F] = dcdmtx(N)
+    %FCD	Discrete Chebyshev derivative matrices
     
+    jj = 0:N;
+    jj2 = jj.^2;
+    theta = pi*jj'/N;
     
-    function cdd = preStressInt(L,N)
-        
-        % integral precomputations
-        Lstr = ['L' num2str(L,18)];
-        Lstr = strrep(Lstr,'.','p');
-        if exist('StressIntStore.mat','file') ~= 0
-            load('StressIntStore.mat','store');
-            if isfield(store,Lstr) == 1
-                if size(store.(Lstr),2) >= N, Nstart = 0;
-                else
-                    Nstart = size(store.(Lstr),2) + 1;
-                    disp('Past integral precomputation not found in full, catching up ...');
-                end
+    % matrix for a -> p
+    A = cos(theta*jj);
+    
+    % matrix for p -> a
+    B = 2*cos(theta*jj)'/N;
+    B(:,[1 N+1]) = 0.5*B(:,[1 N+1]);
+    B([1 N+1],:) = 0.5*B([1 N+1],:);
+    
+    theta = theta(2:N);
+    
+    % matrix for a -> dp/dx
+    D = zeros(N+1);
+    D(1,:) = jj2;
+    D(2:N,:) = csc(theta)*jj.*sin(theta*jj);
+    D(N+1,:) = jj2.*((-1).^(jj+1));
+    
+    % matrix for a -> d2p/dx2
+    E = zeros(N+1);
+    E(1,:) = jj2.*(jj2-1)/3;
+    E(2:N,:) = (cos(theta)./sin(theta).^3)*jj.*sin(theta*jj) ...
+        - (csc(theta).^2)*((0:N).^2).*cos(theta*jj);
+    E(N+1,:) = jj2.*(jj2-1).*(-1).^jj/3;
+    
+    % matrix for p -> dp/dx
+    C = D*B;
+    
+    % matrix for p -> d2p/dx2
+    F = E*B;
+    
+end
+
+function [A,B,D,E,C,F] = dcdmtxe(N)
+    %FCD	Even discrete Chebyshev derivative matrices
+    
+    jj = 2*(0:N);
+    jj2 = jj.^2;
+    theta = pi*jj'/(4*N);
+    
+    % matrix for a -> p
+    A = cos(theta*jj);
+    
+    % matrix for p -> a
+    B = 2*cos(theta*jj)'/N;
+    B(:,[1 N+1]) = 0.5*B(:,[1 N+1]);
+    B([1 N+1],:) = 0.5*B([1 N+1],:);
+    
+    theta = theta(2:N+1);
+    
+    % matrix for a -> dp/dx
+    D = zeros(N+1);
+    D(1,:) = jj2;
+    D(2:N+1,:) = csc(theta)*jj.*sin(theta*jj);
+    
+    % matrix for a -> d2p/dx2
+    E = zeros(N+1);
+    E(1,:) = jj2.*(jj2-1)/3;
+    E(2:N+1,:) = (cos(theta)./sin(theta).^3)*jj.*sin(theta*jj) ...
+        - (csc(theta).^2)*(jj2).*cos(theta*jj);
+    
+    % matrix for p -> dp/dx
+    C = D*B;
+    
+    % matrix for p -> d2p/dx2
+    F = E*B;
+    
+end
+
+
+function cdd = preStressInt(L,N)
+    
+    % integral precomputations
+    Lstr = ['L' num2str(L,18)];
+    Lstr = strrep(Lstr,'.','p');
+    if exist('StressIntStore.mat','file') ~= 0
+        load('StressIntStore.mat','store');
+        if isfield(store,Lstr) == 1
+            if size(store.(Lstr),2) >= N, Nstart = 0;
             else
-                Nstart = 1;
-                disp('Past integral precomputation not found, starting anew ...');
+                Nstart = size(store.(Lstr),2) + 1;
+                disp('Past integral precomputation not found in full, catching up ...');
             end
         else
             Nstart = 1;
-            store = struct;
             disp('Past integral precomputation not found, starting anew ...');
         end
-        if Nstart ~= 0 % begin extended precomputation
-            
-            store.(Lstr)(Nstart:N) = StressInt(L,N,Nstart);
-            save('StressIntStore.mat','store');
-            disp('Precomputation completed.');
-            
-        end
-        cdd = store.(Lstr)(1:N)';
+    else
+        Nstart = 1;
+        store = struct;
+        disp('Past integral precomputation not found, starting anew ...');
+    end
+    if Nstart ~= 0 % begin extended precomputation
         
+        store.(Lstr)(Nstart:N) = StressInt(L,N,Nstart);
+        save('StressIntStore.mat','store');
+        disp('Precomputation completed.');
+        
+    end
+    cdd = store.(Lstr)(1:N)';
+    
+end
+
+function cdd = StressInt(L,N,varargin)
+    
+    if nargin == 2
+        k = 1;
+    else
+        k = varargin{1};
+    end
+    syms x;
+    cdd = zeros(N-k+1,1);
+    
+    for n = k:N
+        cdd(n-k+1) = subs(2*L*int((cos(n*acos(x))-1)/((L*(2/(1-x)-1)+1)*(1-x)^2),-1,1));
     end
     
-    function cdd = StressInt(L,N,varargin)
-        
-        if nargin == 2
-            k = 1;
-        else
-            k = varargin{1};
-        end
-        syms x;
-        cdd = zeros(N-k+1,1);
-        
-        for n = k:N
-            cdd(n-k+1) = subs(2*L*int((cos(n*acos(x))-1)/((L*(2/(1-x)-1)+1)*(1-x)^2),-1,1));
-        end
-        
-    end
+end

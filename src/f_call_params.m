@@ -96,6 +96,7 @@ for n = 1:2:nargin
         case 'nstate',      nstate = varargin{n+1};
         case 'p8',          P8 = varargin{n+1};
         case 'c8',          C8 = varargin{n+1};
+        case 'hugoniot_s',  hugoniot_s = varargin{n+1};
         
         % pressure waveform options
         case 'pa',          pA = varargin{n+1};
@@ -115,7 +116,7 @@ for n = 1:2:nargin
         case 'surft',       S = varargin{n+1};
         % P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         
-        % viscosity options
+        % non-Newtonian viscosity options
         case 'du',          Dmu         = varargin{n+1};
         case 'mu0',         muo         = varargin{n+1};
         Dmu = muo - mu8;

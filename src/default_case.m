@@ -107,13 +107,13 @@ kappa           = 1.47;
 
 % medium properties
 
-% (W/m-K^2) thermal conductivity coeff
+% (W/m-K^2) thermal conductivity coeff non-condensible gas
 ATg              = 5.28e-5;
-% (W/m-K) thermal conductivity coeff
+% (W/m-K) thermal conductivity coeff non-condensible gas
 BTg              = 1.165e-2;
-% (W/m-K^2) thermal conductivity coeff
+% (W/m-K^2) thermal conductivity coeff vapor
 ATv              = 3.30e-5;
-% (W/m-K) thermal conductivity coeff
+% (W/m-K) thermal conductivity coeff vapor
 BTv              = 1.742e-2;
 % (K) far field temperature
 T8              = 298.15;

@@ -44,7 +44,7 @@ for radial = 1:4
                     'r0',R0,...
                     'req',Req,...
                     'masstrans',masstrans};
-                [~,Rf_test] = m_imr_fd(varin{:},'Nt',50,'Mt',50);
+                [~,Rf_test] = m_imr_fd(varin{:},'Nt',70,'Mt',70);
                 errors_fd(count) = norm(Rf-Rf_test,2);
                 fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
                 if (errors_fd(count) > threshold)
@@ -66,8 +66,8 @@ failed_tests(failed_tests == 0) = [];
 
 if isempty(failed_tests)
     fprintf('✅ All tests PASSED.\n');
-    % exit(0); % Success
+    exit(0); % Success
 else
     fprintf('❌ Tests FAILED at indices: %s\n', sprintf('%d ', failed_tests));
-    % exit(1); % Fail the workflow
+    exit(1); % Fail the workflow
 end
