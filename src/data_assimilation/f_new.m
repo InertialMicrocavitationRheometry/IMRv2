@@ -1,7 +1,7 @@
 function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
     
     global NT Pext_type Pext_Amp_Freq disptime Tgrad Tmgrad ...
-        comp t0 neoHook nhzen sls linkv k chi fom foh We Br A_star ...
+        comp t0 neoHook nhzen sls linkv k chi Fom Foh We Br A_star ...
         B_star Rv_star Ra_star L L_heat_star Km_star P_inf T_inf C_star ...
         De deltaY yk deltaYm xk yk2 Pv REq D_Matrix_T_C DD_Matrix_T_C ...
         D_Matrix_Tm DD_Matrix_Tm Ca Re
@@ -13,7 +13,7 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
     neoHook=vars{10};
     nhzen=vars{11};sls=vars{12};linkv=vars{13};k=vars{14};
     chi=vars{15};
-    fom=vars{16};foh=vars{17};We=vars{18};Br=vars{19};
+    Fom=vars{16};Foh=vars{17};We=vars{18};Br=vars{19};
     A_star=vars{20};
     B_star=vars{21};Rv_star=vars{22};Ra_star=vars{23};
     L=vars{24};
@@ -37,7 +37,7 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
     Uc = sqrt(P_inf/rho);
     
     Br = xi(2*NT+NTM+5);
-    foh = xi(2*NT+NTM+6);
+    Foh = xi(2*NT+NTM+6);
     
     % Ca = P_inf./(xi(2*NT+NTM+7));
     % Re = (P_inf*R0)./((xi(2*NT+NTM+8)).*Uc);
@@ -62,7 +62,7 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
     [t ,X] = ode23tb(@bubble, [ti_star tf_star], xi(1:2*NT+NTM+4)',options);
     
     xf = [X(end,:)';
-    Br;foh;xi(2*NT+NTM+7:end)];
+    Br;Foh;xi(2*NT+NTM+7:end)];
     xf(3) = log(xf(3));
     
     
@@ -140,7 +140,7 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         B = 1.17e-2; %(W/m-K)Thermal Conductivity coeff
         K_infy = A*T_inf+B;
         Dm = Km_star*(K_infy) ./ (rho*Cp);
-        foh = Dm/(Uc*R0);
+        Foh = Dm/(Uc*R0);
         
         % This is commented out in this version for simplification
         
@@ -197,9 +197,9 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         %***************************************
         % Internal pressure equation
         %pdot = 3/R*(Tgrad*chi*(k-1)*DTau(end)/R - k*P*U +...
-            %    + Cgrad*k*P*fom*Rv_star*DC(end)/( T(end)*R* Rmix(end)* (1-C(end)) ) );
+            %    + Cgrad*k*P*Fom*Rv_star*DC(end)/( T(end)*R* Rmix(end)* (1-C(end)) ) );
         pdot = 3/R*(Tgrad*chi*(k-1)*DTau(end)/R - k*P*U +...
-            + Cgrad*k*P*fom*Rv_star*DC(end)/( R* Rmix(end)* (1-C(end)) ))  ;
+            + Cgrad*k*P*Fom*Rv_star*DC(end)/( R* Rmix(end)* (1-C(end)) ))  ;
         % *****************************************
         
         %***************************************
@@ -214,10 +214,10 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         
         % Temperature of the gas inside the bubble
         % U_vel = (chi/R*(k-1).*DTau-yk*R*pdot/3)/(k*P);
-        U_vel = (chi/R*(k-1).*DTau-yk*R*pdot/3)/(k*P) + fom/R*(Rv_star-Ra_star)./Rmix.*DC;
+        U_vel = (chi/R*(k-1).*DTau-yk*R*pdot/3)/(k*P) + Fom/R*(Rv_star-Ra_star)./Rmix.*DC;
         first_term = ((DDTau ).*chi./R^2+pdot).*(K_star.*T/P*(k-1)/k);
         second_term = -DTau.*(U_vel-yk*U)./R;
-        third_term = fom./(R.^2) *(Rv_star-Ra_star)./Rmix .* DC .*DTau;
+        third_term = Fom./(R.^2) *(Rv_star-Ra_star)./Rmix .* DC .*DTau;
         
         Tau_prime = first_term + second_term + third_term;
         % if Tmgrad == 0
@@ -232,18 +232,18 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         
         %***************************************
         % Vapor concentration equation
-        %U_mix = U_vel + fom/R*((Rv_star - Ra_star)./Rmix).*DC;
+        %U_mix = U_vel + Fom/R*((Rv_star - Ra_star)./Rmix).*DC;
         %one = DDC;
         %two = DC.*(DTau./(K_star.*T)+((Rv_star - Ra_star)./Rmix).*DC );
         %three =  (U_mix-U.*yk)/R.*DC;
         %
-        % C_prime = fom/R^2*(one - two) - three;
+        % C_prime = Fom/R^2*(one - two) - three;
         % C_prime(end) = 0;
         % C_prime = C_prime*Cgrad;
         
         % Vapor concentration equation
         U_mix = U_vel;
-        % + fom/R*((Rv_star - Ra_star)./Rmix).*DC;
+        % + Fom/R*((Rv_star - Ra_star)./Rmix).*DC;
         one = DDC;
         % % JY!!!  %
         %two = DC.*( -((Rv_star - Ra_star)./Rmix).*DC - DTau./(K_star.*T) );
@@ -255,16 +255,16 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         
         three = (U_mix-U.*yk)/R.*DC;
         
-        % % JY!!! % C_prime = fom/R^2*(one - two) - three;
-        C_prime = fom/R^2*(one+two) - three;
+        % % JY!!! % C_prime = Fom/R^2*(one - two) - three;
+        C_prime = Fom/R^2*(one+two) - three;
         C_prime(end) = 0;
         C_prime = C_prime*Cgrad;
         %*****************************************
         
         %***************************************
         % Material temperature equations
-        %first_term = (1+xk).^2./(L*R).*(U./yk2.^2.*(1-yk2.^3)/2+foh/R.*((xk+1)/(2*L)-1./yk2)).* DTm;
-        %second_term = foh/R^2.*(xk+1).^4/L^2.*DDTm/4;
+        %first_term = (1+xk).^2./(L*R).*(U./yk2.^2.*(1-yk2.^3)/2+Foh/R.*((xk+1)/(2*L)-1./yk2)).* DTm;
+        %second_term = Foh/R^2.*(xk+1).^4/L^2.*DDTm/4;
         %third_term =  3*Br./yk2.^6.*(4/(3*Ca).*(1-1/R^3)+4.*U/(Re.*R)).*U./R;
         %Tm_prime = first_term+second_term+third_term;
         %Tm_prime(end) = 0; % Sets boundary condition on temp
@@ -273,8 +273,8 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         %Tm_prime = Tm_prime*Tmgrad; %Tmgrad makes this quantity zero
         
         % Material temperature equations
-        first_term = (1+xk).^2./(L*R).*(U./yk2.^2.*(1-yk2.^3)/2+foh/R.*((xk+1)/(2*L)-1./yk2)).* DTm;
-        second_term = foh/(R^2).*(xk+1).^4/L^2.*(DDTm)/4; %JY???
+        first_term = (1+xk).^2./(L*R).*(U./yk2.^2.*(1-yk2.^3)/2+Foh/R.*((xk+1)/(2*L)-1./yk2)).* DTm;
+        second_term = Foh/(R^2).*(xk+1).^4/L^2.*(DDTm)/4; %JY???
         % % JY!!! third_term =  3*Br./yk2.^6.*(4/(3*Ca).*(1-1/R^3)+4.*U/(Re.*R)).*U./R;
         
         third_term = 3*Br./yk2.^6.*(4.*U/(Re.*R)).*U./R;
@@ -545,7 +545,7 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         
         Tauw =chi*(2*Km_star/L*(coeff*[TW(prelim); Tm_trans] )/deltaYm) +...
             chi*(-coeff*[prelim ;T_trans] )/deltaY + Cgrad*...
-            fom*L_heat_star*P*( (CW(TW(prelim),P)*(Rv_star-Ra_star)+Ra_star))^-1 *...
+            Fom*L_heat_star*P*( (CW(TW(prelim),P)*(Rv_star-Ra_star)+Ra_star))^-1 *...
             (TW(prelim) * (1-CW(TW(prelim),P))  ).^(-1).*...
         (-coeff*[CW(TW(prelim),P);
         C_trans] )/deltaY;
