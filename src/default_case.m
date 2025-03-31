@@ -142,7 +142,7 @@ mu8             = 8.3283e-4;
 % zero strain rate viscosity
 muo             = 8.3283e-4;
 % viscosity difference
-Dmu             = muo-mu8;
+Dmu             = 0;
 % power factor 1
 v_a             = 0;
 % power factor 2
