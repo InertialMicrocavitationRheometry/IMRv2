@@ -9,6 +9,7 @@ function [taudivu] = f_stress_dissipation(stress,spectral,Req,R,Rdot,Ca,Br, ...
     Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1,ivisco2,fnu,DRe)
 
 Rst = Req/R;
+% act of pure genius
 x2 = (yT3-1+Rst.^3).^(2/3);
 ix2 = x2.^-1;
 x4 = x2.^2;

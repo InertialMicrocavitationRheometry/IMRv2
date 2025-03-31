@@ -92,18 +92,20 @@ for radial = 1:4
     end
 end
 
-% Find the last non-empty cell index
+% find the last non-empty cell index
 lastNonEmptyIdx = find(failed_tests ~= 0, 1, 'last');
-% Truncate the array, keeping empty cells within range
+% truncate the array, keeping empty cells within range
 failed_tests = failed_tests(1:lastNonEmptyIdx);
 
-% Remove zeros from failed_tests
+% remove zeros from failed_tests
 failed_tests(failed_tests == 0) = [];
 
 if isempty(failed_tests)
+    % success
     fprintf('✅ All tests PASSED.\n');
     exit(0); % Success
 else
+    % fail the workflow
     fprintf('❌ Tests FAILED at indices: %s\n', sprintf('%d ', failed_tests));
-    exit(1); % Fail the workflow
+    error('Test failed');
 end
