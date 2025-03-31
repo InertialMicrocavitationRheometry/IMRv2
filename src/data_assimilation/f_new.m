@@ -1,65 +1,77 @@
 function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
-
-global NT Pext_type Pext_Amp_Freq disptime Tgrad Tmgrad ...
-    comp t0 neoHook nhzen sls linkv k chi fom foh We Br A_star ...
-    B_star Rv_star Ra_star L L_heat_star Km_star P_inf T_inf C_star ...
-    De deltaY yk deltaYm xk yk2 Pv REq D_Matrix_T_C DD_Matrix_T_C ...
-    D_Matrix_Tm DD_Matrix_Tm Ca Re
-
-NT= vars{1};Pext_type=vars{2};Pext_Amp_Freq=vars{3};disptime=vars{4};
-Tgrad=vars{5};Tmgrad=vars{6};Cgrad=vars{7};comp=vars{8};t0=vars{9};
-neoHook=vars{10};nhzen=vars{11};sls=vars{12};linkv=vars{13};k=vars{14};
-chi=vars{15};fom=vars{16};foh=vars{17};We=vars{18};Br=vars{19};
-A_star=vars{20};B_star=vars{21};Rv_star=vars{22};Ra_star=vars{23};
-L=vars{24};L_heat_star=vars{25};Km_star=vars{26};P_inf=vars{27};
-T_inf=vars{28};C_star=vars{29};De=vars{30};deltaY=vars{31};yk=vars{32};
-deltaYm=vars{33};xk=vars{34};yk2=vars{35};Pv=vars{36};REq=vars{37};
-D_Matrix_T_C=vars{38};DD_Matrix_T_C=vars{39};D_Matrix_Tm=vars{40};
-DD_Matrix_Tm=vars{41}; tspan_star = vars{42}; NTM = vars{43}; rho = vars{44};
-R0 = vars{45}; fung = vars{46}; fung2 = vars{47}; fungexp = vars{48};
-fungnlvis = vars{49};
-
-
-%************************************************
-% March equations in time
-
-Uc = sqrt(P_inf/rho);
-
-Br = xi(2*NT+NTM+5);
-foh = xi(2*NT+NTM+6);
-
-% Ca = P_inf./(xi(2*NT+NTM+7));
-% Re = (P_inf*R0)./((xi(2*NT+NTM+8)).*Uc);
-
-Ca = 1./(xi(2*NT+NTM+7));
-Re = 1./((xi(2*NT+NTM+8)));
-
-
-De = xi(2*NT+NTM+9);
-alpha = (xi(2*NT+NTM+10));
-lambda_nu = xi(2*NT+NTM+11);
-
-
-% restrictions on dynamics to keep quantities physical:
-
-xi(3) = exp(xi(3));
-xi(5+NT:4+(2*NT)) = max(xi(5+NT:4+(2*NT)),0);
-
-options = odeset('RelTol',1e-5,'AbsTol',1e-8);
-% [~ ,X] = ode23tb(@bubble, [ti_star tf_star], xi(1:end-2)',options);
-
-[t ,X] = ode23tb(@bubble, [ti_star tf_star], xi(1:2*NT+NTM+4)',options);
-
-xf = [X(end,:)';Br;foh;xi(2*NT+NTM+7:end)];
-xf(3) = log(xf(3));
-
-
-%%
-%*************************************************************************
-% Nested function; ODE Solver calls to march governing equations in time
-% This function has acess to all parameters above
-
- function dxdt = bubble(t,x)
+    
+    global NT Pext_type Pext_Amp_Freq disptime Tgrad Tmgrad ...
+        comp t0 neoHook nhzen sls linkv k chi fom foh We Br A_star ...
+        B_star Rv_star Ra_star L L_heat_star Km_star P_inf T_inf C_star ...
+        De deltaY yk deltaYm xk yk2 Pv REq D_Matrix_T_C DD_Matrix_T_C ...
+        D_Matrix_Tm DD_Matrix_Tm Ca Re
+    
+    NT= vars{1};
+    Pext_type=vars{2};Pext_Amp_Freq=vars{3};disptime=vars{4};
+    Tgrad=vars{5};
+    Tmgrad=vars{6};Cgrad=vars{7};comp=vars{8};t0=vars{9};
+    neoHook=vars{10};
+    nhzen=vars{11};sls=vars{12};linkv=vars{13};k=vars{14};
+    chi=vars{15};
+    fom=vars{16};foh=vars{17};We=vars{18};Br=vars{19};
+    A_star=vars{20};
+    B_star=vars{21};Rv_star=vars{22};Ra_star=vars{23};
+    L=vars{24};
+    L_heat_star=vars{25};Km_star=vars{26};P_inf=vars{27};
+    T_inf=vars{28};
+    C_star=vars{29};De=vars{30};deltaY=vars{31};yk=vars{32};
+    deltaYm=vars{33};
+    xk=vars{34};yk2=vars{35};Pv=vars{36};REq=vars{37};
+    D_Matrix_T_C=vars{38};
+    DD_Matrix_T_C=vars{39};D_Matrix_Tm=vars{40};
+    DD_Matrix_Tm=vars{41};
+    tspan_star = vars{42}; NTM = vars{43}; rho = vars{44};
+    R0 = vars{45};
+    fung = vars{46}; fung2 = vars{47}; fungexp = vars{48};
+    fungnlvis = vars{49};
+    
+    
+    %************************************************
+    % March equations in time
+    
+    Uc = sqrt(P_inf/rho);
+    
+    Br = xi(2*NT+NTM+5);
+    foh = xi(2*NT+NTM+6);
+    
+    % Ca = P_inf./(xi(2*NT+NTM+7));
+    % Re = (P_inf*R0)./((xi(2*NT+NTM+8)).*Uc);
+    
+    Ca = 1./(xi(2*NT+NTM+7));
+    Re = 1./((xi(2*NT+NTM+8)));
+    
+    
+    De = xi(2*NT+NTM+9);
+    alpha = (xi(2*NT+NTM+10));
+    lambda_nu = xi(2*NT+NTM+11);
+    
+    
+    % restrictions on dynamics to keep quantities physical:
+    
+    xi(3) = exp(xi(3));
+    xi(5+NT:4+(2*NT)) = max(xi(5+NT:4+(2*NT)),0);
+    
+    options = odeset('RelTol',1e-5,'AbsTol',1e-8);
+    % [~ ,X] = ode23tb(@bubble, [ti_star tf_star], xi(1:end-2)',options);
+    
+    [t ,X] = ode23tb(@bubble, [ti_star tf_star], xi(1:2*NT+NTM+4)',options);
+    
+    xf = [X(end,:)';
+    Br;foh;xi(2*NT+NTM+7:end)];
+    xf(3) = log(xf(3));
+    
+    
+    %%
+    %*************************************************************************
+    % Nested function; ODE Solver calls to march governing equations in time
+    % This function has acess to all parameters above
+    
+    function dxdt = bubble(t,x)
         % Break x vector into indv. values
         R = x(1); % Bubble wall Radius
         U = x(2); % Bubble wall velocity
@@ -80,14 +92,15 @@ xf(3) = log(xf(3));
         if (Tmgrad == 1)
             if t/tspan_star> 0.001
                 %Might need to tune 0.001 for convergence:
-
-
-                guess= real(-.001 + tau_del(end)); %+tau_del(end);
-
+                
+                
+                guess= real(-.001 + tau_del(end));
+                %+tau_del(end);
+                
                 if isnan(guess) || isinf(guess)
                     guess
                 end
-
+                
                 prelim  = fzero(@(x) Boundary(x,Tm,Tau,C,P),guess);
             else
                 guess = -.0001;
@@ -142,7 +155,7 @@ xf(3) = log(xf(3));
         %if (Pext_type == 'sn')
         %    Pext =  -Pext_Amp_Freq(1)/P_inf*sin( Pext_Amp_Freq(2)*t*t0) ;
         %    P_ext_prime = -Pext_Amp_Freq(2)*t0*Pext_Amp_Freq(1)/P_inf...
-        %        *cos( Pext_Amp_Freq(2)*t*t0) ;
+            %        *cos( Pext_Amp_Freq(2)*t*t0) ;
         %elseif (Pext_type == 'RC')
         %    Pext = Pext_Amp_Freq(1)/P_inf ;
         %    P_ext_prime = 0;
@@ -151,7 +164,7 @@ xf(3) = log(xf(3));
         %    P_ext_prime = 0;
         %elseif (Pext_type == 'ip')
         %    Pext = -Pext_Amp_Freq(1)/P_inf*...
-        %        (1-heaviside(t-Pext_Amp_Freq(2)/t0)) ;
+            %        (1-heaviside(t-Pext_Amp_Freq(2)/t0)) ;
         %    P_ext_prime = 0;
         %end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -177,14 +190,14 @@ xf(3) = log(xf(3));
         DDC = DD_Matrix_T_C*C;
         
         % Temp. field in the material
-
+        
         DTm = D_Matrix_Tm*Tm;
         DDTm = DD_Matrix_Tm*Tm;
         
         %***************************************
         % Internal pressure equation
         %pdot = 3/R*(Tgrad*chi*(k-1)*DTau(end)/R - k*P*U +...
-        %    + Cgrad*k*P*fom*Rv_star*DC(end)/( T(end)*R* Rmix(end)* (1-C(end)) ) );
+            %    + Cgrad*k*P*fom*Rv_star*DC(end)/( T(end)*R* Rmix(end)* (1-C(end)) ) );
         pdot = 3/R*(Tgrad*chi*(k-1)*DTau(end)/R - k*P*U +...
             + Cgrad*k*P*fom*Rv_star*DC(end)/( R* Rmix(end)* (1-C(end)) ))  ;
         % *****************************************
@@ -208,10 +221,10 @@ xf(3) = log(xf(3));
         
         Tau_prime = first_term + second_term + third_term;
         % if Tmgrad == 0
-            Tau_prime(end) = 0;
+        Tau_prime(end) = 0;
         % else
-            %    Tau_prime(end) = K; %JY???
-            % Tau_prime(end) = 0; % What is K?
+        %    Tau_prime(end) = K; %JY???
+        % Tau_prime(end) = 0; % What is K?
         % end
         Tau_prime = Tau_prime*Tgrad;
         
@@ -229,7 +242,8 @@ xf(3) = log(xf(3));
         % C_prime = C_prime*Cgrad;
         
         % Vapor concentration equation
-        U_mix = U_vel; % + fom/R*((Rv_star - Ra_star)./Rmix).*DC;
+        U_mix = U_vel;
+        % + fom/R*((Rv_star - Ra_star)./Rmix).*DC;
         one = DDC;
         % % JY!!!  %
         %two = DC.*( -((Rv_star - Ra_star)./Rmix).*DC - DTau./(K_star.*T) );
@@ -254,7 +268,8 @@ xf(3) = log(xf(3));
         %third_term =  3*Br./yk2.^6.*(4/(3*Ca).*(1-1/R^3)+4.*U/(Re.*R)).*U./R;
         %Tm_prime = first_term+second_term+third_term;
         %Tm_prime(end) = 0; % Sets boundary condition on temp
-        %Tm_prime(1) = 0; % Previously calculated;
+        %Tm_prime(1) = 0;
+        % Previously calculated;
         %Tm_prime = Tm_prime*Tmgrad; %Tmgrad makes this quantity zero
         
         % Material temperature equations
@@ -266,7 +281,8 @@ xf(3) = log(xf(3));
         
         Tm_prime = first_term+second_term+third_term;
         Tm_prime(end) = 0; % Sets boundary condition on temp
-        Tm_prime(1) = 0; % Previously calculated;
+        Tm_prime(1) = 0;
+        % Previously calculated;
         Tm_prime = Tm_prime*Tmgrad; %Tmgrad makes this quantity zero
         %*****************************************
         
@@ -357,7 +373,8 @@ xf(3) = log(xf(3));
                 disp('Not finished in non-IC case for Fung model!')
             end
             % ====== JY!!! First order Fung G + first order mu model approx ======
-            % % alpha = 0; lambda_nu = 0.001;
+            % % alpha = 0;
+            lambda_nu = 0.001;
             % Lv = 1;
             %
             % zeta = linspace(-1,0.99,200);
@@ -365,17 +382,18 @@ xf(3) = log(xf(3));
             % tempr = R*( (2./(1-zeta)-1)*Lv + 1 );
             % tempr0 = (tempr.^3+R0^3-R^3).^(1/3);
             % gammadot = -0.5*( 2*(tempr0.^2)./(tempr.^3) + 1./tempr0 ) *R^2./(tempr.^2) * U;
-            % % figure; plot(zeta,gammadot); pause;
+            % % figure;
+            plot(zeta,gammadot); pause;
             % % tempmu = 1/Re .* heaviside(-abs(gammadot)+1/lambda_nu) .* (1-lambda_nu^2*(gammadot.^2));
             % tempmu = 1/Re .* exp(-lambda_nu^2*(gammadot.^2));
             % tempS = -12*2*tempmu*U/R .* (1-zeta).^2 ./ (2+(1-zeta)*(1/Lv-1)).^4 /(Lv^3);
             %
             % S = -(1-3*alpha)*(5 - 4/Rst - 1/Rst^4)/(2*Ca) - ...
-            %     2*alpha*(-27/40 - 1/8/Rst^8 - 1/5/Rst^5 -1/Rst^2 + 2*Rst)/(Ca) + ...
-            %     trapz(zeta,tempS);
+                %     2*alpha*(-27/40 - 1/8/Rst^8 - 1/5/Rst^5 -1/Rst^2 + 2*Rst)/(Ca) + ...
+                %     trapz(zeta,tempS);
             %
             % Sdot = -2*U/R*(1-3*alpha)*(1/Rst + 1/Rst^4)/Ca - ...
-            %      2*alpha*U/R*(1/Rst^8 + 1/Rst^5 + 2/Rst^2 + 2*Rst)/(Ca) + 4/Re*U^2/R^2;
+                %      2*alpha*U/R*(1/Rst^8 + 1/Rst^5 + 2/Rst^2 + 2*Rst)/(Ca) + 4/Re*U^2/R^2;
         elseif fung2 == 1
             if  strcmp(Pext_type,'IC')
                 Rst = R/REq;
@@ -463,14 +481,15 @@ xf(3) = log(xf(3));
             udot = ((1+U/C_star)...
                 *(P  + abs(1-Cgrad)*Pv -1/(We*R) + S - 1 - Pext)  ...
                 + R/C_star*(pdot+ U/(We*R^2) + Sdot -P_ext_prime ) ...
-                - 1.5*(1-U/(3*C_star))*U^2)/((1-U/C_star)*R);%+JdotA/(C_star));
-            
+            - 1.5*(1-U/(3*C_star))*U^2)/((1-U/C_star)*R);
+            %+JdotA/(C_star));
+                
             %elseif fungexp==1
             %    part1 = Sdot;
             %    part2 = ((1+U/C_star)...
-            %    *(P  + abs(1-Cgrad)*Pv -1/(We*R) + S - 1 - Pext)  ...
-            %    + R/C_star*(pdot+ U/(We*R^2) + 0 -P_ext_prime ) ...
-            %    - 1.5*(1-U/(3*C_star))*U^2)/((1-U/C_star)*R);
+                %    *(P  + abs(1-Cgrad)*Pv -1/(We*R) + S - 1 - Pext)  ...
+                %    + R/C_star*(pdot+ U/(We*R^2) + 0 -P_ext_prime ) ...
+                %    - 1.5*(1-U/(3*C_star))*U^2)/((1-U/C_star)*R);
             %    Sdot = (1+4/Re/C_star)^(-1) * (part1-4/Re/R*part2);
             %    udot = (1+4/Re/C_star)^(-1) * (part2+R/C_star*part1);
             %end
@@ -482,20 +501,21 @@ xf(3) = log(xf(3));
             Sdot = Sdot - SdotA*udot/R; % JY!!! Pay attention to here!
         end
         
-        dxdt = [rdot; udot; pdot; Sdot; Tau_prime; C_prime; Tm_prime];
+        dxdt = [rdot;
+        udot; pdot; Sdot; Tau_prime; C_prime; Tm_prime];
         if isreal(rdot)==0
             pause;
         end
     end
-%*************************************************************************
-
-% Other nested functions used to carry out repetetive calculations
-% throughout the code
+    %*************************************************************************
+    
+    % Other nested functions used to carry out repetetive calculations
+    % throughout the code
     function Tw = TW(Tauw)
         %calculates the temperature at the bubble wall as a fuction of \tau
         Tw = (A_star -1 + sqrt(1+2*Tauw*A_star)) / A_star;
     end
-
+    
     function Cw = CW(Tw,P)
         % Calculates the concentration at the bubble wall
         
@@ -503,7 +523,7 @@ xf(3) = log(xf(3));
         theta = Rv_star/Ra_star*(P./(Pvsat(Tw*T_inf)/P_inf) -1);
         Cw = 1./(1+theta);
     end
-
+    
     function Tauw = Boundary(prelim,Tm,Tau,C,P)
         % Solves temperature boundary conditions at the bubble wall
         % Create finite diff. coeffs.
@@ -527,12 +547,13 @@ xf(3) = log(xf(3));
             chi*(-coeff*[prelim ;T_trans] )/deltaY + Cgrad*...
             fom*L_heat_star*P*( (CW(TW(prelim),P)*(Rv_star-Ra_star)+Ra_star))^-1 *...
             (TW(prelim) * (1-CW(TW(prelim),P))  ).^(-1).*...
-            (-coeff*[CW(TW(prelim),P); C_trans] )/deltaY;
-        %************************************************************************
+        (-coeff*[CW(TW(prelim),P);
+        C_trans] )/deltaY;
+            %************************************************************************
     end
-
-% Gaussian pressure functions
-% acoustic pressure
+    
+    % Gaussian pressure functions
+    % acoustic pressure
     function p = pf(t)
         if t<(dt_star-5*tw_star) || t>(dt_star+5*tw_star)
             p=0;
@@ -540,8 +561,8 @@ xf(3) = log(xf(3));
             p = -Pext_Amp_Freq(1)*exp(-(t-dt_star).^2/tw_star^2);
         end
     end
-
-% time derivative of acoustic pressure
+    
+    % time derivative of acoustic pressure
     function pdot = pfdot(t)
         if t<(dt_star-5*tw_star) || t>(dt_star+5*tw_star)
             pdot=0;
@@ -550,5 +571,5 @@ xf(3) = log(xf(3));
         end
         
     end
-
+    
 end
