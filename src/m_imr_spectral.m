@@ -4,7 +4,7 @@
 % brief This module features a Chebyshev spectral collocation solver of the
 % PDEs involving thermal transport and viscoelasticity to solve
 % Rayleigh-Plesset equations
-function varargout =  m_imr_spectral(varargin)
+function varargout = m_imr_spectral(varargin)
     
     % problem initialization
     [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
@@ -474,8 +474,8 @@ function cdd = preStressInt(L,N)
     % integral precomputations
     Lstr = ['L' num2str(L,18)];
     Lstr = strrep(Lstr,'.','p');
-    if exist('StressIntStore.mat','file') ~= 0
-        load('StressIntStore.mat','store');
+    if exist('stress_store.mat','file') ~= 0
+        load('stress_store.mat','store');
         if isfield(store,Lstr) == 1
             if size(store.(Lstr),2) >= N, Nstart = 0;
             else
@@ -494,7 +494,7 @@ function cdd = preStressInt(L,N)
     if Nstart ~= 0 % begin extended precomputation
         
         store.(Lstr)(Nstart:N) = StressInt(L,N,Nstart);
-        save('StressIntStore.mat','store');
+        save('stress_store.mat','store');
         disp('Precomputation completed.');
         
     end
