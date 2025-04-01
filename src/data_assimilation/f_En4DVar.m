@@ -99,7 +99,7 @@ tauspread = 0.0;
 Cspread = 0.0;
 Tmspread = 0.0;
 Brspread = 0.0;
-fohspread = 0.0;
+Fohspread = 0.0;
 % set to 0 if not used in model
 Despread = 0;
 % set to 0 if not used in model
@@ -181,7 +181,7 @@ Pext_Amp_Freq =[P_guess 0];
 % This script determines initial X0 and x0
 %{
 global tspan R0 NT NTM Pext_type Pext_Amp_Freq Tgrad Cgrad model G G1 ...
-    mu t0 neoHook nhzen sls linkv k chi fom foh We Br A_star B_star ...
+    mu t0 neoHook nhzen sls linkv k chi Fom Foh We Br A_star B_star ...
     Rv_star Ra_star L L_heat_star Km_star P_inf T_inf C_star De deltaY ...
     yk deltaYm xk yk2 Pv REq D_Matrix_T_C DD_Matrix_T_C ...
     D_Matrix_Tm DD_Matrix_Tm x0_true N
@@ -198,8 +198,8 @@ lambda_nu = visco_params.lambda_nu;
 Pmt = IMRcall_parameters(R0,G,G1,mu); % Calls parameters script
 k = Pmt(1);
 chi = Pmt(2);
-fom = Pmt(3);
-foh = Pmt(4);
+Fom = Pmt(3);
+Foh = Pmt(4);
 Ca = Pmt(5);
 Re = Pmt(6);
 We = Pmt(7);
@@ -342,7 +342,7 @@ X0 = [R0_star U0_star P0_star S0 Tau0 C0 Tm0];
 
 tau_del = [];
 
-x0_true = [X0,Br,foh,G,mu,De,alpha,lambda_nu,est_params];
+x0_true = [X0,Br,Foh,G,mu,De,alpha,lambda_nu,est_params];
 N = length(x0_true);
 
 
@@ -377,7 +377,7 @@ ones(NT,1)*tauspread; ...
     ones(NT,1)*Cspread;
 ones(NTM,1)*Tmspread;
 Brspread;
-fohspread; ...
+Fohspread; ...
     Caspread;
 Respread;
 Despread;
@@ -457,7 +457,7 @@ idx        =    1;
 
 % iterate
 vars = {NT Pext_type Pext_Amp_Freq disptime Tgrad Tmgrad ...
-    Cgrad comp t0 neoHook nhzen sls linkv k chi fom foh We Br A_star ...
+    Cgrad comp t0 neoHook nhzen sls linkv k chi Fom Foh We Br A_star ...
     B_star Rv_star Ra_star L L_heat_star Km_star P_inf T_inf C_star ...
     De deltaY yk deltaYm xk yk2 Pv REq D_Matrix_T_C DD_Matrix_T_C ...
     D_Matrix_Tm DD_Matrix_Tm tspan_star NTM rho R0 fung fung2 fungexp fungnlvis};
