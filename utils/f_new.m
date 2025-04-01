@@ -14,7 +14,7 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
     Tmgrad=vars{6};
     Cgrad=vars{7};
     comp=vars{8};
-    t0=vars{9};
+    % t0 = vars{9};
     neoHook=vars{10};
     nhzen=vars{11};
     sls=vars{12};
@@ -83,11 +83,11 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
     
     [t ,X] = ode23tb(@bubble, [ti_star tf_star], xi(1:2*NT+NTM+4)',options);
     
-    xf = [X(end,:)';
-    Br;
-    Foh;
-    xi(2*NT+NTM+7:end)];
-    xf(3) = log(xf(3));
+    % xf = [X(end,:)';
+    % Br;
+    % Foh;
+    % xi(2*NT+NTM+7:end)];
+    % xf(3) = log(xf(3));
     
     % Nested function; ODE Solver calls to march governing equations in time
     % This function has access to all parameters above
@@ -117,9 +117,9 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
                 guess= real(-.001 + tau_del(end));
                 %+tau_del(end);
                 
-                if isnan(guess) || isinf(guess)
-                    guess
-                end
+                % if isnan(guess) || isinf(guess)
+                %     guess
+                % end
                 
                 prelim  = fzero(@(x) Boundary(x,Tm,Tau,C,P),guess);
             else
@@ -152,7 +152,7 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         
         % Also update Cp-> Br, Dm -> Foh
         % Already called: rho = 1060; % (Kg/m^3) Liquid Density
-        Rnondim = P_inf/(rho*T_inf);
+        % Rnondim = P_inf/(rho*T_inf);
         Cp = Rmix(end)*k/(k-1);
         Uc = sqrt(P_inf/rho);
         Br = Uc^2./(Cp*T_inf);
@@ -525,9 +525,7 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         Tau_prime;
         C_prime;
         Tm_prime];
-        if isreal(rdot)==0
-            pause;
-        end
+
     end
     %*************************************************************************
     

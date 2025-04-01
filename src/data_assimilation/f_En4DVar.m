@@ -527,7 +527,8 @@ for j = 1:j_max
         t2    = t(exp_i,time_index+l);
         
         parfor memb = 1:q
-            [t_memb{memb}, EE{memb},~] =  f_new(t1,t2,E1(:,memb),vars,tau_del{memb});
+            % f_imr_fd call
+            [t_memb{memb}, EE{memb}, ~] =  f_new(t1,t2,E1(:,memb),vars,tau_del{memb});
             t_sim                      =  t_memb{memb};
             y_sim                      =  EE{memb}(:,1);
             U_sim                      =  EE{memb}(:,2);
