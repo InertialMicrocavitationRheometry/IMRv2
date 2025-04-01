@@ -146,8 +146,8 @@ rng('shuffle');
 
 % guess for parameters
 
-%NT = 500; %400 % Ammount of nodes inside the bubble (>=500 is a good to start)
-%NTM = 500; %20 % Ammount of nodes outside the bubble (>=10 is a good to start)
+%NT = 500; %400 % amount of nodes inside the bubble (>=500 is a good to start)
+%NTM = 500; %20 % amount of nodes outside the bubble (>=10 is a good to start)
 %Pext_type = 'IC'; % Type of external forcing. Refer to RP_Cav
 
 % find Req and calculate initial partial pressure needed parameters
@@ -187,7 +187,7 @@ global tspan R0 NT NTM Pext_type Pext_Amp_Freq Tgrad Cgrad model G G1 ...
     D_Matrix_Tm DD_Matrix_Tm x0_true N
 %}
 %***************************************
-% Extract viscoelastic parameters from stuct
+% Extract viscoelastic parameters from struct
 G = visco_params.G;
 G1 = visco_params.G1;
 mu = visco_params.mu;
@@ -298,12 +298,12 @@ if strcmp(Pext_type,'ga')
     w_star = Pext_Amp_Freq(3)*t0;
 end
 
-% Need to modify intial conditions for the Out-of-Equilibrium Rayleigh
-% Collpase:
+% Need to modify initial conditions for the Out-of-Equilibrium Rayleigh
+% Collapse:
 if strcmp(Pext_type,'IC')
     Pv = Pvsat(1*T_inf)/P_inf;
     P0_star = Pext_Amp_Freq(1)/P_inf + Cgrad*Pvsat(1*T_inf)/P_inf;
-    % Need to recalculate intital concentration
+    % Need to recalculate initial concentration
     theta = Rv_star/Ra_star*(P0_star-Pv)/Pv; % mass air / mass vapor
     C0 = 1/(1+theta);
     
@@ -314,7 +314,7 @@ if strcmp(Pext_type,'IC')
     REq = Req;
     %REq = 1; %removed 6/15/16 by Jon
     C0 = C0*ones(1,NT);
-    %U0_star = -1*(1-P0_star)/(C_star); %Intitial velocity due to shockwave
+    %U0_star = -1*(1-P0_star)/(C_star); %Initial velocity due to shockwave
     U0_star = 0;
     
     if sls == 1 || linkv == 1

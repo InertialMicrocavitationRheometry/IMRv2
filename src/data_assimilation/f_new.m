@@ -90,7 +90,7 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
     xf(3) = log(xf(3));
     
     % Nested function; ODE Solver calls to march governing equations in time
-    % This function has acess to all parameters above
+    % This function has access to all parameters above
     
     function dxdt = bubble(t,x)
         % Break x vector into indv. values
@@ -531,10 +531,10 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
     end
     %*************************************************************************
     
-    % Other nested functions used to carry out repetetive calculations
+    % Other nested functions used to carry out repetitive calculations
     % throughout the code
     function Tw = TW(Tauw)
-        %calculates the temperature at the bubble wall as a fuction of \tau
+        %calculates the temperature at the bubble wall as a function of \tau
         Tw = (A_star -1 + sqrt(1+2*Tauw*A_star)) / A_star;
     end
     
