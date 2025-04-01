@@ -1,6 +1,8 @@
-% parallel En4D_Var Ensemble Kalman filter for IMR solve
+% file f_En4DVar.m
+% brief file contains the Ensemble 4D variation Kalman filter
 
-% parallel En4D_Var Ensemble Kalman filter for IMR solve
+% brief This function conducts the IMR data assimilation for En4D Kalman
+% filter code
 function [x,ensemble,p_post,params]= f_En4DVar(param_pre,t,yth,R0_all, ...
     Req_all,tspan_all,peak_time_idx)
 
@@ -11,7 +13,7 @@ exp_i           =    1;
 % data assimilation parameters
 
 % data assimilation method ('En4D','EnKS',('EnKF'))
-method          =   'En4D';
+% method          =   'En4D';
 
 % initial parameter guesses (all must be specified even if not used, in
 % order to run):
@@ -30,7 +32,7 @@ Input_prior     =    true;
 G1_guess        =    1e9;
 lambda_nu_guess =    0.1;
 % leave as 2, initializes ensemble with truth + noise
-init_scheme     =    2;
+% init_scheme     =    2;
 
 % ending criteria for iterative optimization:
 
@@ -62,25 +64,25 @@ Cgrad = 1;
 % activates the effect of compressibility (0=Rayleigh-Plesset, 1=Keller-Miksis)
 comp = 1;
 % displays timesteps in En4D run (for debugging)
-disp_timesteps = 1;
+% disp_timesteps = 1;
 
 % following should not be changed (untested):
 
 % 1 = display simulation time
 disptime = 0;
 % 1 = output variables in dimensional form
-Dim = 0;
+% Dim = 0;
 
 % covariance Inflation parameters
 % the following is only used for the IEnKS. Default values provided below
 % see Spratt et al. (2020) section 3.3 for details on theta, lambda
 
 % 1 is scalar alpha CI, 2 is RTPS (BEST)
-CI_scheme = 2;
+% CI_scheme = 2;
 % multiplicative covariance parameter (0.5 < theta < 0.95)
 CI_theta = 0.7;
 % set to 1 for additive covariance (else 0)
-CI_add = 0;
+% CI_add = 0;
 
 % additive covariance parameter (lambda in paper) (1.005 < beta < 1.05)
 beta = 1.02;
@@ -89,15 +91,15 @@ beta = 1.02;
 alpha = 0.005;
 
 % spread of parameters in the ensemble
-Rspread = 0.00;
+Rspread = 0.0;
 Uspread = 0.0;
 Pspread = 0.0;
 Sspread = 0.0;
 tauspread = 0.0;
-Cspread = 0.000;
-Tmspread = 0.0000;
-Brspread = 0.00;
-fohspread = 0.00;
+Cspread = 0.0;
+Tmspread = 0.0;
+Brspread = 0.0;
+fohspread = 0.0;
 % set to 0 if not used in model
 Despread = 0;
 % set to 0 if not used in model
@@ -109,12 +111,10 @@ visco_params = struct('G',G_guess,'G1',G1_guess,'mu',mu_guess, ...
 est_params = [];
 
 % initialize and import data
-
 clear aux1 aux2 dy2;
 n =  length(t)-1;
 
 % pre-allocating memory
-
 x          =    zeros(2*NT+NTM+11,q,n+1);
 x_est      =    zeros(2*NT+NTM+11,n+1);
 E_est      =    zeros(2*NT+NTM+11,q,max_iter);
@@ -142,7 +142,7 @@ addpath ./IMR-vanilla/functions
 addpath ./IMR-vanilla/src
 
 % shuffle rng to ensure randomness of results
-rng('shuffle')
+rng('shuffle');
 
 % guess for parameters
 

@@ -6,12 +6,12 @@
 function [x,ensemble,params_post,params]= m_imr_da( param_pre, load_info)
     
     % data import
-    data_filepath  =   load_info{3};
+    data_filepath = load_info{3};
     % name of file containing R vs T data
-    data_filename  =   load_info{4};
+    data_filename = load_info{4};
     % number of 'peaks' to assimilate in radius data
     % (peaks = collapse points as in Estrada paper)
-    num_peaks      =   2;
+    num_peaks = 2;
     
     % This file exports data in vector yth, it must be re-written for each data
     % set to ensure the data is formatted correctly
