@@ -8,10 +8,13 @@
 function [taudivu] = f_stress_dissipation(stress,spectral,Req,R,Rdot,Ca,Br, ...
     Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1,ivisco2,fnu,DRe)
 
+% current ammplification factor
 Rst = Req/R;
-% act of pure genius
+% incompressible condition
 x2 = (yT3-1+Rst.^3).^(2/3);
+% inversion square of the reference coordinate
 ix2 = x2.^-1;
+% fourth power of the reference coordinate
 x4 = x2.^2;
 
 % no stress
@@ -47,6 +50,7 @@ elseif stress == 5
     
 end
 
+% spectral solution approach to compute the mechanical dissipation
 if spectral == 1
     taudivu = -2*Br*Rdot./(R*yT3).* ...
         (ZZT*(X(ivisco1)-X(ivisco2)));

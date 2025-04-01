@@ -70,7 +70,7 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
     
     Ca = 1./(xi(2*NT+NTM+7));
     Re = 1./((xi(2*NT+NTM+8)));
-     
+    
     De = xi(2*NT+NTM+9);
     alpha = (xi(2*NT+NTM+10));
     lambda_nu = xi(2*NT+NTM+11);
@@ -533,7 +533,9 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         udot;
         pdot;
         Sdot;
-        Tau_prime; C_prime; Tm_prime];
+        Tau_prime;
+        C_prime;
+        Tm_prime];
         if isreal(rdot)==0
             pause;
         end

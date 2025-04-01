@@ -48,7 +48,7 @@ Uspread;
 Pspread;
 Sspread;
 ones(NT,1)*tauspread; ...
-ones(NT,1)*Cspread;
+    ones(NT,1)*Cspread;
 ones(NTM,1)*Tmspread;
 Brspread;
 fohspread; ...
@@ -63,14 +63,18 @@ xi = (1 + spread .* randn(N,q)) .* repmat(x_init,1,q) + ...
 0;
 0;
 0;
-zeros(2*NT+NTM,1);0;0;0;0;0;0;0],1,q) .* randn(N,q);
+zeros(2*NT+NTM,1);
+0;
+0;
+0;
+0;0;0;0],1,q) .* randn(N,q);
 
 % using truncated distribution
 if Input_prior
     xi(2*NT+NTM+7,:)      =   G_prior';
     xi(2*NT+NTM+8,:)      =   mu_prior';
     xi(2*NT+NTM+10,:)     =   alpha_prior';
-else  
+else
     pd_G                  =   makedist('Normal','mu',G_guess,'sigma',G_guess*Caspread);
     t_G                   =   truncate(pd_G,1e-10,inf);                                  % truncated Gaussian distribution
     
@@ -96,7 +100,7 @@ end
 xi(3,:) = log(xi(3,:));
 
 % constrain the pressure to be positive
-xi(3,:) = log(x0_true(3));     
+xi(3,:) = log(x0_true(3));
 
 Uc      = sqrt(P_inf/rho);
 
