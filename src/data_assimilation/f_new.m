@@ -149,7 +149,7 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         % Gets variables that are not directly calculated as outputs
         
         % JY!!! ************ Update values because of changes of Cp *******
-
+        
         % Also update Cp-> Br, Dm -> Foh
         % Already called: rho = 1060; % (Kg/m^3) Liquid Density
         Rnondim = P_inf/(rho*T_inf);
@@ -169,7 +169,7 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         %Cdel = [Cdel C(end)];
         
         % The following was commented out at first:
-
+        
         % Set external pressure
         %if (Pext_type == 'sn')
         %    Pext =  -Pext_Amp_Freq(1)/P_inf*sin( Pext_Amp_Freq(2)*t*t0) ;
@@ -237,10 +237,10 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         
         Tau_prime = first_term + second_term + third_term;
         % if Tmgrad == 0
-            Tau_prime(end) = 0;
+        Tau_prime(end) = 0;
         % else
-            %    Tau_prime(end) = K; %JY???
-            % Tau_prime(end) = 0; % What is K?
+        %    Tau_prime(end) = K; %JY???
+        % Tau_prime(end) = 0; % What is K?
         % end
         Tau_prime = Tau_prime*Tgrad;
         

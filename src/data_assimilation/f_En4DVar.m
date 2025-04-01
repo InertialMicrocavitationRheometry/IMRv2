@@ -394,7 +394,8 @@ zeros(2*NT+NTM,1);
 0;
 0;
 0;
-0;0;0],1,q) .* randn(N,q);
+0;
+0;0],1,q) .* randn(N,q);
 
 % using truncated distribution
 if Input_prior
