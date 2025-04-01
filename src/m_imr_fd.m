@@ -315,7 +315,6 @@ function varargout = m_imr_fd(varargin)
         if medtherm && masstrans
             % temperature in the material
             Tm = X(imedtherm);
-            % prelim = fzero(@Boundary_full,guess);
             prelim = fzero(@Boundary_full,guess,foptions);
             guess = prelim;
         elseif medtherm

@@ -43,7 +43,7 @@ end
 
 % start parallel pool
 if isempty(gcp('nocreate'))
-    parpool('local',16);
+    parpool('local',8);
 end
 
 % dispatch parallel jobs
@@ -76,10 +76,11 @@ end
 for i = 1:total_comb
     try
         [~, Rf, Rs, idx] = fetchNext(futures);
-        if norm(Rs - Rf, 2) < threshold
+        diff = norm(abs(Rs./Rf - 1), 2);
+        if diff < threshold
             savefile_fd(filenames_fd{idx}, Rf);
             savefile_sp(filenames_sp{idx}, Rs);
-            fprintf('✓ Saved index %d\n', idx);
+            fprintf('✓ Saved index %d, diff %f\n', idx, diff);
         else
             error('Mismatch exceeds threshold at idx %d\n', idx);
         end
@@ -88,11 +89,11 @@ for i = 1:total_comb
     end
 end
 
-% Optionally shut down the pool
+% optionally shut down the pool
 delete(gcp('nocreate'));
 
 function [Rf, Rs, idx_out] = m_generate_goldendata_wrapper(idx, param_struct)
-    % Unpack parameter struct
+    % unpack parameter struct
     radial   = param_struct.radial;
     bubtherm = param_struct.bubtherm;
     medtherm = param_struct.medtherm;
@@ -124,7 +125,8 @@ function [Rf, Rs, idx_out] = m_generate_goldendata_wrapper(idx, param_struct)
         'alphax',alphax,...
         'lambda1',lambda1,...
         'stress',stress};
-    
+
+    rng(12345, 'twister');  
     [~, Rf] = m_imr_fd(varin{:}, 'Nt', 70, 'Mt', 70);
     [~, Rs] = m_imr_spectral(varin{:}, 'Nt', 12, 'Mt', 12);
     idx_out = idx;
