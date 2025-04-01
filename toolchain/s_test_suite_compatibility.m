@@ -66,7 +66,7 @@ for radial = 1:4
                                 
                                 filename1 = strcat('../tests/',ids{count+0},'.mat');
                                 load(filename1);
-                                [~,Rf_test] = m_imr_fd(varin{:},'Nt',30,'Mt',70);
+                                [~,Rf_test] = m_imr_fd(varin{:},'Nt',70,'Mt',70);
                                 errors_fd(count) = norm(abs(Rf./Rf_test - 1),2);
                                 fprintf('Finite test %d: L2 norm error = %.6e\n', count, errors_fd(count));
                                 if (errors_fd(count) > threshold)

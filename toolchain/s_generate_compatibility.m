@@ -80,9 +80,9 @@ for i = 1:total_comb
         if diff < threshold
             savefile_fd(filenames_fd{idx}, Rf);
             savefile_sp(filenames_sp{idx}, Rs);
-            fprintf('✓ Saved index %d, diff %f\n', idx, diff);
+            fprintf('✓ Saved index %d, diff %+.5E\n', idx, diff);
         else
-            error('Mismatch exceeds threshold at idx %d\n', idx);
+            error('Mismatch exceeds threshold at idx %d, diff %+.5E\n', idx, diff);
         end
     catch ME
         fprintf('✗ Job %d failed: %s\n', i, ME.message);
@@ -126,8 +126,8 @@ function [Rf, Rs, idx_out] = m_generate_goldendata_wrapper(idx, param_struct)
         'lambda1',lambda1,...
         'stress',stress};
 
-    rng(12345, 'twister');  
-    [~, Rf] = m_imr_fd(varin{:}, 'Nt', 70, 'Mt', 70);
+    % rng(12345, 'twister');  
+    [~, Rf] = m_imr_fd(varin{:}, 'Nt', 50, 'Mt', 150);
     [~, Rs] = m_imr_spectral(varin{:}, 'Nt', 12, 'Mt', 12);
     idx_out = idx;
 end
