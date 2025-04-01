@@ -365,31 +365,31 @@ zeros(2*NT+NTM,1);
 
 % using truncated distribution
 % if input_prior
-    xi(2*NT+NTM+7,:) = G_prior';
-    xi(2*NT+NTM+8,:) =  mu_prior';
-    xi(2*NT+NTM+10,:) = alpha_prior';
+xi(2*NT+NTM+7,:) = G_prior';
+xi(2*NT+NTM+8,:) =  mu_prior';
+xi(2*NT+NTM+10,:) = alpha_prior';
 % else
 %     pd_G = makedist('Normal','mu',G_guess,'sigma',G_guess*Caspread);
 %     % truncated Gaussian distribution
-%     t_G = truncate(pd_G,1e-10,inf);                                  
-% 
+%     t_G = truncate(pd_G,1e-10,inf);
+%
 %     if Caspread ==0
 %         xi(2*NT+NTM+7,:)  =   G_guess;
 %     else
 %         xi(2*NT+NTM+7,:)  =   random(t_G,[1, q]);
 %     end
-% 
+%
 %     pd_mu                 =   makedist('Normal','mu',mu_guess,'sigma',mu_guess*Respread);
 %     t_mu                  =   truncate(pd_mu,1e-10,inf);
 %     xi(2*NT+NTM+8,:)      =   random(t_mu,[1, q]);
 %     pd_alpha              =   makedist('Normal','mu',alpha_guess,'sigma',alpha_guess*alphaspread);
-% 
+%
 %     if alphaspread ==0
 %         xi(2*NT+NTM+10,:) = alpha_guess;
 %     else
 %         xi(2*NT+NTM+10,:) = random(t_alpha,[1, q]);
 %     end
-% 
+%
 % end
 
 xi(3,:) = log(xi(3,:));
@@ -404,7 +404,7 @@ xi      = [xi(1:2*NT+NTM+6,:);...
     ((xi(2*NT+NTM+8,:)).*Uc)./(P_inf*R0);...
     xi(end-2,:);...
     (xi(end-1,:));...
-    xi(end,:)]; 
+    xi(end,:)];
 
 
 
@@ -501,7 +501,7 @@ for j = 1:j_max
         t2    = t(exp_i,time_index+l);
         
         tinter = t(exp_i,(1:l)+time_index);
-
+        
         parfor memb = 1:q
             % f_imr_fd call
             [t_memb, EE, ~] =  f_new(t1,t2,E1(:,memb),vars);
