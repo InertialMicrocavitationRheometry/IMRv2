@@ -1,10 +1,10 @@
 function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
     
-    global NT Pext_type Pext_Amp_Freq disptime Tgrad Tmgrad ...
-        comp t0 neoHook nhzen sls linkv k chi fom foh We Br A_star ...
-        B_star Rv_star Ra_star L L_heat_star Km_star P_inf T_inf C_star ...
-        De deltaY yk deltaYm xk yk2 Pv REq D_Matrix_T_C DD_Matrix_T_C ...
-        D_Matrix_Tm DD_Matrix_Tm Ca Re
+    % global NT Pext_type Pext_Amp_Freq disptime Tgrad Tmgrad ...
+        % comp t0 neoHook nhzen sls linkv k chi fom foh We Br A_star ...
+        % B_star Rv_star Ra_star L L_heat_star Km_star P_inf T_inf C_star ...
+        % De deltaY yk deltaYm xk yk2 Pv REq D_Matrix_T_C DD_Matrix_T_C ...
+        % D_Matrix_Tm DD_Matrix_Tm Ca Re
     
     NT= vars{1};
     Pext_type=vars{2};
@@ -56,8 +56,6 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
     fungexp = vars{48};
     fungnlvis = vars{49};
     
-    
-    %************************************************
     % March equations in time
     
     Uc = sqrt(P_inf/rho);
@@ -77,7 +75,6 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
     
     
     % restrictions on dynamics to keep quantities physical:
-    
     xi(3) = exp(xi(3));
     xi(5+NT:4+(2*NT)) = max(xi(5+NT:4+(2*NT)),0);
     
@@ -92,9 +89,6 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
     xi(2*NT+NTM+7:end)];
     xf(3) = log(xf(3));
     
-    
-    %%
-    %*************************************************************************
     % Nested function; ODE Solver calls to march governing equations in time
     % This function has acess to all parameters above
     
@@ -115,7 +109,6 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
             disp(t/tspan_star);
         end
         
-        %*********Solves for boundary condition at the wall**************
         if (Tmgrad == 1)
             if t/tspan_star> 0.001
                 %Might need to tune 0.001 for convergence:
@@ -137,18 +130,17 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
             prelim = 0;
         end
         
-        %****************************************************************
-        % Sets value at boundary conditions
+        % sets value at boundary conditions
         tau_del = [tau_del prelim]; % Commented out here for simplification
         
-        %tau_del_end = prelim;
+        % tau_del_end = prelim;
         
         Tau(end) = prelim;
         T = TW(Tau);
         Tm(1) = T(end);
         % TW(prelim)
         
-        % Calculated variables
+        % calculated variables
         K_star = A_star*T+B_star;
         C(end) =  CW(T(end),P);
         
@@ -157,6 +149,7 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         % Gets variables that are not directly calculated as outputs
         
         % JY!!! ************ Update values because of changes of Cp *******
+
         % Also update Cp-> Br, Dm -> Foh
         % Already called: rho = 1060; % (Kg/m^3) Liquid Density
         Rnondim = P_inf/(rho*T_inf);
@@ -175,10 +168,9 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         %tdel = [tdel t];
         %Cdel = [Cdel C(end)];
         
-        
         % The following was commented out at first:
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        %Set external pressure
+
+        % Set external pressure
         %if (Pext_type == 'sn')
         %    Pext =  -Pext_Amp_Freq(1)/P_inf*sin( Pext_Amp_Freq(2)*t*t0) ;
         %    P_ext_prime = -Pext_Amp_Freq(2)*t0*Pext_Amp_Freq(1)/P_inf...
@@ -194,8 +186,6 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
             %        (1-heaviside(t-Pext_Amp_Freq(2)/t0)) ;
         %    P_ext_prime = 0;
         %end
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
         
         if strcmp(Pext_type,'IC')
             Pext = 0;
@@ -205,7 +195,6 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
             P_ext_prime = pfdot(t)/P_inf;
         end
         
-        % *****************************************
         % Create derivative terms
         
         % Temp. field of the gas inside the bubble
@@ -247,12 +236,12 @@ function [t,X,tau_del] = f_new(ti_star,tf_star,xi,vars,tau_del)
         third_term = fom./(R.^2) *(Rv_star-Ra_star)./Rmix .* DC .*DTau;
         
         Tau_prime = first_term + second_term + third_term;
-        if Tmgrad == 0
+        % if Tmgrad == 0
             Tau_prime(end) = 0;
-        else
+        % else
             %    Tau_prime(end) = K; %JY???
-            Tau_prime(end) = 0; % What is K?
-        end
+            % Tau_prime(end) = 0; % What is K?
+        % end
         Tau_prime = Tau_prime*Tgrad;
         
         % *****************************************
