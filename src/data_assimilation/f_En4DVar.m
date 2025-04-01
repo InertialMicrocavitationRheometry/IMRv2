@@ -28,11 +28,9 @@ alpha_prior     =    theta_params(:,3);
 G_guess         =    mean(G_prior);
 mu_guess        =    mean(mu_prior);
 alpha_guess     =    mean(alpha_prior);
-Input_prior     =    true;
+% input_prior     =    true;
 G1_guess        =    1e9;
 lambda_nu_guess =    0.1;
-% leave as 2, initializes ensemble with truth + noise
-% init_scheme     =    2;
 
 % ending criteria for iterative optimization:
 
@@ -85,10 +83,7 @@ CI_theta = 0.7;
 % CI_add = 0;
 
 % additive covariance parameter (lambda in paper) (1.005 < beta < 1.05)
-beta = 1.02;
-
-% random noise in forecast step (only for EnKF)
-alpha = 0.005;
+% beta = 1.02;
 
 % spread of parameters in the ensemble
 Rspread = 0.0;
@@ -138,9 +133,6 @@ Req        =    Req_all(exp_i);
 
 % state vector used: [R,U,P,S,Tau,C,Tm, 1/Ca, 1/Re]
 
-addpath ./IMR-vanilla/functions
-addpath ./IMR-vanilla/src
-
 % shuffle rng to ensure randomness of results
 rng('shuffle');
 
@@ -153,8 +145,6 @@ rng('shuffle');
 % find Req and calculate initial partial pressure needed parameters
 % ST = 0.056; % (N/m) Liquid Surface Tension
 Pmt_temp = IMRcall_parameters(R0,G_guess,G1_guess,mu_guess); % Calls parameters script
-Ca = Pmt_temp(5);
-Re = Pmt_temp(6);
 P_inf = Pmt_temp(19);
 T_inf = Pmt_temp(20);
 
@@ -201,7 +191,7 @@ chi = Pmt(2);
 Fom = Pmt(3);
 Foh = Pmt(4);
 Ca = Pmt(5);
-Re = Pmt(6);
+% Re = Pmt(6);
 We = Pmt(7);
 Br = Pmt(8);
 A_star = Pmt(9);
@@ -233,14 +223,6 @@ fungexp = 0;
 fungnlvis = 0;
 if strcmp(model,'neoHook') == 1
     neoHook = 1;
-elseif strcmp(model,'fung') == 1
-    fung = 1;
-elseif strcmp(model,'fung2') == 1
-    fung2 = 1;
-elseif strcmp(model,'fungexp') == 1
-    fungexp = 1;
-elseif strcmp(model,'fungnlvis') == 1
-    fungnlvis = 1;
 elseif strcmp(model,'nhzen') == 1
     nhzen = 1;
 elseif strcmp(model,'sls') == 1
@@ -259,15 +241,12 @@ P0_star = P0_star - (1-Cgrad)*Pvsat(1*T_inf)/P_inf;
 % the vapor pressure is constant and P is the pressure of
 % non-condesible gas
 
-%******************************************
 % Creates finite difference matrices
 D_Matrix_T_C = Finite_diff_mat(NT,1,0);
 DD_Matrix_T_C = Finite_diff_mat(NT,2,0);
 D_Matrix_Tm = Finite_diff_mat(NTM,1,1);
 DD_Matrix_Tm = Finite_diff_mat(NTM,2,1);
-%******************************************
 
-%******************************************
 % Create spatial nodes
 
 % Inside the bubble
@@ -285,7 +264,7 @@ yk2 = ((2./(xk+1)-1)*L+1);
 
 %******************************************
 % Initial Conditions
-tspan_star = tspan/t0;
+% tspan_star = tspan/t0;
 R0_star = 1;
 U0_star = 0;  % Change as needed
 %Z10 = 0;
@@ -293,10 +272,10 @@ S0 = 0;
 Tau0 = zeros(1,NT);
 C0 = C0*ones(1,NT);
 Tm0 = ones(1,NTM);
-if strcmp(Pext_type,'ga')
-    dt_star = Pext_Amp_Freq(2)/t0;
-    w_star = Pext_Amp_Freq(3)*t0;
-end
+% if strcmp(Pext_type,'ga')
+%     dt_star = Pext_Amp_Freq(2)/t0;
+%     w_star = Pext_Amp_Freq(3)*t0;
+% end
 
 % Need to modify initial conditions for the Out-of-Equilibrium Rayleigh
 % Collapse:
@@ -308,9 +287,9 @@ if strcmp(Pext_type,'IC')
     C0 = 1/(1+theta);
     
     % Calculate the equilibrium radii ratio for initial stress state:
-    if Req == 0
-        [REq,~,~] = IMRCalc_Req(R0, Tgrad, Cgrad, Pext_Amp_Freq(1), G, G1, mu);
-    end
+    % if Req == 0
+    %     [REq,~,~] = IMRCalc_Req(R0, Tgrad, Cgrad, Pext_Amp_Freq(1), G, G1, mu);
+    % end
     REq = Req;
     %REq = 1; %removed 6/15/16 by Jon
     C0 = C0*ones(1,NT);
@@ -321,26 +300,12 @@ if strcmp(Pext_type,'IC')
         S0 = -4/(3*Ca)*(1-REq^3);
     elseif nhzen == 1 || neoHook == 1
         S0 = -1/(2*Ca)*(5-REq^4-4*REq);
-    elseif fung == 1 || fungnlvis == 1
-        S0 = -(1-3*alpha)*(5 - 4*REq - REq^4)/(2*Ca) - ...
-            2*alpha*(-27/40 - 1/8*REq^8 - 1/5*REq^5 -1*REq^2 + 2/REq)/(Ca);
-    elseif fung2 == 1
-        S0 = 2*(1-3*alpha+4.5*alpha^2)*(-5/4 + 1*REq + 1/4*REq^4)/(Ca) + ...
-            2*(27/40*alpha-221/90*alpha^2 + alpha^2/24*REq^12 + alpha^2/18*REq^9 + (alpha-3*alpha^2)/8*REq^8 + ... )
-        2*alpha^2/6*REq^6 + (alpha-3*alpha^2)/5*REq^5 + 2*alpha^2/3*REq^3 + (2*alpha-6*alpha^2)/2*REq^2 - ...
-            2*alpha^2*log(1/REq) - (2*alpha-6*alpha^2)/REq - 2/3*alpha^2/REq^3)/(Ca);
-    elseif fungexp == 1
-        tempbeta = linspace(1/REq,1,1e5);
-        tempS = 2*(tempbeta.^-5 + tempbeta.^-2) .* exp(alpha*(tempbeta.^-4+2*tempbeta.^2-3))/(Ca);
-        % figure, plot(tempbeta,tempS);
-        S0 = (trapz(tempbeta,tempS));
     end
-    
 end
 
 X0 = [R0_star U0_star P0_star S0 Tau0 C0 Tm0];
 
-tau_del = [];
+% tau_del = [];
 
 x0_true = [X0,Br,Foh,G,mu,De,alpha,lambda_nu,est_params];
 N = length(x0_true);
@@ -363,7 +328,7 @@ N = length(x0_true);
 % custom spread:
 x_init = x0_true';
 
-if Input_prior
+if input_prior
     Caspread    = 0;
     Respread    = 0;
     alphaspread = 0;
@@ -399,32 +364,33 @@ zeros(2*NT+NTM,1);
 0],1,q) .* randn(N,q);
 
 % using truncated distribution
-if Input_prior
-    xi(2*NT+NTM+7,:)      =   G_prior';
-    xi(2*NT+NTM+8,:)      =   mu_prior';
-    xi(2*NT+NTM+10,:)     =   alpha_prior';
-else
-    pd_G                  =   makedist('Normal','mu',G_guess,'sigma',G_guess*Caspread);
-    t_G                   =   truncate(pd_G,1e-10,inf);                                  % truncated Gaussian distribution
-    
-    if Caspread ==0
-        xi(2*NT+NTM+7,:)  =   G_guess;
-    else
-        xi(2*NT+NTM+7,:)  =   random(t_G,[1, q]);
-    end
-    
-    pd_mu                 =   makedist('Normal','mu',mu_guess,'sigma',mu_guess*Respread);
-    t_mu                  =   truncate(pd_mu,1e-10,inf);
-    xi(2*NT+NTM+8,:)      =   random(t_mu,[1, q]);
-    pd_alpha              =   makedist('Normal','mu',alpha_guess,'sigma',alpha_guess*alphaspread);
-    
-    if alphaspread ==0
-        xi(2*NT+NTM+10,:) = alpha_guess;
-    else
-        xi(2*NT+NTM+10,:) = random(t_alpha,[1, q]);
-    end
-    
-end
+% if input_prior
+    xi(2*NT+NTM+7,:) = G_prior';
+    xi(2*NT+NTM+8,:) =  mu_prior';
+    xi(2*NT+NTM+10,:) = alpha_prior';
+% else
+%     pd_G = makedist('Normal','mu',G_guess,'sigma',G_guess*Caspread);
+%     % truncated Gaussian distribution
+%     t_G = truncate(pd_G,1e-10,inf);                                  
+% 
+%     if Caspread ==0
+%         xi(2*NT+NTM+7,:)  =   G_guess;
+%     else
+%         xi(2*NT+NTM+7,:)  =   random(t_G,[1, q]);
+%     end
+% 
+%     pd_mu                 =   makedist('Normal','mu',mu_guess,'sigma',mu_guess*Respread);
+%     t_mu                  =   truncate(pd_mu,1e-10,inf);
+%     xi(2*NT+NTM+8,:)      =   random(t_mu,[1, q]);
+%     pd_alpha              =   makedist('Normal','mu',alpha_guess,'sigma',alpha_guess*alphaspread);
+% 
+%     if alphaspread ==0
+%         xi(2*NT+NTM+10,:) = alpha_guess;
+%     else
+%         xi(2*NT+NTM+10,:) = random(t_alpha,[1, q]);
+%     end
+% 
+% end
 
 xi(3,:) = log(xi(3,:));
 
@@ -438,7 +404,7 @@ xi      = [xi(1:2*NT+NTM+6,:);...
     ((xi(2*NT+NTM+8,:)).*Uc)./(P_inf*R0);...
     xi(end-2,:);...
     (xi(end-1,:));...
-    xi(end,:)]; % for now
+    xi(end,:)]; 
 
 
 
@@ -453,7 +419,7 @@ xi      = [xi(1:2*NT+NTM+6,:);...
 
 tspan_star =    max(tspan);
 x(:,:,1)   =    xi;
-tau_del    =    cell(q,1);
+% tau_del    =    cell(q,1);
 idx        =    1;
 
 % iterate
@@ -463,12 +429,12 @@ vars = {NT Pext_type Pext_Amp_Freq disptime Tgrad Tmgrad ...
     De deltaY yk deltaYm xk yk2 Pv REq D_Matrix_T_C DD_Matrix_T_C ...
     D_Matrix_Tm DD_Matrix_Tm tspan_star NTM rho R0 fung fung2 fungexp fungnlvis};
 
-opts.POSDEF = true;
-opts.SYM = true;
+% opts.POSDEF = true;
+% opts.SYM = true;
 
 
 %delta = 1.005; %inflation param
-delta = beta;
+% delta = beta;
 %epsilon = 0.001;
 
 % size of data assimilation window
@@ -479,7 +445,15 @@ timestep_time       =   zeros(1,n-l+1);
 time_index          =   1;
 % numbers of DA cycles
 j_max               =   3;
-params              =   [];
+
+std_prior = zeros(q,1);
+std_post = zeros(q,1);
+params = zeros(q,3,max_iter);
+y2b = zeros(q,l);
+HA2 = zeros(1,q,l);
+dy2 = zeros(q,l);
+aux1 = zeros(1,q,l);
+R = zeros(q,1);
 
 for j = 1:j_max
     
@@ -514,28 +488,30 @@ for j = 1:j_max
     
     while norm(dx1) > epsilon && jj <= max_iter
         % saving parameters at each iteration
-        G_all            =  E1(2*NT+NTM+7,:)*P_inf;
-        mu_all           =  E1(2*NT+NTM+8,:)/Uc*(P_inf*R0);
-        alpha_all        =  (E1(2*NT+NTM+10,:));
-        params(:,1,idx)  =  G_all;
-        params(:,2,idx)  =  mu_all;
-        params(:,3,idx)  =  alpha_all;
-        idx              =  idx+1;
+        G_all = E1(2*NT+NTM+7,:)*P_inf;
+        mu_all = E1(2*NT+NTM+8,:)/Uc*(P_inf*R0);
+        alpha_all = (E1(2*NT+NTM+10,:));
+        params(:,1,idx) = G_all;
+        params(:,2,idx) = mu_all;
+        params(:,3,idx) = alpha_all;
+        idx = idx+1;
         
         TTinv = linsolve(TT,eye(size(TT)));
         t1    = t(exp_i,time_index);
         t2    = t(exp_i,time_index+l);
         
+        tinter = t(exp_i,(1:l)+time_index);
+
         parfor memb = 1:q
             % f_imr_fd call
-            [t_memb{memb}, EE{memb}, ~] =  f_new(t1,t2,E1(:,memb),vars,tau_del{memb});
+            [t_memb, EE, ~] =  f_new(t1,t2,E1(:,memb),vars);
             t_sim                      =  t_memb{memb};
             y_sim                      =  EE{memb}(:,1);
-            U_sim                      =  EE{memb}(:,2);
-            y2(1,memb,:)               =  interp1(t_sim,y_sim, t(exp_i,(1:l)+time_index), 'makima' );
+            % U_sim                      =  EE{memb}(:,2);
+            y2(1,memb,:)               =  interp1(t_sim,y_sim,tinter, 'makima' );
         end
         
-        clear y2b dy2 HA2
+        % clear y2b dy2 HA2
         
         for kk = 1:l
             y2b(:,kk)      =  mean(y2(:,:,kk),2);
@@ -576,8 +552,8 @@ for j = 1:j_max
         jj = jj+1;
     end
     
-    % perform covaraince inflation:
-    if j<j_max
+    % perform covariance inflation:
+    if j < j_max
         for j1 = 1:size(A1,1)
             if std(A1(j1,:)) ==0
                 std_prior(j1) =0;
@@ -591,7 +567,7 @@ for j = 1:j_max
         for j1 = 1:size(A1,1)
             A1(j1,:) = mvnrnd(0,(RTPS(j1).*std_post(j1))^2,q);
         end
-        Input_prior =  false;
+        % input_prior =  false;
         E1 = x1*ones(1,q) + A1;
     end
     x(:,:,j+1) = E1;
