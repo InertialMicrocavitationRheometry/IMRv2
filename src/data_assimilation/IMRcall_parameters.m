@@ -1,5 +1,7 @@
 function [P]  = IMRcall_parameters(R0,G,G1,mu)
+    
     % Code to create parameter .mat file for RP_Cav to use
+    
     % Parameters:
     
     %0 < G < 10^6; % (Pa) Medium Shear Modulus
@@ -26,13 +28,14 @@ function [P]  = IMRcall_parameters(R0,G,G1,mu)
     %4.181e3;
     % Specific Heat Medium J/Kg K;
     Dm = Km /(rho*Cp) ; % Thermal Diffusivity m^2/s
-    L = 2; % Stretch variable to map domain outside the bubble
+    L = 2; % Strech variable to map domain outside the bubble
     L_heat = 2264.76e3; % (J/Kg) Latent heat of evaporation
     C = 1430;
     %1540;
     %1484; % sound speed (m/s)
     
-    % Intermediate calculated variables
+    % Intermidiate calculated variables
+    
     K_infy = A*T_inf+B;
     Uc = sqrt(P_inf/rho);
     Pv = Pvsat(T_inf );
@@ -40,9 +43,11 @@ function [P]  = IMRcall_parameters(R0,G,G1,mu)
     theta = Rv/Ra*(P0-Pv)/Pv; % mass air / mass vapor
     C0 = 1/(1+theta);
     
+    
     % Final non-dimensional variables
+    
     chi = T_inf*K_infy/(P_inf*R0*Uc);
-    Fom = D0/(Uc*R0);
+    fom = D0/(Uc*R0);
     foh = Dm/(Uc*R0);
     Ca = P_inf/G;
     Re = P_inf*R0/(mu*Uc);
@@ -64,7 +69,7 @@ function [P]  = IMRcall_parameters(R0,G,G1,mu)
     Cgrad = 1; %1 Vapor-non-condensible gas diffusion
     Tmgrad = 0; %0 Off means cold liquid assumption
     
-    P = [k chi Fom foh Ca Re We Br A_star...
+    P = [k chi fom foh Ca Re We Br A_star...
         B_star Rv_star Ra_star P0_star t0 C0 L L_heat_star Km_star ...
         P_inf  T_inf C_star De ...
         rho Uc Tgrad Cgrad Tmgrad S];

@@ -1,13 +1,13 @@
 % This script determines initial X0 and x0
 %{
 global tspan R0 NT NTM Pext_type Pext_Amp_Freq Tgrad Cgrad model G G1 ...
-    mu t0 neoHook nhzen sls linkv k chi Fom Foh We Br A_star B_star ...
+    mu t0 neoHook nhzen sls linkv k chi fom foh We Br A_star B_star ...
     Rv_star Ra_star L L_heat_star Km_star P_inf T_inf C_star De deltaY ...
     yk deltaYm xk yk2 Pv REq D_Matrix_T_C DD_Matrix_T_C ...
     D_Matrix_Tm DD_Matrix_Tm x0_true N
 %}
 %***************************************
-% Extract viscoelastic parameters from struct
+% Extract viscoelastic parameters from stuct
 G = visco_params.G;
 G1 = visco_params.G1;
 mu = visco_params.mu;
@@ -18,8 +18,8 @@ lambda_nu = visco_params.lambda_nu;
 Pmt = IMRcall_parameters(R0,G,G1,mu); % Calls parameters script
 k = Pmt(1);
 chi = Pmt(2);
-Fom = Pmt(3);
-Foh = Pmt(4);
+fom = Pmt(3);
+foh = Pmt(4);
 Ca = Pmt(5);
 Re = Pmt(6);
 We = Pmt(7);
@@ -118,12 +118,12 @@ if strcmp(Pext_type,'ga')
     w_star = Pext_Amp_Freq(3)*t0;
 end
 
-% Need to modify initial conditions for the Out-of-Equilibrium Rayleigh
-% Collapse:
+% Need to modify intial conditions for the Out-of-Equilibrium Rayleigh
+% Collpase:
 if strcmp(Pext_type,'IC')
     Pv = Pvsat(1*T_inf)/P_inf;
     P0_star = Pext_Amp_Freq(1)/P_inf + Cgrad*Pvsat(1*T_inf)/P_inf;
-    % Need to recalculate initial concentration
+    % Need to recalculate intital concentration
     theta = Rv_star/Ra_star*(P0_star-Pv)/Pv; % mass air / mass vapor
     C0 = 1/(1+theta);
     
@@ -131,10 +131,10 @@ if strcmp(Pext_type,'IC')
     if Req == 0
         [REq,~,~] = IMRCalc_Req(R0, Tgrad, Cgrad, Pext_Amp_Freq(1), G, G1, mu);
     end
-    % REq = Req;
+    REq = Req;
     %REq = 1; %removed 6/15/16 by Jon
     C0 = C0*ones(1,NT);
-    %U0_star = -1*(1-P0_star)/(C_star); %Initial velocity due to shockwave
+    %U0_star = -1*(1-P0_star)/(C_star); %Intitial velocity due to shockwave
     U0_star = 0;
     
     if sls == 1 || linkv == 1
@@ -162,5 +162,5 @@ X0 = [R0_star U0_star P0_star S0 Tau0 C0 Tm0];
 
 tau_del = [];
 
-x0_true = [X0,Br,Foh,G,mu,De,alpha,lambda_nu,est_params];
+x0_true = [X0,Br,foh,G,mu,De,alpha,lambda_nu,est_params];
 N = length(x0_true);
