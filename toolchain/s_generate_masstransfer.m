@@ -36,7 +36,7 @@ end
 
 % ensure the pool is active
 if isempty(gcp('nocreate'))
-    parpool('local',8); 
+    parpool('local',8);
 end
 
 % set up combinations
@@ -65,7 +65,7 @@ for idx_mass = 1:total_combinations
         'r0', R0, ...
         'req', Req, ...
         'masstrans', masstrans};
-
+    
     futures(idx_mass) = parfeval(@m_imr_fd_wrapper, 1, varin);
     % Rm = m_imr_fd_wrapper(varin);
     % savefile_fd(filenames_mass{idx_mass}, Rm);
@@ -83,7 +83,7 @@ delete(gcp('nocreate'));
 % deterministic setup per worker
 function Rm = m_imr_fd_wrapper(varin)
     % fixed RNG seed
-    rng(12345, 'twister');  
+    rng(12345, 'twister');
     [~, Rm] = m_imr_fd(varin{:}, 'Nt', 30, 'Mt', 70);
 end
 

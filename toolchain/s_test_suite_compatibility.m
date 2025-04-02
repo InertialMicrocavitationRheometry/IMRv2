@@ -27,7 +27,7 @@ masstrans = 0;
 vapor = 1;
 count = 1;
 R0 = 50e-6;
-Req = R0/12;
+Req = R0/10;
 muvec = linspace(10^-4,10^-1,2);
 Gvec = linspace(10^2,0.25*10^4,2);
 alphaxvec = linspace(10^-3,10^0,2);
@@ -81,7 +81,7 @@ for radial = 1:4
                                 if (errors_sp(count) > threshold)
                                     failed_tests(count+1) = count+1;
                                 end
-
+                                
                                 count = count + 1;
                             end
                         end

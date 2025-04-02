@@ -449,8 +449,8 @@ function varargout = m_imr_fd(varargin)
                 ivisco2,fnu,DRe);
             Tmdot = advection + diffusion + taudivu;
             % sets boundary condition on temperature
-            Tmdot(end) = 0;
             Tmdot(1) = 0;
+            Tmdot(end) = 0;
         end
         
         % pressure waveform

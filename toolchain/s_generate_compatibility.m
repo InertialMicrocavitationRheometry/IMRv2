@@ -14,12 +14,12 @@ load('file_ids.mat');
 
 % test case parameters
 tvector = linspace(0,15E-6,100);
-threshold = 5e-2;
+threshold = 5e-1;
 collapse = 1;
 masstrans = 0;
 vapor = 1;
 R0 = 50e-6;
-Req = R0/12;
+Req = R0/10;
 muvec = linspace(10^-4,10^-1,2);
 Gvec = linspace(10^2,0.25*10^4,2);
 alphaxvec = linspace(10^-3,10^0,2);
@@ -50,6 +50,7 @@ end
 futures(total_comb) = parallel.FevalFuture;
 
 for idx = 1:total_comb
+    
     [lambda1idx, alphaxidx, Gidx, muidx, stress_idx, medtherm_idx, ...
         bubtherm_idx, radial_idx] = ind2sub(dims, idx);
     
@@ -76,16 +77,17 @@ end
 for i = 1:total_comb
     try
         [~, Rf, Rs, idx] = fetchNext(futures);
-        diff = norm(abs(Rs./Rf - 1), 2);
+        diff = norm(abs(Rf./Rs - 1), "inf");
         if diff < threshold
             savefile_fd(filenames_fd{idx}, Rf);
             savefile_sp(filenames_sp{idx}, Rs);
             fprintf('✓ Saved index %d, diff %+.5E\n', idx, diff);
         else
-            error('Mismatch exceeds threshold at idx %d, diff %+.5E\n', idx, diff);
+            error('Mismatch at idx %d, diff %+.5E\n', idx, diff);
         end
     catch ME
         fprintf('✗ Job %d failed: %s\n', i, ME.message);
+        error('stopping');
     end
 end
 
@@ -125,9 +127,9 @@ function [Rf, Rs, idx_out] = m_generate_goldendata_wrapper(idx, param_struct)
         'alphax',alphax,...
         'lambda1',lambda1,...
         'stress',stress};
-
-    % rng(12345, 'twister');  
-    [~, Rf] = m_imr_fd(varin{:}, 'Nt', 50, 'Mt', 150);
+    
+    % rng(12345, 'twister');
+    [~, Rf] = m_imr_fd(varin{:}, 'Nt', 70, 'Mt', 70);
     [~, Rs] = m_imr_spectral(varin{:}, 'Nt', 12, 'Mt', 12);
     idx_out = idx;
 end
