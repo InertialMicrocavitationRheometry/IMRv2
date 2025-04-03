@@ -3,7 +3,7 @@
 
 % brief This function conducts the IMR data assimilation routine to
 % forecast material properties
-function [x,ensemble,params_post,params]= m_imr_da( param_pre, load_info)
+function [x,ensemble,params_post,params]= m_imr_da(param_pre,load_info)
     
     addpath ../src;
     
