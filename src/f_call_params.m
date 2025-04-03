@@ -114,6 +114,7 @@ for n = 1:2:nargin
         case 'lambda2',     lambda2 = varargin{n+1};
         case 'alphax',      alphax = varargin{n+1};
         case 'surft',       S = varargin{n+1};
+        case 'dgdr',        dGdR = varargin{n+1};
         % P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         
         % non-Newtonian viscosity options
@@ -197,7 +198,7 @@ if check || medtherm ~= 0 && medtherm ~= 1
     error('INPUT ERROR: medtherm must be 0 or 1');
 end
 check = 1-isnumeric(stress);
-if check || stress > 5 || stress < 0
+if check || stress > 8 || stress < 0
     error('INPUT ERROR: stress must be between 0 to 5');
 end
 check = 1-isnumeric(vapor);
@@ -306,6 +307,8 @@ De      = lambda1*Uc/R0;
 % dimensionless initial conditions
 Rzero   = 1;
 Uzero   = U0/Uc;
+%graded material stiffness spatial variation
+dGdRnd  = dGdR*R0/G;
 
 % overwrite defaults with nondimensional inputs
 if isempty(varargin) == 0
@@ -358,8 +361,9 @@ if medtherm == 1
     bubtherm = 1;
 end
 
-% 1 : N-H, 2: qN-H, 3: linear Maxwell, Jeffreys, Zener, 5: UCM or OldB, 6: PTT, 7: Giesekus
-if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4
+% 1 : N-H, 2: qN-H, 3: linear Maxwell, Jeffreys, Zener, 5: UCM or OldB, 6: PTT, 7: Giesekus, 
+% 8:  gm N-H 
+if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4 || stress == 8
     spectral = 0;
     if stress == 3 || stress == 4
         Nv = 1;
@@ -383,7 +387,7 @@ if Ca == -1
     Ca = Inf;
 end
 
-if stress == 1 || stress == 2 || stress == 3 || stress == 4
+if stress == 1 || stress == 2 || stress == 3 || stress == 4 || stress == 8
     JdotA = 4/Re8;
 elseif stress == 5 || stress == 6
     JdotA = 4*LAM/Re8;
@@ -407,7 +411,7 @@ end
 %     end
 % end
 
-if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4
+if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4 || stress == 8
     zeNO = 0;
 else
     zeNO = 1;
@@ -450,7 +454,7 @@ Pv_star = Pv;
 Req_zero = Req;
 
 % initial stress field for bubble collapse
-if stress < 3
+if stress < 3 || stress == 8
     Szero = [];
 elseif stress == 3 || stress == 4
     if collapse
@@ -487,7 +491,7 @@ acos_opts = [Cstar GAMa kappa nstate hugoniot_s];
 % dimensionless waveform parameters
 wave_opts = [om ee tw dt mn wave_type wave_poly wave_dpoly];
 % dimensionless viscoelastic
-sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iDRe];
+sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iDRe dGdRnd];
 % dimensionless thermal
 thermal_opts = [Foh Br alpha_g beta_g alpha_v beta_v chi iota];
 % dimensionaless mass transfer

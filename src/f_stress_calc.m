@@ -86,7 +86,16 @@ elseif stress == -1
     % this is to keep the code clean
     % need to fix for spectral
     Sdot = cdd*zeNO;
-    
+
+    % Kelvin-Voigt, neo-Hookean elasticity for linear profile of graded material
+elseif stress == 8
+    S = -(5 - 4*Rst - Rst^4)/(2*Ca) - 4/Re8*Rdot/R - 6*intfnu*iDRe + ... 
+         (dGdRnd/R0)*(1/Ca)^2*((2/3)*Rst^3 - (2/3) + log(Rst));
+    %what is term 3? define dGdRnd - nondim correctly? 1/Ca?
+    Sdot = -2*Rdot/R*(Rst^4 - Rst)/Ca + 4/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe - ...
+            - (dGdRnd/R0)*(1/Ca)^2*(2*Rst^3*(Rdot/R) + Rdot/R);
+    %missing chain rule product for viscous term? Also neg sign in 1st
+    %term, check last term - nondim correctly?
 else
     error('stress setting is not available');
 end

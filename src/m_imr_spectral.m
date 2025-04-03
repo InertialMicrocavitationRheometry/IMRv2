@@ -151,6 +151,7 @@ function varargout =  m_imr_spectral(varargin)
     yT = 2*Lt./(1+xi) - Lt + 1;
     yT2 = yT.^2;
     yT3 = yT.^3;
+    iyT2 = yT.^2;
     iyT3 = yT.^-3;
     iyT4 = yT.^-4;
     iyT6 = yT.^-6;
@@ -340,7 +341,7 @@ function varargout =  m_imr_spectral(varargin)
                     Rdot/2*(1./yT2 - yT)).*(mAPd*TL);
                 second_term = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
                 [taudivu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
-                    Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
+                    Ca,Br,Re8,alphax,yT2,yT3,iyT2,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
                     ivisco2,fnu,DRe);
                 TLdot = first_term + second_term + taudivu;
                 
