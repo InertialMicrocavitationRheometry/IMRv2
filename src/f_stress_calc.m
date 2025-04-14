@@ -40,12 +40,8 @@ elseif stress == 3
     S = Z1/R^3 - 4*LAM/Re8*Rdot/R - 6*LAM*intfnu*iDRe;
     % elastic shift Ze
     Ze = -0.5*(R^3/Ca)*(5 - Rst^4 - 4*Rst);
-    % simplified ZdotNH equation
-    ZdotSqNH = -1.5*(R^2*Rdot/Ca)*(5 - Rst^4 - 4*Rst) ...
-        -2*(R^3*Rdot/Ca)*(Rst^4/R + Rst);
     % stress auxiliary variable integral derivative
-    Z1dot = -(Z1 - Ze)/De + ZdotSqNH + (3*Rdot/R)*(Z1 - Ze) ...
-        +4*(LAM - 1)/(Re8*De)*R^2*Rdot;
+    Z1dot = -(Z1 - Ze)/De + 4*(LAM - 1)/(Re8*De)*R^2*Rdot;
     % stress integral derivative
     Sdot = Z1dot/R^3 - 3*Rdot/R^4*Z1 + 4*LAM/Re8*(Rdot/R)^2;
     
@@ -59,14 +55,8 @@ elseif stress == 4
     Ze = R^3 * (strainhard * (5 - Rst^4 - 4*Rst) + ...
         (2 * alphax / Ca) * (0.675 + 0.125 * Rst^8 + ...
         0.2 * Rst^5 + Rst^2 - 2 / Rst));
-    % simplified ZdotSqNH equation with decimal fractions
-    ZdotSqNH = (3 * R^2 * Rdot * Ze / R^3) + ...
-        R^3 * (strainhard * ((4 * Rst^4 * Rdot / R) + (4 * Rst * Rdot)) - ...
-        (2 * alphax / Ca) * ((2 * Rdot / (Rst * R)) + (Rst^8 * Rdot / R) + ...
-        (Rst^5 * Rdot / R) + (Rst^2 * Rdot / R)));
     % stress auxiliary derivative
-    Z1dot = -(Z1-Ze)/De + ZdotSqNH + (3*Rdot/R)*(Z1-Ze) + ...
-        4*(LAM-1)/(Re8*De)*R^2*Rdot ;
+    Z1dot = -(Z1-Ze)/De + 4*(LAM-1)/(Re8*De)*R^2*Rdot ;
     % stress integral derivative
     Sdot = Z1dot/R^3 - 3*Rdot/R^4*Z1 + 4*LAM/Re8*Rdot^2/R^2;
     
