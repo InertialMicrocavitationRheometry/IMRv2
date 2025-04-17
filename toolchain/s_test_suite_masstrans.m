@@ -7,7 +7,8 @@
 clc;
 clear;
 
-addpath('../src');
+addpath('../src/forward_solver/');
+addpath('../tests/');
 load('file_ids.mat');
 
 num_tests = 4*2*2*6;

@@ -7,7 +7,7 @@ clc;
 clear;
 
 addpath('../toolchain/');
-addpath('../src');
+addpath('../src/forward_solver/');
 
 num_tests = 4*2*2*2*6;
 errors_fd = zeros(num_tests,1);

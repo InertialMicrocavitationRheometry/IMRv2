@@ -8,7 +8,7 @@ clear;
 close;
 
 addpath('../toolchain/');
-addpath('../src');
+addpath('../src/forward_solver/');
 addpath('../tests/');
 load('file_ids.mat');
 
