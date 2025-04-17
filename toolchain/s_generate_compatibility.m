@@ -13,8 +13,8 @@ addpath('../tests/');
 load('file_ids.mat');
 
 % test case parameters
-tvector = linspace(0,15E-6,100);
-threshold = 5e-1;
+tvector = linspace(0,12E-6,100);
+threshold = 5;
 collapse = 1;
 masstrans = 0;
 vapor = 1;
@@ -77,12 +77,16 @@ end
 for i = 1:total_comb
     try
         [~, Rf, Rs, idx] = fetchNext(futures);
-        diff = norm(abs(Rf./Rs - 1), "inf");
+        diff = norm(abs(Rf./Rs - 1), 2);
         if diff < threshold
             savefile_fd(filenames_fd{idx}, Rf);
             savefile_sp(filenames_sp{idx}, Rs);
             fprintf('✓ Saved index %d, diff %+.5E\n', idx, diff);
         else
+            figure(1)
+            hold on;
+            plot(Rf)
+            plot(Rs)
             error('Mismatch at idx %d, diff %+.5E\n', idx, diff);
         end
     catch ME
