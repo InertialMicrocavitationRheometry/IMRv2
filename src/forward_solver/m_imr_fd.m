@@ -444,10 +444,10 @@ function varargout = m_imr_fd(varargin)
                 Foh/R.*((xi+1)/(2*Lt)-1./yT)).*DTm;
             diffusion = Foh/R^2.*(xi+1).^4/Lt^2.*DDTm/4;
             % stress dissipation
-            [taudivu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
+            [taugradu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
                 Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
                 ivisco2,fnu,DRe);
-            Tmdot = advection + diffusion + taudivu;
+            Tmdot = advection + diffusion + taugradu;
             % sets boundary condition on temperature
             Tmdot(1) = 0;
             Tmdot(end) = 0;
