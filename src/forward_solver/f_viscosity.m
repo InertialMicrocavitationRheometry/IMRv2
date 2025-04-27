@@ -43,6 +43,27 @@ function [f,intf,dintf,ddintf] = f_viscosity(nu_model,Rdot,R,a,nc,lambda)
         % carreau_yasuda
     elseif nu_model == 2
         f = sf_carreau_yasuda(nc,lambda,gammadot_R);
+        % calculating the Leibniz integration rule limit, see Appendix
+        % of the manuscript
+        h = f*gammadot_R*(Rdot/R);
+        % calculating the stress integral for a non-Newtonian model,
+        % goes directly into the E term in the Keller-Miksis equation
+        I1 = integral(@(r) sf_carreau_yasuda_d(r,a,nc,lambda,gammadot_num),...
+            R,Inf,'RelTol',reltol,'AbsTol',abstol);
+        % calculating the time derivative of the stress integral for
+        % a non-Newtonian model, this integral has to two coefficients.
+        % one of the terms is in the E_primber term in m_cavitation,
+        % the other goes in the denominator of the Rdot_dot solution to
+        % account for the Rddot term
+        I2 = integral(@(r) sf_carreau_yasuda_dd(r,a,nc,lambda,gammadot_num),R,Inf,...
+            'RelTol',reltol,'AbsTol',abstol);
+        intf = gammadot_num*I1;
+        % note the additional h term is to account for the Leibniz
+        % integration rule correction
+        dintf = dgammadot*I2 - h;
+        % second term that is used for the denominator of the Rdot_dot
+        % calculation
+        ddintf = ddgammadot*I2;
         % powell_eyring
     elseif nu_model == 3
         f = sf_powell_eyring(nc,lambda,gammadot_R);
@@ -88,6 +109,25 @@ function [f,intf,dintf,ddintf] = f_viscosity(nu_model,Rdot,R,a,nc,lambda)
         f = (1+(lambda).^a.*(gammadot_R).^a).^((nc-1)./a);
     end
     
+    function intf = sf_carreau_yasuda_d(r,a,nc,lambda,gammadot_num)
+        gammadot = gammadot_num./r.^3;
+        % additional r in the denominator is from the stress integral
+        intf = (gammadot./r).*(1+(lambda).^a.*(gammadot).^a).^((nc-1)./a);
+    end
+
+    function dintf = sf_carreau_yasuda_dd(r,a,nc,lambda,gammadot_num)
+        % numerator is multiplied later
+        gammadot = gammadot_num./r.^3;
+        % term inside the power, reduces computation
+        pre_f = (1+(lambda).^a.*(gammadot).^a);
+        % regular f calculation
+        f = pre_f.^((nc-1)./a);
+        % derivative of f with respect to gammadot only
+        dfdgamma = ((nc-1)./a)*pre_f.^((nc-3)./a)*a*lambda^a.*gammadot;
+        % collecting terms for integration
+        dintf = (1./r.^4).*(f+gammadot.*dfdgamma);
+    end
+
     function f = sf_cross(a,lambda,gammadot_R)
         f = 1/(1+(lambda*gammadot_R).^a);
     end
