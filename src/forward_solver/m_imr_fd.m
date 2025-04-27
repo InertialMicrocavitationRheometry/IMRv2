@@ -528,6 +528,7 @@ function varargout = m_imr_fd(varargin)
     % solves temperature boundary conditions at the bubble wall
     function Tauw = Boundary_mass(prelim)
         
+        % no thermal transport in the surroundings
         Tm_trans = ones(2,1);
         T_trans = zeros(2,1);
         
