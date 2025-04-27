@@ -474,8 +474,8 @@ function cdd = preStressInt(L,N)
     % integral precomputations
     Lstr = ['L' num2str(L,18)];
     Lstr = strrep(Lstr,'.','p');
-    if exist('stress_store.mat','file') ~= 0
-        load('stress_store.mat','store');
+    if exist('d_stress_store.mat','file') ~= 0
+        load('d_stress_store.mat','store');
         if isfield(store,Lstr) == 1
             if size(store.(Lstr),2) >= N, Nstart = 0;
             else

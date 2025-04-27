@@ -395,10 +395,6 @@ if spectral == 1
 end
 
 % Keller-Miksis equation
-% if linkv==1 || neoHook==1 || Yeoh==1
-% JdotA = 4/Re8;
-% elseif sls==1 || nhzen==1 || fdkv==1 || zzzen==1 || fdmax==1  % ZZ - Not exactly true for FDKV, but I also don't think this matters ...
-    % JdotA = 0;
 % elseif nhkv_pld==1
 %     %JdotA = 4/Re8*(2^alpha_g+1)/3*(abs(Rdot)/R)^(alpha_g-1);
 %     JdotA = 4/Re8/3*(2^alpha_g+1)*sign(Rdot)*(abs(Rdot)/R)^(alpha_g)*R^2/Rdot^2;
