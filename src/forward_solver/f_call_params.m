@@ -171,11 +171,11 @@ end
 % loading waveform data
 if wave_type < 0
     if wave_type == -1
-        waveform_dir = './waveform_data/hn.mat';
+        waveform_dir = './d_hn.mat';
     elseif wave_type == -2
-        waveform_dir = './waveform_data/mn.mat';
+        waveform_dir = './d_mn.mat';
     elseif wave_type == -3
-        waveform_dir = './waveform_data/ml.mat';
+        waveform_dir = './d_ml.mat';
     end
     wave_poly = load(waveform_dir,'poly');
     wave_dpoly = load(waveform_dir,'dpoly');
