@@ -32,8 +32,9 @@ elseif radial == 2
     
     % Keller-Miksis in enthalpy with Tait EoS
 elseif radial == 3
-    hB = (sam/no)*(((P - iWe/R + GAMa + S)/sam)^no - 1);
-    hH = (sam/(P - iWe/R + GAMa + S))^(1/nstate);
+    Pb = P - iWe/R + GAMa + S;
+    hB = (sam/no)*((Pb/sam)^no - 1);
+    hH = (sam/Pb)^(1/nstate);
     Rddot = ((1 + Rdot/Cstar)*(hB - Pf8) - R/Cstar*Pf8dot ...
         + R/Cstar*hH*(Pdot + iWe*Rdot/R^2 + Sdot) ...
         - 1.5*(1 - Rdot/(3*Cstar))*Rdot^2) / ((1 - Rdot/Cstar)*R + ...
@@ -53,8 +54,8 @@ elseif radial == 4
     
     % Keller-Miksis in enthalpy with Mie-Gruneisen EoS
 elseif radial == 5
-    % nog = (nstate - 1) / 2;
-    [~, hB, hH] = f_mie_gruneisen_eos_scalar(P);
+    Pb = P - iWe/R;
+    [~, hB, hH] = f_mie_gruneisen_eos_scalar(Pb);
     Rddot = ((1 + Rdot/Cstar)*(hB - Pf8) - R/Cstar*Pf8dot ...
         + R/Cstar*hH*(Pdot + iWe*Rdot/R^2 + Sdot) ...
         - 1.5*(1 - Rdot/(3*Cstar))*Rdot^2) / ((1 - Rdot/Cstar)*R + ...
@@ -75,7 +76,7 @@ end
 function [C, hB, hH] = f_mie_gruneisen_eos_scalar(pval)
     
     % normalize pressure
-    A = pval / (rho0 * C0^2);
+    A = pval / Cstar^2;
     As = A*hugoniot_s;
     As2 = A*hugoniot_s^2;
     
@@ -87,13 +88,14 @@ function [C, hB, hH] = f_mie_gruneisen_eos_scalar(pval)
     
     %  density strain
     mu = (-b + sqrt(d)) / (2 * a);
-    C = Cstar*sqrt(((1+2*nog*mu)*(1-s*mu)^2+2*s*mu*(1+nog*mu)*(1-s*mu))/(1-s*mu)^4);
+    C = Cstar*sqrt(((1+2*nog*mu)*(1-hugoniot_s*mu)^2+ ...
+        2*hugoniot_s*mu*(1+nog*mu)*(1-hugoniot_s*mu))/(1-hugoniot_s*mu)^4);
     
     %   hH  - 1 / ρ(P) (for dot{h} = hH * dot{P})
-    hH = 1/(rho0*(1 + mu));
+    hH = 1/(1 + mu);
     
     % compute enthalpy numerically: h(P) = ∫_{Pinf}^{P} (1/ρ(p')) dp'
-    integrand = @(pp) 1 / f_mie_rho_from_p_scalar(pp);
+    integrand = @(pp) f_mie_rho_from_p_scalar(pp);
     % enthalpy: h(P) = ∫_{Pinf}^P (1/ρ(p')) dp'
     hB = integral(integrand, 1, pval, 'AbsTol', 1e-8, 'RelTol', 1e-8);
     
@@ -101,11 +103,12 @@ end
 
 % function to compute rho(p) from Mie–Grüneisen EOS (scalar p)
 function rho = f_mie_rho_from_p_scalar(p)
-    A = p / Cstar^2;
-    a = A*hugoniot_s^2 - nog;
+    A = p ./ Cstar^2;
+    a = A*hugoniot_s.^2 - nog;
     b = -2*A*hugoniot_s - 1;
-    d = b^2 - 4 * a * A;
-    rho = rho0 * (1 + (-b + sqrt(d))/(2*a));
+    
+    d = b.^2 - 4.*a.*A;
+    rho = 1 ./ (1 + (-b + sqrt(d))./(2*a));
 end
 
 end

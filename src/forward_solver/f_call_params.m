@@ -185,7 +185,7 @@ else
 end
 
 check = 1-isnumeric(radial);
-if check || radial > 4 || radial <= 0
+if check || radial > 7 || radial <= 0
     error('INPUT ERROR: radial must be 1, 2, 3, or 4');
 end
 check = 1-isnumeric(bubtherm);

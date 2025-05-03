@@ -114,7 +114,7 @@ function [f,intf,dintf,ddintf] = f_viscosity(nu_model,Rdot,R,a,nc,lambda)
         % additional r in the denominator is from the stress integral
         intf = (gammadot./r).*(1+(lambda).^a.*(gammadot).^a).^((nc-1)./a);
     end
-
+    
     function dintf = sf_carreau_yasuda_dd(r,a,nc,lambda,gammadot_num)
         % numerator is multiplied later
         gammadot = gammadot_num./r.^3;
@@ -127,7 +127,7 @@ function [f,intf,dintf,ddintf] = f_viscosity(nu_model,Rdot,R,a,nc,lambda)
         % collecting terms for integration
         dintf = (1./r.^4).*(f+gammadot.*dfdgamma);
     end
-
+    
     function f = sf_cross(a,lambda,gammadot_R)
         f = 1/(1+(lambda*gammadot_R).^a);
     end
