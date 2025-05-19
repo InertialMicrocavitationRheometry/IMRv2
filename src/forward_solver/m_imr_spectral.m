@@ -11,6 +11,14 @@ function varargout = m_imr_spectral(varargin)
         acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
         = f_call_params(varargin{:});
     
+    % defaults
+    
+    % viscosity parameters
+    fnu             = 0;
+    intfnu          = 0;
+    dintfnu         = 0;
+    ddintfnu        = 0;
+    
     % equations settings
     radial          = eqns_opts(1);
     bubtherm        = eqns_opts(2);
@@ -96,12 +104,6 @@ function varargout = m_imr_spectral(varargin)
     zeNO            = sigma_opts(12);
     iDRe            = sigma_opts(13);
     iWe             = 1/We;
-    
-    % viscosity parameters
-    fnu             = 0;
-    intfnu          = 0;
-    dintfnu         = 0;
-    ddintfnu        = 0;
     
     % dimensionless thermal
     Foh             = thermal_opts(1);
