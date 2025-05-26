@@ -56,8 +56,8 @@ function varargout = m_imr_fd(varargin)
     Szero           = init_stress;
     
     % time span options
-    tspan = tspan_opts;
-    tfin = tspan(end);
+    tspan           = tspan_opts;
+    tfin            = tspan(end);
     
     % output options
     dimensionalout  = out_opts(1);
