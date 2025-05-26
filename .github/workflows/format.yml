@@ -26,7 +26,7 @@ jobs:
         uses: matlab-actions/setup-matlab@v1
 
       - name: Run Auto Indentation
-        uses: matlab-actions/run-command@v2
+        uses: matlab-actions/run-command@v1
         with:
           command: | 
             cd('toolchain');
@@ -38,5 +38,3 @@ jobs:
             echo "Code formatting issues detected. Please run toolchain/s_format.m and commit the changes."
             exit 1
           fi
-
-

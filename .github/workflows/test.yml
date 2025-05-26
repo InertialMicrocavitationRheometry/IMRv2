@@ -40,21 +40,21 @@ jobs:
             Symbolic_Math_Toolbox
 
       - name: Equilibrium test
-        uses: matlab-actions/run-command@v2
+        uses: matlab-actions/run-command@v1
         with:
           command: | 
             cd toolchain;
             s_test_suite_equilibrium;
 
       - name: Compatibility test between FD and Spectral
-        uses: matlab-actions/run-command@v2
+        uses: matlab-actions/run-command@v1
         with:
           command: | 
             cd toolchain;
             s_test_suite_compatibility;
 
       - name: Finite difference mass transfer test
-        uses: matlab-actions/run-command@v2
+        uses: matlab-actions/run-command@v1
         with:
           command: | 
             cd toolchain;
