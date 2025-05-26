@@ -32,9 +32,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up MATLAB
-        uses: matlab-actions/setup-matlab@v2
+        uses: matlab-actions/setup-matlab@v1
         with: 
-          release: R2025a
+          release: R2023a
           products: > 
             MATLAB
             Symbolic_Math_Toolbox
