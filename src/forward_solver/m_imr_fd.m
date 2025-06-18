@@ -44,7 +44,7 @@ function varargout = m_imr_fd(varargin)
     
     % dimensionless initial conditions
     Rzero           = init_opts(1);
-    Uzero           = init_opts(2);
+    Rdotzero        = init_opts(2);
     Pb_star         = init_opts(3);
     P8              = init_opts(4);
     T8              = init_opts(5);
@@ -117,9 +117,9 @@ function varargout = m_imr_fd(varargin)
     
     % dimensionaless mass transfer
     Fom             = mass_opts(1);
-    C0              = mass_opts(2);
+    kv0              = mass_opts(2);
     Rv_star         = mass_opts(3);
-    Ra_star         = mass_opts(4);
+    Rg_star         = mass_opts(4);
     L_heat_star     = mass_opts(5);
     % mv0             = mass_opts(6);
     % ma0             = mass_opts(7);
@@ -127,10 +127,10 @@ function varargout = m_imr_fd(varargin)
     % pre_process
     
     % creates finite difference matrices
-    D_Matrix_T_C = f_finite_diff_mat(Nt,1,0);
-    DD_Matrix_T_C = f_finite_diff_mat(Nt,2,0);
-    D_Matrix_Tm = f_finite_diff_mat(Mt,1,1);
-    DD_Matrix_Tm = f_finite_diff_mat(Mt,2,1);
+    D_Matrix_Tkv  = f_finite_diff_mat(Nt,1,0);
+    DD_Matrix_Tkv = f_finite_diff_mat(Nt,2,0);
+    D_Matrix_Tm   = f_finite_diff_mat(Mt,1,medtherm);
+    DD_Matrix_Tm  = f_finite_diff_mat(Mt,2,medtherm);
     
     % inside the bubble
     N = Nt-1;
@@ -142,10 +142,10 @@ function varargout = m_imr_fd(varargin)
     Nm = Mt-1;
     deltaYm = -2/Nm;
     j = 1:1:Nm+1;
-    xi = (1+(j-1)*deltaYm)';
-    yT = ((2./(xi+1)-1)*Lt+1);
-    yT2 = yT.^2;
-    yT3 = yT.^3;
+    xi   = (1+(j-1)*deltaYm)';
+    yT   = ((2./(xi+1)-1)*Lt+1);
+    yT2  = yT.^2;
+    yT3  = yT.^3;
     iyT3 = yT.^-3;
     iyT4 = yT.^-4;
     iyT6 = yT.^-6;
@@ -160,9 +160,9 @@ function varargout = m_imr_fd(varargin)
     C2_pv = -5200/T8;
     % boundary conditions coefficients
     coeff = [-1.5 , 2 ,-0.5 ];
-    Rva_ratio = Rv_star / Ra_star;
+    Rva_ratio = Rv_star / Rg_star;
     inv_alpha = 1/alpha_g;
-    Rva_diff = Rv_star - Ra_star;
+    Rva_diff = Rv_star - Rg_star;
     grad_Tm_coeff = 2*chi*iota/deltaYm*coeff;
     grad_Trans_coeff = -coeff*chi/deltaY;
     grad_C_coeff = -coeff*Fom*L_heat_star/deltaY;
@@ -199,11 +199,11 @@ function varargout = m_imr_fd(varargin)
     
     % bubble temperature initial condition
     if bubtherm
-        Tau0 = zeros(Nt,1);
+        theta0 = zeros(Nt,1);
     elseif masstrans
-        Tau0 = zeros(1,1);
+        theta0 = zeros(1,1);
     else
-        Tau0 = [];
+        theta0 = [];
     end
     
     % medium initial temperature
@@ -215,18 +215,18 @@ function varargout = m_imr_fd(varargin)
     
     % mass transfer initial condition
     if masstrans
-        C0vec = C0*ones(Nc,1);
+        kv0vec = kv0*ones(Nc,1);
     else
-        C0vec = [];
+        kv0vec = [];
     end
     
     % initial condition vector
     init = [Rzero;
-    Uzero;
+    Rdotzero;
     Pb_star;
-    Tau0;
+    theta0;
     Tm0;
-    C0vec;
+    kv0vec;
     Szero];
     
     guess = -0.0001;
@@ -243,14 +243,14 @@ function varargout = m_imr_fd(varargin)
     Rdot = X(:,2);
     P    = X(:,3);
     if bubtherm
-        Tau = X(:,ibubtherm);
-        T = TW(Tau);
+        theta = X(:,ibubtherm);
+        T = TW(theta);
         if medtherm
             Tm = X(:,imedtherm);
         end
     end
     if masstrans
-        C = X(:,imass);
+        kv = X(:,imass);
     end
     
     % transform variables back into their dimensional form
@@ -281,7 +281,7 @@ function varargout = m_imr_fd(varargin)
         varargout{6} = ((T8 - 1)*dimensionalout + 1)*ones(size(t,1),1);
     end
     if masstrans == 1
-        varargout{7} = C;
+        varargout{7} = kv;
     end
     
     % solver function
@@ -302,16 +302,16 @@ function varargout = m_imr_fd(varargin)
         P = X(3);
         % auxiliary variable for internal bubble temperature
         if bubtherm || masstrans
-            Tau = X(ibubtherm);
+            theta = X(ibubtherm);
         end
         if masstrans
-            C = X(imass);
+            kv = X(imass);
         end
         
         % empty output variables
-        Taudot = [];
+        thetadot = [];
         Tmdot = [];
-        Cdot = [];
+        kvdot = [];
         
         % boundary condition evaluation
         if medtherm && masstrans
@@ -324,109 +324,110 @@ function varargout = m_imr_fd(varargin)
             Tm = X(imedtherm);
             prelim = fzero(@Boundary_medtherm,guess,foptions);
             guess = prelim;
-        elseif masstrans
-            prelim = fzero(@Boundary_mass,guess,foptions);
-            guess = prelim;
         else
             prelim = 0;
         end
-        
+
         if bubtherm || masstrans
-            Tau(end) = prelim;
-            T = TW(Tau);
+            theta(end) = prelim;
+            T = TW(theta);
         end
-        
+
         % equations of motion
-        
         if bubtherm && masstrans
             % vapor concentration at the boundary
-            C(end) =  CW(T(end),P);
-            
+            kv(end) = CW(T(end),P);
             % temperature field of the gas inside the bubble
-            DTau  = D_Matrix_T_C*Tau;
-            DDTau = DD_Matrix_T_C*Tau;
+            Dtheta  = D_Matrix_Tkv*theta;
+            DDtheta = DD_Matrix_Tkv*theta;
             % concentration of vapor inside the bubble
-            DC  = D_Matrix_T_C*C;
-            DDC = DD_Matrix_T_C*C;
-            Rmix = C*Rv_star + (1-C)*Ra_star;
-            RDC = (Rva_diff./Rmix).*DC;
+            Dkv     = D_Matrix_Tkv*kv;
+            DDkv    = DD_Matrix_Tkv*kv;
+            Rmix    = kv*Rv_star + (1-kv)*Rg_star;
+            RDkv    = (Rva_diff./Rmix).*Dkv;
             
             % internal pressure equation
-            Pdot = 3/R*(chi*(kappa-1)*DTau(end)/R - kappa*P*Rdot +...
-                + kappa*P*Fom*Rv_star*DC(end)/(T(end)*R*Rmix(end)*(1-C(end))));
+            Pdot = 3/R*(chi*(kappa-1)*Dtheta(end)/R - kappa*P*Rdot +...
+                + kappa*P*Fom*Rv_star*Dkv(end)/(T(end)*R*Rmix(end)*(1-kv(end))));
             
             % internal bubble velocity
-            U_vel = (chi/R*(kappa-1).*DTau-y*R*Pdot/3)/(kappa*P) + Fom/R*RDC;
+            Uvel = (chi/R*(kappa-1).*Dtheta-y*R*Pdot/3)/(kappa*P) + Fom/R*RDkv;
             
             % calculate mixture thermal conductivity
+            alpha_mix  = kv.*alpha_v + (1-kv).*alpha_g;
             Kstar_g = alpha_g*T+beta_g;
             Kstar_v = alpha_v*T+beta_v;
-            Kstar = C.*Kstar_v + (1-C).*Kstar_g;
+            Kstar   = kv.*Kstar_v + (1-kv).*Kstar_g;
             
             % temperature of the gas inside the bubble
-            nonlinear_term = (chi*DDTau./R^2+Pdot).*(kapover*Kstar.*T/P);
-            advection_term = -DTau.*(U_vel-y*Rdot)./R;
-            mass_diffusion = (Fom/(R^2)).*(Rva_diff./Rmix).*DC.*DTau;
-            Taudot = advection_term + nonlinear_term + mass_diffusion;
-            Taudot(end) = 0;
+            nonlinear_term = (chi*DDtheta./R^2+Pdot).*(kapover*Kstar.*T/P);
+            advection_term = -Dtheta.*(Uvel-y*Rdot)/R;
+            mass_diffusion = (Fom/(R^2)).*(Rva_diff./Rmix).*Dkv.*Dtheta;
+            thetadot = advection_term + nonlinear_term + mass_diffusion;
+            thetadot(end) = 0;
             
             % vapor equations inside the bubble
-            nonlinear_diffusion = DC.*(DTau./(Kstar.*T)+RDC);
-            advection_term =  (U_vel-Rdot.*y)/R.*DC;
-            Cdot = Fom/R^2*(DDC - nonlinear_diffusion) - advection_term;
-            Cdot(end) = 0;
+            nonlinear_diffusion = Dkv.*(Dtheta./(sqrt(1+2*alpha_mix.*theta).*T)+RDkv);
+            advection_term =  (Uvel-Rdot.*y)/R.*Dkv;
+            kvdot = Fom/R^2*(DDkv - nonlinear_diffusion) - advection_term;
+            kvdot(end) = 0; 
             
         elseif bubtherm
             % calculate mixture thermal conductivity
-            Kstar = alpha_g*T+beta_g;
+            Kstar_g = alpha_g*T+beta_g;
+            Kstar_v = alpha_v*T+beta_v;
+            Kstar   = kv0.*Kstar_v + (1-kv0).*Kstar_g;
             
             % temperature gradients
-            DTau  = D_Matrix_T_C*Tau;
-            DDTau = DD_Matrix_T_C*Tau;
+            Dtheta  = D_Matrix_Tkv*theta;
+            DDtheta = DD_Matrix_Tkv*theta;
             
             % internal pressure equation
-            Pdot = 3/R*(chi*(kappa-1)*DTau(end)/R - kappa*P*Rdot);
+            Pdot = 3/R*(chi*(kappa-1)*Dtheta(end)/R - kappa*P*Rdot);
             
             % internal bubble velocity
-            U_vel = (chi/R*(kappa-1).*DTau-y*R*Pdot/3)/(kappa*P);
+            Uvel = (chi/R*(kappa-1).*Dtheta-y*R*Pdot/3)/(kappa*P);
             
             % temperature of the gas inside the bubble
-            diffusion_term = (chi*DDTau./R^2+Pdot).*(kapover*Kstar.*T/P);
-            advection_term = -DTau.*(U_vel-y*Rdot)./R;
-            Taudot = advection_term + diffusion_term;
-            Taudot(end) = 0;
+            diffusion_term = (chi*DDtheta./R^2+Pdot).*(kapover*Kstar.*T/P);
+            advection_term = -Dtheta.*(Uvel-y*Rdot)./R;
+            thetadot = advection_term + diffusion_term;
+            thetadot(end) = 0;
             
         elseif masstrans
             % calculate mixture thermal conductivity
-            Kstar = alpha_g*T+beta_g;
+            Kstar_g = alpha_g*T+beta_g;
+            Kstar_v = alpha_v*T+beta_v;
+            Kstar   = kv.*Kstar_v + (1-kv).*Kstar_g;
             
             % computing mass transfer at the wall
-            C(end) = CW(T,P);
+            kv(end) = CW(T,P);
             % calculate mass transfer variable
-            Rmix = C*Rv_star + (1-C)*Ra_star;
+            Rmix = kv*Rv_star + (1-kv)*Rg_star;
             % concentration of vapor inside the bubble
-            DC  = D_Matrix_T_C*C;
-            DDC = DD_Matrix_T_C*C;
-            RDC = (Rva_diff./Rmix).*DC;
+            Dkv  = D_Matrix_Tkv*kv;
+            DDkv = DD_Matrix_Tkv*kv;
+            RDkv = (Rva_diff./Rmix).*Dkv;
             
             % internal pressure equation
             Pdot = 3/R*(-kappa*P*Rdot + ...
-                kappa*P*Fom*Rv_star*DC(end)/(T*R*Rmix(end)*(1-C(end))));
+                kappa*P*Fom*Rv_star*Dkv(end)/(T*R*Rmix(end)*(1-kv(end))));
             
             % internal bubble velocity
-            U_vel = (-y*R*Pdot/3)/(kappa*P) + Fom/R*RDC;
+            Uvel = (-y*R*Pdot/3)/(kappa*P) + Fom/R*RDkv;
             
             % temperature of the gas inside the bubble
-            Taudot = Pdot.*(kapover*Kstar.*T/P);
+            thetadot = Pdot.*(kapover*Kstar.*T/P);
             
             % vapor concentration equation
-            nonlinear_diffusion = RDC.*DC;
-            advection =  (U_vel-Rdot.*y)/R.*DC;
-            Cdot = Fom/R^2*(DDC - nonlinear_diffusion) - advection;
-            Cdot(end) = 0;
+            nonlinear_diffusion = RDkv.*Dkv;
+            advection =  (Uvel-Rdot.*y)/R.*Dkv;
+            kvdot = Fom/R^2*(DDkv - nonlinear_diffusion) - advection;
+            kvdot(end) = -(Rv_star/Rg_star)*(Pdot/Pv_star)*(kv(end))^2;
         else
-            % polytropic gas
-            Pdot = -3*kappa*Rdot/R*P;
+            % polytropic gas + vapor
+            P = (Pb_star-Pv_star)*(1/R)^(3*kappa) + Pv_star;
+            Pdot = 0;
         end
         
         % updating the viscous forces/Reynolds number
@@ -471,9 +472,9 @@ function varargout = m_imr_fd(varargin)
         dXdt = [Rdot;
         Rddot;
         Pdot;
-        Taudot;
+        thetadot;
         Tmdot;
-        Cdot;
+        kvdot;
         Z1dot;
         Z2dot];
         
@@ -484,30 +485,30 @@ function varargout = m_imr_fd(varargin)
     
     % calculates the temperature at the bubble wall as a function of \tau
     function Tw = TW(Tauw)
-        Tw = (alpha_g -1 + sqrt(1+2*Tauw*alpha_g)) / alpha_g;
+        Tw = (alpha_g - 1 + sqrt(1+2*Tauw*alpha_g)) / alpha_g;
     end
     
     % calculates the concentration at the bubble wall
     function Cw = CW(Tw,P)
-        theta = Rv_star/Ra_star*(P./(f_pvsat(Tw*T8)/P8)-1);
-        Cw = 1./(1+theta);
+        theta_var = Rv_star/Rg_star*(P/(f_pvsat(Tw*T8)/P8)-1);
+        Cw = 1./(1+theta_var);
     end
     
     % solves temperature boundary conditions at the bubble wall
     function Tauw = Boundary_full(prelim)
         
         Tm_trans = Tm(2:3);
-        T_trans = Tau(end-1:-1:end-2);
+        T_trans = theta(end-1:-1:end-2);
         
         Tw_prelim = inv_alpha*(alpha_g - 1 + sqrt(1+2*prelim*alpha_g));
         Pv_prelim = C1_pv*exp(C2_pv/Tw_prelim);
         demCw = (1 + (Rva_ratio) * (P ./ Pv_prelim - 1));
         Cw_prelim = 1 / demCw;
         
-        C_trans = C(end-1:-1:end-2);
+        C_trans = kv(end-1:-1:end-2);
         Tauw = grad_Tm_coeff * [Tw_prelim; Tm_trans]  + ...
             grad_Trans_coeff * [prelim ;T_trans] + ...
-            grad_C_coeff * P * ((Cw_prelim * Rva_diff + Ra_star))^-1 * ...
+            grad_C_coeff * P * (Cw_prelim * Rva_diff + Rg_star)^-1 * ...
             (Tw_prelim * (1 - Cw_prelim))^-1 * [Cw_prelim;
         C_trans];
         
@@ -517,7 +518,7 @@ function varargout = m_imr_fd(varargin)
     function Tauw = Boundary_medtherm(prelim)
         
         Tm_trans = Tm(2:3);
-        T_trans = Tau(end-1:-1:end-2);
+        T_trans = theta(end-1:-1:end-2);
         
         Tw_prelim = inv_alpha*(alpha_g - 1 + sqrt(1+2*prelim*alpha_g));
         
@@ -526,28 +527,7 @@ function varargout = m_imr_fd(varargin)
         T_trans];
         
     end
-    
-    % solves temperature boundary conditions at the bubble wall
-    function Tauw = Boundary_mass(prelim)
-        
-        % no thermal transport in the surroundings
-        Tm_trans = ones(2,1);
-        T_trans = zeros(2,1);
-        
-        Tw_prelim = inv_alpha*(alpha_g - 1 + sqrt(1+2*prelim*alpha_g));
-        Pv_prelim = C1_pv*exp(C2_pv/Tw_prelim);
-        demCw = (1 + (Rva_ratio) * (P ./ Pv_prelim - 1));
-        Cw_prelim = 1 / demCw;
-        
-        C_trans = C(end-1:-1:end-2);
-        Tauw = grad_Tm_coeff * [Tw_prelim; Tm_trans]  + ...
-            grad_Trans_coeff * [prelim ;T_trans] + ...
-            grad_C_coeff * P * ((Cw_prelim * Rva_diff + Ra_star))^-1 * ...
-            (Tw_prelim * (1 - Cw_prelim))^-1 * [Cw_prelim;
-        C_trans];
-        
-    end
-    
+       
     % Creates finite difference matrices
     % Nodes: Number of nodes
     % order: order of differentiation ( 1st derivative vs 2nd derivative)

@@ -80,10 +80,8 @@ for n = 1:2:nargin
         % initial options
         case 'collapse',    collapse = varargin{n+1};
         case 'r0',          R0 = varargin{n+1};
-        P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         case 'u0',          U0 = varargin{n+1};
         case 'req',         Req = varargin{n+1};
-        P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         case 'stress0',     Szero = varargin{n+1};
         
         % output options
@@ -114,7 +112,6 @@ for n = 1:2:nargin
         case 'lambda2',     lambda2 = varargin{n+1};
         case 'alphax',      alphax = varargin{n+1};
         case 'surft',       S = varargin{n+1};
-        % P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         
         % non-Newtonian viscosity options
         case 'du',          Dmu         = varargin{n+1};
@@ -145,7 +142,6 @@ for n = 1:2:nargin
         
         % pressure options
         case 'pv',          Pv = varargin{n+1};
-        P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         case 'p0',          P0 = varargin{n+1};
         
         otherwise,          misscount = misscount + 1;
@@ -156,12 +152,16 @@ end
 if tempset == 1
     % recalculating the vapor pressure
     Pv = vapor*f_pvsat(T8);
-    P0 = (P8 + 2*S/Req - Pv)*(Req/R0)^3;
+    P0 = (P8 + 2*S/Req - Pv)*(Req/R0)^(3);
 end
 if p0set == 0
     % need to add Pv_sat at room temp
     Pv = vapor*f_pvsat(T8);
-    P0 = (P8 + 2*S/Req - Pv)*(Req/R0)^3;
+    if bubtherm == 0 
+        P0 = (P8 + 2*S/Req - Pv)*(Req/R0)^(3*kappa);
+    else
+        P0 = (P8 + 2*S/Req - Pv)*(Req/R0)^3;        
+    end
 end
 if dmset == 0
     % (m^2/s) thermal diffusivity
@@ -184,8 +184,8 @@ else
     wave_dpoly = [];
 end
 
-check = 1-isnumeric(radial);
-if check || radial > 7 || radial <= 0
+check = isnumeric(radial);
+if check && radial > 7 || radial <= 0
     error('INPUT ERROR: radial must be 1, 2, 3, or 4');
 end
 check = 1-isnumeric(bubtherm);
@@ -196,6 +196,12 @@ check = 1-isnumeric(medtherm);
 if check || medtherm ~= 0 && medtherm ~= 1
     error('INPUT ERROR: medtherm must be 0 or 1');
 end
+if bubtherm == 0 && medtherm ~= 0 
+    error('INPUT ERROR: medtherm must be 0 if bubtherm = 0');
+end
+if medtherm == 1 && bubtherm ~= 1
+    error('INPUT ERROR: bubtherm must be 1 if medtherm = 1');
+end
 check = 1-isnumeric(stress);
 if check || stress > 5 || stress < 0
     error('INPUT ERROR: stress must be between 0 to 5');
@@ -204,10 +210,11 @@ check = 1-isnumeric(vapor);
 if check || vapor ~= 0 && vapor ~= 1
     error('INPUT ERROR: vapor must be 0 or 1');
 end
-check = 1-isnumeric(masstrans);
-if check || masstrans ~= 0 && masstrans ~= 1
+check = isnumeric(masstrans);
+if check && masstrans ~= 0 && masstrans ~= 1
     error('INPUT ERROR: masstrans must be 0 or 1');
-elseif check || masstrans == 1 && vapor == 0
+end
+if check && masstrans == 1 && vapor == 0
     error('INPUT ERROR: if masstrans is 1 you must have vapor be 1')
 end
 check = 1-isnumeric(wave_type);
@@ -220,61 +227,67 @@ end
 if TVector == 0
     TVector = [0 TFin];
 end
+check = 1-isnumeric(collapse);
+if check || collapse ~= 0 && collapse ~= 1
+    error('INPUT ERROR: vapor must be 0 or 1');
+end
+if collapse == 1 && (bubtherm ~= 1 || medtherm ~= 1 || masstrans ~= 1 || vapor ~= 1)
+    error('INPUT ERROR: collapse must have full model with vapor');
+end
 
 % intermediate calculated variables
 
 % far-field thermal conductivity (W/(m K))
-K8      = ATg*T8+BTg;
+K8          = ATg*T8+BTg;
 % dimensional parameter for gas constants
-Rnondim = P8/(rho8*T8);
+Rnondim     = P8/(rho8*T8);
 % characteristic velocity (m/s)
-Uc      = sqrt(P8/rho8);
+Uc          = sqrt(P8/rho8);
 
-% Final non-dimensional variables
-Pref    = P8;
-% dimensionless vapor and infinity pressure
-Pv_star = vapor*Pv/Pref;
-P0_star = P0/Pref;
+% final non-dimensional variables
+Pref        = P8;
+% dimensionless infinity pressure
+P0_star     = P0/Pref;
+% dimensionless vapor pressure
+Pv_star     = vapor*f_pvsat(T8)/P8;
 % characteristic time (s)
-t0      = R0/Uc;
+t0          = R0/Uc;
 
 % dimensionless waveform parameters
-tvector = TVector./t0;
+tvector     = TVector./t0;
 % non-dimensional frequency
-om      = omega*t0;
-ee      = pA/Pref;
-tw      = TW*t0;
-dt      = DT/t0;
+om          = omega*t0;
+ee          = pA/Pref;
+tw          = TW*t0;
+dt          = DT/t0;
 % acoustic properties
 
 % bulk liquid stiffness
-GAMa    = GAM/P8;
+GAMa        = GAM/P8;
 % speed of sound
-Cstar   = C8/Uc;
+Cstar       = C8/Uc;
 % thermal properties
-chi     = T8*K8/(P8*R0*Uc);
-iota    = Km/(K8*Lt);
-Foh     = Dm/(Uc*R0);
-alpha_g   = ATg*T8/K8;
-beta_g    = BTg/K8;
-alpha_v   = ATv*T8/K8;
-beta_v   = BTv/K8;
-Br      = Uc^2/(Cp*T8);
+chi         = T8*K8/(P8*R0*Uc);
+iota        = Km/(K8*Lt);
+Foh         = Dm/(Uc*R0);
+alpha_g     = ATg*T8/K8;
+beta_g      = BTg/K8;
+alpha_v     = ATv*T8/K8;
+beta_v      = BTv/K8;
+Br          = Uc^2/(Cp*T8);
 % mass diffusion
-Fom     = D0/(Uc*R0);
+Fom         = D0/(Uc*R0);
 % mass of vapor
-mv0     = Pv*vapor*(4/3*pi*R0^3)/Rv/T8;
+mv0         = vapor*Pv*(4/3*pi*R0^3)/Rv/T8;
 % mass of non-condensible gas
-ma0     = P0*(4/3*pi*R0^3)/Ra/T8;
-Mnondim = rho8*(4/3*pi*R0^3);
-mv0     = mv0/Mnondim;
-ma0     = ma0/Mnondim;
-Rv_star = Rv/Rnondim;
-Ra_star = Ra/Rnondim;
-% mass air / mass vapor
-theta = Rv_star/Ra_star*(P0_star-Pv_star)/Pv_star;
-% initial vapor concentration
-C0 = 1/(1+theta);
+ma0         = P0*(4/3*pi*R0^3)/Ra/T8;
+Mnondim     = rho8*(4/3*pi*R0^3);
+mv0         = mv0/Mnondim;
+ma0         = ma0/Mnondim;
+Rv_star     = Rv/Rnondim;
+Ra_star     = Ra/Rnondim;
+
+% non-dimensional latent heat
 L_heat_star = L_heat/(Uc)^2;
 
 % viscoelastic properties
@@ -295,8 +308,7 @@ else
 end
 
 % Weber number
-log_We = log(0.5) + log(Pref) + log(R0) - log(S);
-We = exp(log_We);
+We = Pref*R0/(2*S);
 % relaxation time
 v_lambda_star = v_lambda/t0;
 % Weissenberg number
@@ -305,7 +317,8 @@ LAM     = lambda2/lambda1;
 De      = lambda1*Uc/R0;
 % dimensionless initial conditions
 Rzero   = 1;
-Uzero   = U0/Uc;
+Req_zero = Req/R0; 
+Rdotzero= U0/Uc;
 
 % overwrite defaults with nondimensional inputs
 if isempty(varargin) == 0
@@ -338,7 +351,7 @@ if isempty(varargin) == 0
             case 'iota',    iota = varargin{n+1};
             % dimensionless initial conditions
             case 'rzero',   Rzero = varargin{n+1};
-            case 'uzero',   Uzero = varargin{n+1};
+            case 'rdotzero',Rdotzero = varargin{n+1};
             case 'p0star',  P0_star = varargin{n+1};
             otherwise
             misscount = misscount + 1;
@@ -351,12 +364,6 @@ if misscount ~= nargin/2
 end
 
 % final setting adjustments
-if bubtherm == 0
-    medtherm = 0;
-end
-if medtherm == 1
-    bubtherm = 1;
-end
 
 % 1 : N-H, 2: qN-H, 3: linear Maxwell, Jeffreys, Zener, 5: UCM or OldB, 6: PTT, 7: Giesekus
 if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4
@@ -415,35 +422,25 @@ end
 
 % inertial Rayleigh collapse out of equilibrium initial conditions
 opts = optimset('display','off');
-if collapse && vapor
-    
-    Pv = f_pvsat(T8)/P8;
-    % Calculate the equilibrium radii ratio for initial stress state:
-    ma0 = P0_star/Ra_star;
-    % parameterized function
-    fun = @(x) Pv*(1+(ma0/x)*(Ra_star/Rv_star))-1-1/We*(Pv/(Rv_star*x))^(1/3);
-    MTotal0 = P0_star/Ra_star + Pv/Rv_star;
+if collapse 
+    % calculate the equilibrium radii ratio for initial stress state
+    fun = @(x) Pv_star*(1+(ma0/x)*(Ra_star/Rv_star))-1-(1/We)*(Pv_star/(Rv_star*x))^(1/3);
+    MTotal0 = ma0 + mv0;
     MVE = fzero(fun,MTotal0,opts);
     while (isnan(MVE))
         MTotal0 = MTotal0/1.11;
         MVE = fzero(fun,MTotal0,opts);
     end
-    Pb_star = P0_star + Pv;
-    % Need to recalculate initial concentration, mass air / mass vapor
-    theta = Rv_star/Ra_star*(Pb_star/Pv-1);
-    C0 = 1/(1+theta);
-    Req = (Rv_star*MVE/Pv)^(1/3);
-    
-else
-    
-    Pv = f_pvsat(T8)/P8*vapor;
-    Pb_star = P0_star + Pv;
-    Req = Req/R0;
-    
 end
-
-Pv_star = Pv;
-Req_zero = Req;
+Pb_star = P0_star + Pv_star;
+% initial concentration, mass air / mass vapor
+theta = Rv_star/Ra_star*(Pb_star/Pv_star - 1);
+C0 = 1/(1+theta);
+if collapse
+    Req_zero = (Rv_star*MVE/Pv_star)^(1/3);
+    fprintf('New equilibrium radius, Req = %.8f\n',Req_zero);
+    Rdotzero = 0;%-(1-Pb_star)/(Cstar);
+end
 
 % initial stress field for bubble collapse
 if stress < 3
@@ -468,7 +465,7 @@ eqns_opts = [radial bubtherm medtherm stress eps3 masstrans];
 % solver options
 solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
 % dimensionless initial conditions
-init_opts = [Rzero Uzero Pb_star P8 T8 Pv_star Req_zero alphax];
+init_opts = [Rzero Rdotzero Pb_star P8 T8 Pv_star Req_zero alphax];
 % dimensionaless initial stress
 init_stress = Szero;
 % time span options

@@ -88,7 +88,7 @@ wave_type       = 0;
 % stress options
 
 % (N/m) Liquid Surface Tension
-S               = 0.072;
+S               = 0.07;
 % (Pa) Medium Shear Modulus
 G               = 1e3;
 % relaxation time (s)
@@ -130,10 +130,14 @@ D0              = 24.2e-6;
 L_heat          = 2264.76e3;
 % (J/mol-K) universal gas constant
 Ru              = 8.3144598;
+% (kg/mol) molecular weight of vapor 
+mwv = 18.01528E-3;          
+% (kg/mol) molecular weight of non-vapor gas (air)
+mwg = 28.966E-3;            
 % (J/Kg-K) gas constant vapor
-Rv              = Ru/(18.01528e-3);
+Rv              = Ru/mwv;
 % (J/Kg-K) gas constant air
-Ra              = Ru/(28.966e-3);
+Ra              = Ru/mwg;
 
 % viscosity variables
 
