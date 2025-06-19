@@ -157,10 +157,10 @@ end
 if p0set == 0
     % need to add Pv_sat at room temp
     Pv = vapor*f_pvsat(T8);
-    if bubtherm == 0 
+    if bubtherm == 0
         P0 = (P8 + 2*S/Req - Pv)*(Req/R0)^(3*kappa);
     else
-        P0 = (P8 + 2*S/Req - Pv)*(Req/R0)^3;        
+        P0 = (P8 + 2*S/Req - Pv)*(Req/R0)^3;
     end
 end
 if dmset == 0
@@ -196,7 +196,7 @@ check = 1-isnumeric(medtherm);
 if check || medtherm ~= 0 && medtherm ~= 1
     error('INPUT ERROR: medtherm must be 0 or 1');
 end
-if bubtherm == 0 && medtherm ~= 0 
+if bubtherm == 0 && medtherm ~= 0
     error('INPUT ERROR: medtherm must be 0 if bubtherm = 0');
 end
 if medtherm == 1 && bubtherm ~= 1
@@ -238,7 +238,7 @@ end
 % intermediate calculated variables
 
 % far-field thermal conductivity (W/(m K))
-K8          = ATg*T8+BTg;
+K8          = 0.5*(ATg*T8+BTg + ATv*T8+BTv);
 % dimensional parameter for gas constants
 Rnondim     = P8/(rho8*T8);
 % characteristic velocity (m/s)
@@ -317,7 +317,7 @@ LAM     = lambda2/lambda1;
 De      = lambda1*Uc/R0;
 % dimensionless initial conditions
 Rzero   = 1;
-Req_zero = Req/R0; 
+Req_zero = Req/R0;
 Rdotzero= U0/Uc;
 
 % overwrite defaults with nondimensional inputs
@@ -422,7 +422,7 @@ end
 
 % inertial Rayleigh collapse out of equilibrium initial conditions
 opts = optimset('display','off');
-if collapse 
+if collapse
     % calculate the equilibrium radii ratio for initial stress state
     fun = @(x) Pv_star*(1+(ma0/x)*(Ra_star/Rv_star))-1-(1/We)*(Pv_star/(Rv_star*x))^(1/3);
     MTotal0 = ma0 + mv0;
@@ -435,11 +435,12 @@ end
 Pb_star = P0_star + Pv_star;
 % initial concentration, mass air / mass vapor
 theta = Rv_star/Ra_star*(Pb_star/Pv_star - 1);
-C0 = 1/(1+theta);
+kv0 = 1/(1+theta);
 if collapse
     Req_zero = (Rv_star*MVE/Pv_star)^(1/3);
     fprintf('New equilibrium radius, Req = %.8f\n',Req_zero);
-    Rdotzero = 0;%-(1-Pb_star)/(Cstar);
+    Rdotzero = 0;
+    %-(1-Pb_star)/(Cstar);
 end
 
 % initial stress field for bubble collapse
@@ -484,6 +485,6 @@ sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iD
 % dimensionless thermal
 thermal_opts = [Foh Br alpha_g beta_g alpha_v beta_v chi iota];
 % dimensionaless mass transfer
-mass_opts = [Fom C0 Rv_star Ra_star L_heat_star mv0 ma0];
+mass_opts = [Fom kv0 Rv_star Ra_star L_heat_star mv0 ma0];
 
 end

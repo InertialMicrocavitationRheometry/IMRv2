@@ -6,8 +6,8 @@ addpath(genpath('src'));
 
 % equation options
 R0 = 100e-6;
-Req = R0/8;
-tfin = R0; %160E-6;
+Req = R0/10;
+tfin = 1.5*R0; %160E-6;
 kappa = 1.4;
 Lheat = 2.378193575129533e+04;
 T8 = 298.15;
@@ -17,7 +17,7 @@ Gelastic = 0;
 tvector = linspace(0,tfin,500);
 radial = 2;
 vapor = 1;
-collapse = 0;
+collapse = 1;
 bubtherm = 1;
 medtherm = 1;
 masstrans = 1;
@@ -43,7 +43,8 @@ varin = {'progdisplay',0,...
          't8',T8,...
          'rho8',rho8};
 
-[t1,R1,~] = m_imr_fd(varin{:},'Nt',100,'Mt',70);
+%[t1,R1,R1dot,P,T,Tm,kv] = m_imr_fd(varin{:},'Nt',100,'Mt',70);
+[t1,R1,~] = m_imr_spectral(varin{:},'Nt',10,'Mt',10);
 
 figure(1)
 hold on;

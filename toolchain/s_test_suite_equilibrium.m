@@ -29,10 +29,13 @@ tvector = linspace(0,tfin,100);
 % equation options
 count = 1;
 for radial = 1:4
-    for vapor = 0:1
-        for bubtherm = 0:1
-            for medtherm = 0:1
-                for stress = 0:5
+    for bubtherm = 0:1
+        for medtherm = 0:1
+            for vapor = 0:1
+                for stress = 0:5                    
+                    if bubtherm == 0 && medtherm == 1
+                        continue;
+                    end
                     varin = {'radial',radial,...
                         'bubtherm',bubtherm,...
                         'masstrans',masstrans,...

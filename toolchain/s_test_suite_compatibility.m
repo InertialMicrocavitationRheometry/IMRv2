@@ -41,7 +41,9 @@ for radial = 1:4
                     for Gidx = 1:2
                         for alphaxidx = 1:2
                             for lambda1idx = 1:2
-                                
+                                if bubtherm == 0 && medtherm == 1
+                                    continue;
+                                end
                                 mu = muvec(muidx);
                                 G = Gvec(Gidx);
                                 alphax = alphaxvec(alphaxidx);

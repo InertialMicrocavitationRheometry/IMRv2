@@ -13,7 +13,7 @@ function varargout = m_imr_spectral(varargin)
     
     % defaults
     
-    % viscosity parameters
+    % non-Newtonian viscosity parameters
     fnu             = 0;
     intfnu          = 0;
     dintfnu         = 0;
@@ -57,7 +57,6 @@ function varargout = m_imr_spectral(varargin)
     
     % time span options
     tspan = tspan_opts;
-    tfin = tspan(end);
     
     % output options
     dimensionalout  = out_opts(1);
@@ -211,7 +210,7 @@ function varargout = m_imr_spectral(varargin)
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
         nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'spectral');
     bubble = @SVBDODE;
-    [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin);
+    [t,X] = f_odesolve(bubble, init, method, divisions, tspan);
     
     % post processing
     
@@ -225,7 +224,7 @@ function varargout = m_imr_spectral(varargin)
     if bubtherm
         T = (alpha_g-1+sqrt(1+2*alpha_g*gA*a))/alpha_g;
         if medtherm
-            TL = mA*b;
+            Tm = mA*b;
         end
     else
         T = R.^(-3*kappa);
@@ -269,7 +268,7 @@ function varargout = m_imr_spectral(varargin)
         end
         if bubtherm == 1
             if medtherm == 1
-                TL = TL*T8;
+                Tm = Tm*T8;
             end
         end
     end
@@ -281,7 +280,7 @@ function varargout = m_imr_spectral(varargin)
     varargout{4} = P;
     varargout{5} = T;
     if bubtherm == 1 && medtherm == 1
-        varargout{6} = TL;
+        varargout{6} = Tm;
     else
         varargout{6} = ((T8 - 1)*dimensionalout + 1)*ones(size(t,1),1);
     end
@@ -295,9 +294,14 @@ function varargout = m_imr_spectral(varargin)
         end
         
         % extract standard inputs
+        
+        % bubble wall radius
         R = X(1);
+        % bubble wall velocity
         Rdot = X(2);
+        % internal bubble pressure
         P = X(3);
+        % thermal vector in and outside the bubble
         qdot = [];
         
         % updating the viscous forces/Reynolds number
@@ -309,58 +313,61 @@ function varargout = m_imr_spectral(varargin)
         % non-condensible gas pressure and temperature
         if bubtherm
             % extract auxiliary temperature
-            SI = gA*X(ia);
+            theta = gA*X(ia);
             % auxiliary temperature derivatives
             
             % first order derivative
-            dSI = gAPd*SI;
+            dtheta = gAPd*theta;
             % second order derivative
-            ddSI = gAPdd*SI;
+            ddtheta = gAPdd*theta;
             % temperature and thermal diffusivity fields
-            T = (alpha_g - 1 + sqrt(1+2*alpha_g*SI))/alpha_g;
+            T = (alpha_g - 1 + sqrt(1+2*alpha_g*theta))/alpha_g;
             D = kapover*(alpha_g*T.^2 + beta_g*T)/P;
             
             % internal bubble pressure
-            Pdot = 3/R*((kappa-1)*chi/R*dSI(1) - kappa*P*Rdot);
+            Pdot = 3/R*((kappa-1)*chi/R*dtheta(1) - kappa*P*Rdot);
             
             % internal bubble velocity
-            U_vel = chi/R^2*(2*D./y - kapover/P*(dSI-dSI(1)*y));
+            U_vel = chi/R^2*(2*D./y - kapover/P*(dtheta-dtheta(1)*y));
             
             % auxiliary temperature derivative
-            SIdot = Pdot*D + U_vel.*dSI + chi*D/R^2.*ddSI;
+            thetadot = Pdot*D + U_vel.*dtheta + chi*D/R^2.*ddtheta;
             
-            SIdot(end) = Pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
-                + kapover/P*dSI(end)^2) + chi*D(end)/R^2.*ddSI(end);
+            thetadot(end) = Pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
+                + kapover/P*dtheta(end)^2) + chi*D(end)/R^2.*ddtheta(end);
             
             if medtherm % warm-liquid
                 % extract medium temperature
-                TL = mA*X(ib);
+                Tm = mA*X(ib);
                 
                 % new derivative of medium temperature
                 advection = (1+xi).^2/(Lt*R).*...
                     (Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
-                    Rdot/2*(1./yT2 - yT)).*(mAPd*TL);
-                diffusion = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
+                    Rdot/2*(1./yT2 - yT)).*(mAPd*Tm);
+                diffusion = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*Tm);
+                % stress dissipation
                 [taugradu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
                     Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
                     ivisco2,fnu,DRe);
-                TLdot = advection + diffusion + taugradu;
+                Tmdot = advection + diffusion + taugradu;
                 
-                % enforce boundary condition and solve
-                TLdot(end) = 0;
+                % enforce boundary condition and solve A*x=b problem
+                Tmdot(end) = 0;
                 qdot = [ones(1,Nt+1) -(alpha_g*(T(1)-1)+1)*ones(1,Mt+1); Q]...
                     \[0;
-                SIdot(2:end);
-                TLdot(2:end);
+                thetadot(2:end);
+                Tmdot(2:end);
                 0];
-            else % cold-liquid approximation
+            else
+                % cold-liquid approximation
                 % solve auxiliary temperature with boundary condition
                 qdot = gAI*[0;
-                SIdot(2:end)];
+                thetadot(2:end)];
             end
         else
-            % polytropic approximation
-            Pdot = -3*kappa*Rdot/R*P;
+            % polytropic gas + vapor
+            P = (Pb_star-Pv_star)*(1/R)^(3*kappa) + Pv_star;
+            Pdot = 0;
         end
         
         % pressure waveform

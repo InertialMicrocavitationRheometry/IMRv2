@@ -130,10 +130,10 @@ D0              = 24.2e-6;
 L_heat          = 2264.76e3;
 % (J/mol-K) universal gas constant
 Ru              = 8.3144598;
-% (kg/mol) molecular weight of vapor 
-mwv = 18.01528E-3;          
+% (kg/mol) molecular weight of vapor
+mwv = 18.01528E-3;
 % (kg/mol) molecular weight of non-vapor gas (air)
-mwg = 28.966E-3;            
+mwg = 28.966E-3;
 % (J/Kg-K) gas constant vapor
 Rv              = Ru/mwv;
 % (J/Kg-K) gas constant air

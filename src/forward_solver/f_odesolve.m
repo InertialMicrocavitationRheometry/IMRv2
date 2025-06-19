@@ -4,12 +4,12 @@
 % brief This function computes time marching for the ODE and PDE system of
 % equations computed as part of the IMR solver. The function features known
 % integration functions: ODE15, ODE23tb (most stable), and ODE45.
-function [t,X] = f_odesolve(bubble, init, method, divisions, tspan, tfin)
+function [t,X] = f_odesolve(bubble, init, method, divisions, tspan)
     
     if divisions == 0
         options = odeset('RelTol',1e-8,'AbsTol',1e-8);
     else
-        options = odeset('MaxStep',tfin/divisions,'RelTol',1e-8);
+        options = odeset('MaxStep',tspan(end)/divisions,'RelTol',1e-8);
     end
     
     if method == 15
