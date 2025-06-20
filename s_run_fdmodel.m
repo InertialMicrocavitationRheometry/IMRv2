@@ -12,7 +12,7 @@ kappa = 1.4;
 Lheat = 2.378193575129533e+04;
 T8 = 298.15;
 rho8 = 998.2;
-mu = 0;
+mu = 1e-2;
 Gelastic = 0;
 tvector = linspace(0,tfin,500);
 radial = 2;
@@ -43,10 +43,11 @@ varin = {'progdisplay',0,...
          't8',T8,...
          'rho8',rho8};
 
-%[t1,R1,R1dot,P,T,Tm,kv] = m_imr_fd(varin{:},'Nt',100,'Mt',70);
-[t1,R1,~] = m_imr_spectral(varin{:},'Nt',10,'Mt',10);
+[tfd,Rfd,Rfddot,Pfd,Tfd,Tmfd,kvfd] = m_imr_fd(varin{:},'Nt',100,'Mt',70);
+% [tsp,Rsp,Rspdot,Psp,Tsp,Tmsp,kvsp] = m_imr_spectral(varin{:},'Nt',10,'Mt',10);
 
 figure(1)
 hold on;
-plot(t1,R1,'b-');
+plot(tfd,Rfd,'b-');
+% plot(tsp,Rsp,'r.-');
 ylim([0 1]);

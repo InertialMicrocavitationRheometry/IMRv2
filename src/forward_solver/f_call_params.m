@@ -472,7 +472,7 @@ init_stress = Szero;
 % time span options
 tspan_opts = tvector;
 % output options
-out_opts = [dimensionalout progdisplay];
+out_opts = [dimensionalout progdisplay t0 R0 Uc];
 
 % physical parameters
 

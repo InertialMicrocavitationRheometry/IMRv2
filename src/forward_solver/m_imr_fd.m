@@ -61,7 +61,10 @@ function varargout = m_imr_fd(varargin)
     % output options
     dimensionalout  = out_opts(1);
     progdisplay     = out_opts(2);
-    
+    tref            = out_opts(3);
+    Rref            = out_opts(4);
+    Uref            = out_opts(5);
+
     % physical parameters
     
     % acoustic parameters
@@ -250,7 +253,7 @@ function varargout = m_imr_fd(varargin)
         T = f_theta_of_T(theta,kv0);
         if medtherm
             Tm = X(:,imedtherm);
-            % boundary condition matching
+            % boundary condition matching at the bubble wall
             Tm(:,1) = T(:,end);
         end
     end
@@ -262,10 +265,10 @@ function varargout = m_imr_fd(varargin)
     
     % transform variables back into their dimensional form
     if (dimensionalout == 1)
-        t = t*tc;
+        t = t*tref;
         R = R*Rref;
-        Rdot = Rdot*uc;
-        P = P*p0;
+        Rdot = Rdot*Uref;
+        P = P*P8;
         if bubtherm
             T = T*T8;
         end
@@ -281,6 +284,8 @@ function varargout = m_imr_fd(varargin)
     varargout{4} = P;
     if bubtherm
         varargout{5} = T;
+    else
+        varargout{5} = [];
     end
     if medtherm == 1
         varargout{6} = Tm;
@@ -289,6 +294,8 @@ function varargout = m_imr_fd(varargin)
     end
     if masstrans == 1
         varargout{7} = kv;
+    else
+        varargout{7} = [];
     end
     
     % solver function
@@ -326,11 +333,13 @@ function varargout = m_imr_fd(varargin)
             Tm = X(imedtherm);
             theta_bw = fzero(@f_bubble_wall_full_bc,theta_bw_guess,foptions);
             theta_bw_guess = theta_bw;
+            theta(end) = theta_bw;
         elseif medtherm
             % temperature in the material
             Tm = X(imedtherm);
             theta_bw = fzero(@f_bubble_wall_thermal_bc,theta_bw_guess,foptions);
             theta_bw_guess = theta_bw;
+            theta(end) = theta_bw;
         else
             theta_bw = 0;
         end
@@ -341,71 +350,74 @@ function varargout = m_imr_fd(varargin)
             count_theta = count_theta + 1;
         end
         
+        % bubble temperature
         if masstrans
-            theta(end) = theta_bw;
             T = f_theta_of_T(theta,0);
         elseif bubtherm
-            theta(end) = theta_bw;
             T = f_theta_of_T(theta,kv0);
         end
         
-        % equations of motion
+        % bubble equations of motion
         if bubtherm && masstrans
             % vapor concentration at the boundary
             kv(end) = f_kv_of_T(T(end),P);
-            % temperature field of the gas inside the bubble
+
+            % temperature field gradients inside the bubble
             dtheta  = dmatrix_Tkv*theta;
             ddtheta = ddmatrix_Tkv*theta;
-            % concentration of vapor inside the bubble
+
+            % vapor concentration gradients inside the bubble
             dkv     = dmatrix_Tkv*kv;
             ddkv    = ddmatrix_Tkv*kv;
             Rmix    = kv*Rv_star + (1-kv)*Rg_star;
             RDkv    = (Rva_diff./Rmix).*dkv;
             
-            % internal pressure equation
+            % bubble pressure equation
             Pdot = 3/R*(chi*(kappa-1)*dtheta(end)/R - kappa*P*Rdot +...
                 + kappa*P*Fom*Rv_star*dkv(end)/(T(end)*R*Rmix(end)*(1-kv(end))));
             
-            % internal bubble velocity
+            % bubble wall velocity equation
             Uvel = (chi/R*(kappa-1).*dtheta-y*R*Pdot/3)/(kappa*P) + Fom/R*RDkv;
             
-            % calculate mixture thermal conductivity
+            % mixture thermal conductivity
             alpha_mix  = kv.*alpha_v + (1-kv).*alpha_g;
             Kstar_g = alpha_g*T+beta_g;
             Kstar_v = alpha_v*T+beta_v;
             Kstar   = kv.*Kstar_v + (1-kv).*Kstar_g;
             
-            % temperature of the gas inside the bubble
+            % temperature evolution inside the bubble
             nonlinear_term = (chi*ddtheta./R^2+Pdot).*(kapover*Kstar.*T/P);
             advection_term = -dtheta.*(Uvel-y*Rdot)/R;
             mass_diffusion = (Fom/(R^2)).*(Rva_diff./Rmix).*dkv.*dtheta;
             thetadot = advection_term + nonlinear_term + mass_diffusion;
+            % temperature at bubble wall, handled by flux boundary bc
             thetadot(end) = 0;
             
-            % vapor equations inside the bubble
+            % water vapor evolution inside the bubble
             nonlinear_diffusion = ...
                 dkv.*(dtheta./(sqrt(1+2*alpha_mix.*theta).*T)+RDkv);
             advection_term =  (Uvel-Rdot.*y)/R.*dkv;
             kvdot = Fom/R^2*(ddkv - nonlinear_diffusion) - advection_term;
+            % concentration at bubble wall, handled by flux boundary bc
             kvdot(end) = 0;
             
         elseif bubtherm
-            % calculate mixture thermal conductivity
+            % mixture thermal conductivity
             Kstar_g = alpha_g*T+beta_g;
             Kstar_v = alpha_v*T+beta_v;
             Kstar   = kv0.*Kstar_v + (1-kv0).*Kstar_g;
             
-            % temperature gradients
+            % bubble temperature gradients
             dtheta  = dmatrix_Tkv*theta;
             ddtheta = ddmatrix_Tkv*theta;
             
-            % internal pressure equation
+            % bubble pressure evolution equation
             Pdot = 3/R*(chi*(kappa-1)*dtheta(end)/R - kappa*P*Rdot);
             
-            % internal bubble velocity
+            % internal bubble velocity equation
             Uvel = (chi/R*(kappa-1).*dtheta-y*R*Pdot/3)/(kappa*P);
             
-            % temperature of the gas inside the bubble
+            % bubble temperature evolution equation
             diffusion_term = (chi*ddtheta./R^2+Pdot).*(kapover*Kstar.*T/P);
             advection_term = -dtheta.*(Uvel-y*Rdot)./R;
             thetadot = advection_term + diffusion_term;
@@ -417,12 +429,15 @@ function varargout = m_imr_fd(varargin)
             Pdot = 0;
         end
         
-        % updating the viscous forces/Reynolds number
+        % surroundings equations of motion
+
+        % viscous forces/Reynolds number
         if nu_model ~= 0
             [fnu,intfnu,dintfnu,ddintfnu] = f_viscosity(nu_model,Rdot, ...
                 R,v_a,v_nc,v_lambda_star);
         end
         
+        % surrounding temperature
         if medtherm
             % boundary temperature
             Tm(1) = T(end);
@@ -437,6 +452,7 @@ function varargout = m_imr_fd(varargin)
             [taugradu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
                 Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
                 ivisco2,fnu,DRe);
+            % surrounding temperature evolution equation
             Tmdot = advection + diffusion + taugradu;
             % sets boundary condition on temperature
             Tmdot(1) = 0;
@@ -450,7 +466,7 @@ function varargout = m_imr_fd(varargin)
         [S,Sdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8, ...
             Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
         
-        % bubble wall acceleration
+        % bubble wall evolution / acceleration
         [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, S, ...
             Sdot, Cstar, sam, no, GAMa, nstate, nog, hugoniot_s, JdotA, ...
             ddintfnu, iDRe);
@@ -468,21 +484,21 @@ function varargout = m_imr_fd(varargin)
     end
     % end of solver
     
-    % functions called by solver
+    % solver functions 
     
-    % calculates the temperature at the bubble wall as a function of theta
+    % temperature at the bubble wall as a function of theta
     function Tw = f_theta_of_T(theta_w,kv)
         alpha_m  = kv.*alpha_v + (1-kv).*alpha_g;
         Tw = (alpha_m - 1 + sqrt(1+2*theta_w.*alpha_m)) ./ alpha_m;
     end
     
-    % calculates the concentration at the bubble wall
+    % concentration at the bubble wall
     function kv_w = f_kv_of_T(Tw,pres)
         theta_var = Rvg_ratio*(pres./(f_pvsat(Tw*T8)/P8)-1);
         kv_w = 1./(1+theta_var);
     end
     
-    % solves temperature boundary conditions at the bubble wall
+    % temperature boundary conditions at the bubble wall, full
     function theta_w = f_bubble_wall_full_bc(theta_bw)
         
         Tm_trans = Tm(2:3);
@@ -503,7 +519,7 @@ function varargout = m_imr_fd(varargin)
         
     end
     
-    % solves temperature boundary conditions at the bubble wall
+    % temperature boundary conditions at the bubble wall, thermal only
     function theta_w = f_bubble_wall_thermal_bc(theta_bw)
         
         Tm_trans = Tm(2:3);
@@ -517,7 +533,7 @@ function varargout = m_imr_fd(varargin)
         
     end
     
-    % Creates finite difference matrices
+    % finite difference matrices
     % nodes: Number of nodes
     % order: order of differentiation ( 1st derivative vs 2nd derivative)
     % Tm_check: 0 not for external temp , 1 used for external temp

@@ -61,6 +61,9 @@ function varargout = m_imr_spectral(varargin)
     % output options
     dimensionalout  = out_opts(1);
     progdisplay     = out_opts(2);
+    tref            = out_opts(3);
+    Rref            = out_opts(4);
+    Uref            = out_opts(5);
     
     % physical parameters
     
@@ -131,14 +134,14 @@ function varargout = m_imr_spectral(varargin)
     xi = cos(pi*(0:Mt)'/Mt);
     % ze = cos(pi*(1:Nv)'/Nv);
     % collocation matrix construction
-    [gA,gAI,~,~,gAPd,gAPdd] = dcdmtxe(Nt);
-    [mA,~,~,~,mAPd,mAPdd] = dcdmtx(Mt);
-    % [gC,gCI,~,~,~,~] = dcdmtxe(Nt);
+    [gA,gAI,~,~,gAPd,gAPdd] = f_dcdmtxe(Nt);
+    [mA,~,~,~,mAPd,mAPdd] = f_dcdmtx(Mt);
+    % [gC,gCI,~,~,~,~] = f_dcdmtxe(Nt);
     Q = [gA(2:end,:) zeros(Nt,Mt+1);
     zeros(Mt,Nt+1) mA(2:end,:);
     2*(0:Nt).^2 iota*(0:Mt).^2];
     Q = sparse(Q);
-    % [sCA,sCI,sCAd,~,~,~] = dcdmtx(Nv);
+    % [sCA,sCI,sCAd,~,~,~] = f_dcdmtx(Nv);
     % sCA = sCA(2:end,2:end) - 1;
     % sCI = sCI(2:end,2:end);
     % sCAd = sCAd(2:end,2:end);
@@ -162,7 +165,7 @@ function varargout = m_imr_spectral(varargin)
     % precomputations for viscous dissipation
     zT = 1 - 2./(1 + (yT - 1)/Lv);
     ZZT = cos(acos(zT)*(1:Nv)) - 1;
-    cdd = preStressInt(Lv,Nv);
+    cdd = f_preStressInt(Lv,Nv);
     
     % index management
     if spectral == 0
@@ -248,13 +251,13 @@ function varargout = m_imr_spectral(varargin)
         %trr = c;
         %t00 = d;
     end
-    % dimensionalization
+    
+    % transform variables back into their dimensional form
     if dimensionalout == 1
-        % re-dimensionalize problem
-        t = t*tc;
+        t = t*tref;
         R = R*Rref;
-        Rdot = Rdot*uc;
-        P = P*p0;
+        Rdot = Rdot*Uref;
+        P = P*P8;
         T = T*T8;
         %pA = pA*p0;
         % c = c*p0;
@@ -278,13 +281,18 @@ function varargout = m_imr_spectral(varargin)
     varargout{2} = R;
     varargout{3} = Rdot;
     varargout{4} = P;
-    varargout{5} = T;
-    if bubtherm == 1 && medtherm == 1
+    if bubtherm == 1
+        varargout{5} = T;
+    else
+        varargout{5} = [];
+    end
+    if medtherm == 1
         varargout{6} = Tm;
     else
         varargout{6} = ((T8 - 1)*dimensionalout + 1)*ones(size(t,1),1);
     end
-    
+    varargout{7} = [];
+
     % solver function
     function dXdt = SVBDODE(t,X)
         
@@ -310,7 +318,7 @@ function varargout = m_imr_spectral(varargin)
                 R,v_a,v_nc,v_lambda_star);
         end
         
-        % non-condensible gas pressure and temperature
+        % bubble equations of motion
         if bubtherm
             % extract auxiliary temperature
             theta = gA*X(ia);
@@ -324,10 +332,10 @@ function varargout = m_imr_spectral(varargin)
             T = (alpha_g - 1 + sqrt(1+2*alpha_g*theta))/alpha_g;
             D = kapover*(alpha_g*T.^2 + beta_g*T)/P;
             
-            % internal bubble pressure
+            % bubble pressure equation
             Pdot = 3/R*((kappa-1)*chi/R*dtheta(1) - kappa*P*Rdot);
             
-            % internal bubble velocity
+            % bubble wall velocity equation
             U_vel = chi/R^2*(2*D./y - kapover/P*(dtheta-dtheta(1)*y));
             
             % auxiliary temperature derivative
@@ -336,11 +344,14 @@ function varargout = m_imr_spectral(varargin)
             thetadot(end) = Pdot*D(end) - chi/R^2*(8*D(end)*sum(nn.*X(ia)) ...
                 + kapover/P*dtheta(end)^2) + chi*D(end)/R^2.*ddtheta(end);
             
-            if medtherm % warm-liquid
+            % surroundings equations of motion
+
+            % surrounding temperature
+            if medtherm 
                 % extract medium temperature
                 Tm = mA*X(ib);
                 
-                % new derivative of medium temperature
+                % material temperature equations
                 advection = (1+xi).^2/(Lt*R).*...
                     (Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
                     Rdot/2*(1./yT2 - yT)).*(mAPd*Tm);
@@ -349,6 +360,7 @@ function varargout = m_imr_spectral(varargin)
                 [taugradu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
                     Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
                     ivisco2,fnu,DRe);
+                % surrounding temperature evolution equation
                 Tmdot = advection + diffusion + taugradu;
                 
                 % enforce boundary condition and solve A*x=b problem
@@ -377,7 +389,7 @@ function varargout = m_imr_spectral(varargin)
         [S,Sdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8, ...
             Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
         
-        % bubble wall acceleration
+        % bubble wall evolution / acceleration
         [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, S, ...
             Sdot, Cstar, sam, no, GAMa, nstate, nog, hugoniot_s, JdotA, ...
             ddintfnu, iDRe);
@@ -403,8 +415,9 @@ function varargout = m_imr_spectral(varargin)
 end
 
 % precomputation functions
-function [A,B,D,E,C,F] = dcdmtx(N)
-    %FCD	Discrete Chebyshev derivative matrices
+
+% discrete Chebyshev derivative matrices, FCD
+function [A,B,D,E,C,F] = f_dcdmtx(N)
     
     jj = 0:N;
     jj2 = jj.^2;
@@ -441,8 +454,8 @@ function [A,B,D,E,C,F] = dcdmtx(N)
     
 end
 
-function [A,B,D,E,C,F] = dcdmtxe(N)
-    %FCD	Even discrete Chebyshev derivative matrices
+% even discrete Chebyshev derivative matrices, FCD
+function [A,B,D,E,C,F] = f_dcdmtxe(N)
     
     jj = 2*(0:N);
     jj2 = jj.^2;
@@ -477,8 +490,8 @@ function [A,B,D,E,C,F] = dcdmtxe(N)
     
 end
 
-
-function cdd = preStressInt(L,N)
+% prestress integrals
+function cdd = f_preStressInt(L,N)
     
     % integral precomputations
     Lstr = ['L' num2str(L,18)];
@@ -502,7 +515,7 @@ function cdd = preStressInt(L,N)
     end
     if Nstart ~= 0 % begin extended precomputation
         
-        store.(Lstr)(Nstart:N) = StressInt(L,N,Nstart);
+        store.(Lstr)(Nstart:N) = f_StressInt(L,N,Nstart);
         save('stress_store.mat','store');
         disp('Precomputation completed.');
         
@@ -511,7 +524,8 @@ function cdd = preStressInt(L,N)
     
 end
 
-function cdd = StressInt(L,N,varargin)
+% 
+function cdd = f_StressInt(L,N,varargin)
     
     if nargin == 2
         k = 1;
