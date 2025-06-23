@@ -1,149 +1,131 @@
-% file s_generate_goldendata.m
-% brief contains script to generate golden data for IMR compatibility
+% file s_generate_compatibility.m
+% brief contains script to generate golden data for IMR compatibility cases
 
-% brief This script generates the golden data for various test suites used
-% for IMR
+% brief This script generates the golden data for compatibility cases
 clc;
 clear;
-close;
+close all;
 
 addpath('../toolchain/');
 addpath('../src/forward_solver/');
 addpath('../tests/');
 load('file_ids.mat');
 
-% test case parameters
-tvector = linspace(0,12E-6,100);
-threshold = 5;
-collapse = 1;
-masstrans = 0;
-vapor = 1;
-R0 = 50e-6;
-Req = R0/10;
-muvec = linspace(10^-4,10^-1,2);
-Gvec = linspace(10^2,0.25*10^4,2);
-alphaxvec = linspace(10^-3,10^0,2);
-lambda1vec = linspace(10^-7,10^-3,2);
-radial_vec = 1:4;
+% constants / vectors
+tvector     = linspace(0,12e-6,100);
+threshold   = 5;
+collapse    = 0;
+masstrans   = 0;
+vapor       = 1;
+R0          = 50e-6;
+Req         = R0/10;
+
+muvec       = linspace(1e-4,1e-1,2);
+Gvec        = linspace(1e2,0.25e4,2);
+alphaxvec   = linspace(1e-3,1,2);
+lambda1vec  = linspace(1e-7,1e-3,2);
+
+radial_vec   = 1:4;
 bubtherm_vec = 0:1;
 medtherm_vec = 0:1;
-stress_vec = 0:5;
+stress_vec   = 0:5;
 
-dims = [numel(lambda1vec), numel(alphaxvec), numel(Gvec), numel(muvec), ...
-    numel(stress_vec), numel(medtherm_vec), numel(bubtherm_vec), ...
+% indexing: keep only valid combinations
+dims       = [numel(lambda1vec) numel(alphaxvec) numel(Gvec) numel(muvec) ...
+    numel(stress_vec) numel(medtherm_vec) numel(bubtherm_vec) ...
     numel(radial_vec)];
-total_comb = prod(dims);
+total_full = prod(dims);
 
-filenames_fd = cell(total_comb,1);
-filenames_sp = cell(total_comb,1);
-for idx = 1:total_comb
+idx_all = 1:total_full;
+[~,~,~,~,~,med_i,bub_i,~] = ind2sub(dims, idx_all);
+valid_idx = idx_all(~(bubtherm_vec(bub_i) == 0 & medtherm_vec(med_i) == 1));
+total_valid = numel(valid_idx);
+
+filenames_fd = cell(total_valid,1);
+filenames_sp = cell(total_valid,1);
+for idx = 1:total_valid
     filenames_fd{idx} = sprintf('../tests/%s.mat', ids{idx});
-    filenames_sp{idx} = sprintf('../tests/%s.mat', ids{idx + total_comb});
+    filenames_sp{idx} = sprintf('../tests/%s.mat', ids{idx + total_valid});
 end
 
-% start parallel pool
+% parallel pool
 if isempty(gcp('nocreate'))
-    parpool('local',8);
+    parpool('local',14);
 end
 
-% dispatch parallel jobs
-futures(total_comb) = parallel.FevalFuture;
-
-for idx = 1:total_comb
+% dispatch
+futures(total_valid, 1) = parallel.FevalFuture;
+for k = 1:total_valid
+    idx_full = valid_idx(k);
+    [lambda1_i, alphax_i, G_i, mu_i, stress_i, med_i, bub_i, rad_i] = ind2sub(dims, idx_full);
     
-    [lambda1idx, alphaxidx, Gidx, muidx, stress_idx, medtherm_idx, ...
-        bubtherm_idx, radial_idx] = ind2sub(dims, idx);
-    
-    param_struct = struct( ...
-        'radial', radial_vec(radial_idx), ...
-        'bubtherm', bubtherm_vec(bubtherm_idx), ...
-        'medtherm', medtherm_vec(medtherm_idx), ...
-        'stress', stress_vec(stress_idx), ...
-        'mu', muvec(muidx), ...
-        'G', Gvec(Gidx), ...
-        'alphax', alphaxvec(alphaxidx), ...
-        'lambda1', lambda1vec(lambda1idx), ...
-        'tvector', tvector, ...
-        'vapor', vapor, ...
+    P = struct( ...
+        'radial',   radial_vec(rad_i), ...
+        'bubtherm', bubtherm_vec(bub_i), ...
+        'medtherm', medtherm_vec(med_i), ...
+        'stress',   stress_vec(stress_i), ...
+        'mu',       muvec(mu_i), ...
+        'G',        Gvec(G_i), ...
+        'alphax',   alphaxvec(alphax_i), ...
+        'lambda1',  lambda1vec(lambda1_i), ...
+        'tvector',  tvector, ...
+        'vapor',    vapor, ...
         'collapse', collapse, ...
-        'masstrans', masstrans, ...
-        'Req', Req, ...
-        'R0', R0);
+        'masstrans',masstrans, ...
+        'Req',      Req, ...
+        'R0',       R0);
     
-    futures(idx) = parfeval(@m_generate_goldendata_wrapper, 3, idx, param_struct);
+    futures(k) = parfeval(@f_generate_goldendata_wrapper, 3, k, P);
 end
 
-% collect and save results
-for i = 1:total_comb
+% collect & save
+for i = 1:total_valid
     try
-        [~, Rf, Rs, idx] = fetchNext(futures);
+        [jobID, Rf, Rs] = fetchNext(futures);
         diff = norm(abs(Rf./Rs - 1), 2);
-        if diff < threshold
-            savefile_fd(filenames_fd{idx}, Rf);
-            savefile_sp(filenames_sp{idx}, Rs);
-            fprintf('✓ Saved index %d, diff %+.5E\n', idx, diff);
+        if norm(abs(Rf./Rs - 1), 2) < threshold
+            f_savefile_fd(filenames_fd{jobID}, Rf);
+            f_savefile_sp(filenames_sp{jobID}, Rs);
+            fprintf('✓ Saved index %d, diff %+.5E\n', i, diff);
         else
-            figure(1)
-            hold on;
-            plot(Rf)
-            plot(Rs)
-            error('Mismatch at idx %d, diff %+.5E\n', idx, diff);
+            error('Mismatch at idx %d, diff %+.5E\n', i, diff);
         end
-    catch ME
+    catch
         fprintf('✗ Job %d failed: %s\n', i, ME.message);
         error('stopping');
     end
 end
 
-% optionally shut down the pool
 delete(gcp('nocreate'));
 
-function [Rf, Rs, idx_out] = m_generate_goldendata_wrapper(idx, param_struct)
-    % unpack parameter struct
-    radial   = param_struct.radial;
-    bubtherm = param_struct.bubtherm;
-    medtherm = param_struct.medtherm;
-    stress   = param_struct.stress;
-    mu       = param_struct.mu;
-    G        = param_struct.G;
-    alphax   = param_struct.alphax;
-    lambda1  = param_struct.lambda1;
-    tvector  = param_struct.tvector;
-    vapor    = param_struct.vapor;
-    collapse = param_struct.collapse;
-    masstrans = param_struct.masstrans;
-    Req      = param_struct.Req;
-    R0       = param_struct.R0;
-    
-    varin = {'progdisplay',0,...
-        'radial',radial,...
-        'bubtherm',bubtherm,...
-        'tvector',tvector,...
-        'vapor',vapor,...
-        'medtherm',medtherm,...
-        'masstrans',masstrans,...
-        'collapse',collapse,...
-        'lambda2',0,...
-        'Req',Req,...
-        'R0',R0,...
-        'mu',mu,...
-        'G',G,...
-        'alphax',alphax,...
-        'lambda1',lambda1,...
-        'stress',stress};
-    
-    % rng(12345, 'twister');
-    [~, Rf] = m_imr_fd(varin{:}, 'Nt', 70, 'Mt', 70);
-    [~, Rs] = m_imr_spectral(varin{:}, 'Nt', 12, 'Mt', 12);
-    idx_out = idx;
+% helper functions
+function [Rf, Rs, jobID] = f_generate_goldendata_wrapper(jobID, P)
+    args = {'progdisplay',0,...
+        'radial',P.radial,...
+        'bubtherm',P.bubtherm, ...
+        'tvector',P.tvector,...
+        'vapor',P.vapor,...
+        'medtherm',P.medtherm,...
+        'masstrans',P.masstrans,...
+        'collapse',P.collapse,...
+        'lambda2',0, ...
+        'Req',P.Req,...
+        'R0',P.R0,...
+        'mu',P.mu,...
+        'G',P.G,...
+        'alphax',P.alphax, ...
+        'lambda1',P.lambda1,...
+        'stress',P.stress};
+    [~, Rf] = m_imr_fd(args{:}, 'Nt', 70, 'Mt', 70);
+    [~, Rs] = m_imr_spectral(args{:}, 'Nt', 12, 'Mt', 12);
 end
 
-function savefile_fd(filename,data)
+function f_savefile_fd(filename, data)
     Rf = data;
-    save(filename,"Rf");
+    save(filename, 'Rf', '-v7');
 end
 
-function savefile_sp(filename,data)
+function f_savefile_sp(filename, data)
     Rs = data;
-    save(filename,"Rs");
+    save(filename, 'Rs', '-v7');
 end

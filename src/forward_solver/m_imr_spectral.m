@@ -292,7 +292,7 @@ function varargout = m_imr_spectral(varargin)
         varargout{6} = ((T8 - 1)*dimensionalout + 1)*ones(size(t,1),1);
     end
     varargout{7} = [];
-
+    
     % solver function
     function dXdt = SVBDODE(t,X)
         
@@ -345,9 +345,9 @@ function varargout = m_imr_spectral(varargin)
                 + kapover/P*dtheta(end)^2) + chi*D(end)/R^2.*ddtheta(end);
             
             % surroundings equations of motion
-
+            
             % surrounding temperature
-            if medtherm 
+            if medtherm
                 % extract medium temperature
                 Tm = mA*X(ib);
                 
@@ -524,7 +524,7 @@ function cdd = f_preStressInt(L,N)
     
 end
 
-% 
+%
 function cdd = f_StressInt(L,N,varargin)
     
     if nargin == 2

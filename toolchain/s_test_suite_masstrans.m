@@ -19,21 +19,21 @@ threshold = 1e-5;
 
 fprintf('Checking L2 norm errors...\n');
 count = 1;
-shift = 4*2*2*6*2*2*2*2*2;
+shift = 4*2*2*6*2*2*2*2*2 - 4*1*1*6*2*2*2*2;
 
 % mass transfer test case
 tvector = linspace(0,50E-6,100);
 masstrans = 1;
 vapor = 1;
-collapse = 1;
+collapse = 0;
 R0 = 2.0e-04;
 Req = 3.5e-05;
 radial_vec = 1:4;
-bubtherm_vec = 0:1;
-medtherm_vec = 0:1;
+bubtherm_vec = 1;
+medtherm_vec = 1;
 stress_vec = 0:5;
 
-total_combinations = 4*2*2*6;
+total_combinations = 4*1*1*6;
 
 for idx_mass = 1:total_combinations
     % indices

@@ -20,7 +20,7 @@ masstrans       = 0;
 % final time (s)
 TFin            = 20e-6;
 % time span vector
-TVector         = [0 TFin];
+TVector         = linspace(0,TFin,128);
 % ode45 setting for the time stepper
 method          = 23;
 % force spectral collocation solution

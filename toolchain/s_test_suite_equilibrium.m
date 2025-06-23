@@ -32,7 +32,7 @@ for radial = 1:4
     for bubtherm = 0:1
         for medtherm = 0:1
             for vapor = 0:1
-                for stress = 0:5                    
+                for stress = 0:5
                     if bubtherm == 0 && medtherm == 1
                         continue;
                     end
@@ -76,8 +76,10 @@ failed_tests(failed_tests == 0) = [];
 
 if isempty(failed_tests)
     fprintf('✅ All tests PASSED.\n');
-    exit(0); % Success
+    % Success
+    exit(0);
 else
     fprintf('❌ Tests FAILED at indices: %s\n', sprintf('%d ', failed_tests));
-    exit(1); % Fail the workflow
+    % Fail the workflow
+    exit(1);
 end

@@ -11,23 +11,23 @@ addpath('../src/forward_solver/');
 addpath('../tests/');
 load('file_ids.mat');
 
-total_comb = 4*2*2*6*2*2*2*2*2;
+total_comb = 4*2*2*6*2*2*2*2*2 - 4*1*1*6*2*2*2*2;
 
 % mass transfer test case
 tvector = linspace(0,50E-6,100);
 masstrans = 1;
 vapor = 1;
-collapse = 1;
+collapse = 0;
 R0 = 2.0e-04;
 Req = 3.5e-05;
 radial_vec = 1:4;
-bubtherm_vec = 0:1;
-medtherm_vec = 0:1;
+bubtherm_vec = 1;
+medtherm_vec = 1;
 stress_vec = 0:5;
 count = 1;
 
 % precompute combinations
-total_combinations = 4*2*2*6;
+total_combinations = 4*1*1*6;
 
 filenames_mass = cell(total_combinations,1);
 for idx = 1:total_combinations
@@ -66,7 +66,7 @@ for idx_mass = 1:total_combinations
         'req', Req, ...
         'masstrans', masstrans};
     
-    futures(idx_mass) = parfeval(@m_imr_fd_wrapper, 1, varin);
+    futures(idx_mass) = parfeval(@f_imr_fd_wrapper, 1, varin);
     % Rm = m_imr_fd_wrapper(varin);
     % savefile_fd(filenames_mass{idx_mass}, Rm);
 end
@@ -74,14 +74,14 @@ end
 % save results in the correct order
 for idx_mass = 1:total_combinations
     [completedIdx, result] = fetchNext(futures);
-    savefile_fd(filenames_mass{completedIdx}, result);
+    f_savefile_fd(filenames_mass{completedIdx}, result);
     fprintf('Saved result %d to %s\n', completedIdx, filenames_mass{completedIdx});
 end
 
 delete(gcp('nocreate'));
 
 % deterministic setup per worker
-function Rm = m_imr_fd_wrapper(varin)
+function Rm = f_imr_fd_wrapper(varin)
     % fixed RNG seed
     rng(12345, 'twister');
     [~, Rm] = m_imr_fd(varin{:}, 'Nt', 30, 'Mt', 70);
@@ -89,7 +89,7 @@ end
 
 
 % savefile function
-function savefile_fd(filename, data)
+function f_savefile_fd(filename, data)
     Rm = data;
     save(filename, 'Rm');
 end

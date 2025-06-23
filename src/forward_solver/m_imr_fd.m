@@ -64,7 +64,7 @@ function varargout = m_imr_fd(varargin)
     tref            = out_opts(3);
     Rref            = out_opts(4);
     Uref            = out_opts(5);
-
+    
     % physical parameters
     
     % acoustic parameters
@@ -231,7 +231,8 @@ function varargout = m_imr_fd(varargin)
     kv0vec;
     Szero];
     
-    theta_bw_vec = zeros(length(tspan),1);
+    ltspan = length(tspan);
+    theta_bw_vec = zeros(ltspan,1);
     count_theta = 2;
     theta_bw_guess = -0.0001;
     foptions = optimset('TolFun',1e-10);
@@ -345,14 +346,14 @@ function varargout = m_imr_fd(varargin)
         end
         
         % storing the temperature at the bubble wall boundary, simplest way
-        if (t > tspan(count_theta)-1e-8)
+        if (t > (tspan(count_theta)-1e-13) && count_theta < ltspan)
             theta_bw_vec(count_theta) = theta_bw;
             count_theta = count_theta + 1;
         end
         
         % bubble temperature
         if masstrans
-            T = f_theta_of_T(theta,0);
+            T = f_theta_of_T(theta,kv);
         elseif bubtherm
             T = f_theta_of_T(theta,kv0);
         end
@@ -361,11 +362,11 @@ function varargout = m_imr_fd(varargin)
         if bubtherm && masstrans
             % vapor concentration at the boundary
             kv(end) = f_kv_of_T(T(end),P);
-
+            
             % temperature field gradients inside the bubble
             dtheta  = dmatrix_Tkv*theta;
             ddtheta = ddmatrix_Tkv*theta;
-
+            
             % vapor concentration gradients inside the bubble
             dkv     = dmatrix_Tkv*kv;
             ddkv    = ddmatrix_Tkv*kv;
@@ -430,7 +431,7 @@ function varargout = m_imr_fd(varargin)
         end
         
         % surroundings equations of motion
-
+        
         % viscous forces/Reynolds number
         if nu_model ~= 0
             [fnu,intfnu,dintfnu,ddintfnu] = f_viscosity(nu_model,Rdot, ...
@@ -484,7 +485,7 @@ function varargout = m_imr_fd(varargin)
     end
     % end of solver
     
-    % solver functions 
+    % solver functions
     
     % temperature at the bubble wall as a function of theta
     function Tw = f_theta_of_T(theta_w,kv)

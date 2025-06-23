@@ -12,7 +12,7 @@ addpath('../src/forward_solver/');
 addpath('../tests');
 load('file_ids.mat');
 
-num_tests = 4*2*2*6*2*2*2*2;
+num_tests = 4*2*2*6*2*2*2*2 - 4*1*1*6*2*2*2*2;
 errors_fd = zeros(num_tests,1);
 errors_sp = zeros(num_tests,1);
 failed_tests = zeros(size(errors_sp));
@@ -22,7 +22,7 @@ fprintf('Checking L2 norm errors...\n');
 % equation options
 tvector = linspace(0,12E-6,100);
 threshold = 1e-4;
-collapse = 1;
+collapse = 0;
 masstrans = 0;
 vapor = 1;
 count = 1;
@@ -105,9 +105,12 @@ failed_tests(failed_tests == 0) = [];
 if isempty(failed_tests)
     % success
     fprintf('✅ All tests PASSED.\n');
-    exit(0); % Success
+    % success
+    exit(0);
 else
     % fail the workflow
     fprintf('❌ Tests FAILED at indices: %s\n', sprintf('%d ', failed_tests));
     error('Test failed');
+    % failed
+    exit(1);
 end
