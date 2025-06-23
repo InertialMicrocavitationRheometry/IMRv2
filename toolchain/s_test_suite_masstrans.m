@@ -58,7 +58,7 @@ for idx_mass = 1:total_combinations
         'r0',R0,...
         'req',Req,...
         'masstrans',masstrans};
-    [~,Rm_test] = m_imr_fd(varin{:},'Nt',30,'Mt',70);
+    [~,Rm_test] = f_imr_fd(varin{:},'Nt',30,'Mt',70);
     errors_fd(count) = norm(abs(Rm./Rm_test - 1),2);
     fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
     if (errors_fd(count) > threshold)

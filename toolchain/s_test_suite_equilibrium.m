@@ -47,8 +47,8 @@ for radial = 1:4
                         'Req',Req,...
                         'R0',R0,...
                         't8',T8};
-                    [~,Rf_test] = m_imr_fd(varin{:},'Nt',150,'Mt',150);
-                    [~,Rs_test] = m_imr_spectral(varin{:},'Nt',12,'Mt',12);
+                    [~,Rf_test] = f_imr_fd(varin{:},'Nt',150,'Mt',150);
+                    [~,Rs_test] = f_imr_spectral(varin{:},'Nt',12,'Mt',12);
                     errors_fd(count) = abs(norm(Rf_test,2)/10-1);
                     errors_sp(count) = abs(norm(Rs_test,2)/10-1);
                     fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));

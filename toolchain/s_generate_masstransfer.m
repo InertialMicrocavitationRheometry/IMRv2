@@ -67,8 +67,6 @@ for idx_mass = 1:total_combinations
         'masstrans', masstrans};
     
     futures(idx_mass) = parfeval(@f_imr_fd_wrapper, 1, varin);
-    % Rm = m_imr_fd_wrapper(varin);
-    % savefile_fd(filenames_mass{idx_mass}, Rm);
 end
 
 % save results in the correct order
@@ -84,7 +82,7 @@ delete(gcp('nocreate'));
 function Rm = f_imr_fd_wrapper(varin)
     % fixed RNG seed
     rng(12345, 'twister');
-    [~, Rm] = m_imr_fd(varin{:}, 'Nt', 30, 'Mt', 70);
+    [~, Rm] = f_imr_fd(varin{:}, 'Nt', 30, 'Mt', 70);
 end
 
 

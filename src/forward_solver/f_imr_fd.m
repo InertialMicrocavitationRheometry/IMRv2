@@ -494,8 +494,8 @@ function varargout = m_imr_fd(varargin)
     end
     
     % concentration at the bubble wall
-    function kv_w = f_kv_of_T(Tw,pres)
-        theta_var = Rvg_ratio*(pres./(f_pvsat(Tw*T8)/P8)-1);
+    function kv_w = f_kv_of_T(Tw,pressure)
+        theta_var = Rvg_ratio*(pressure./(f_pvsat(Tw*T8)/P8)-1);
         kv_w = 1./(1+theta_var);
     end
     

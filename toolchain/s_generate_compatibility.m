@@ -116,8 +116,8 @@ function [Rf, Rs, jobID] = f_generate_goldendata_wrapper(jobID, P)
         'alphax',P.alphax, ...
         'lambda1',P.lambda1,...
         'stress',P.stress};
-    [~, Rf] = m_imr_fd(args{:}, 'Nt', 70, 'Mt', 70);
-    [~, Rs] = m_imr_spectral(args{:}, 'Nt', 12, 'Mt', 12);
+    [~, Rf] = f_imr_fd(args{:}, 'Nt', 70, 'Mt', 70);
+    [~, Rs] = f_imr_spectral(args{:}, 'Nt', 12, 'Mt', 12);
 end
 
 function f_savefile_fd(filename, data)

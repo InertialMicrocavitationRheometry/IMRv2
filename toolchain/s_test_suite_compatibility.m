@@ -68,7 +68,7 @@ for radial = 1:4
                                 
                                 filename1 = strcat('../tests/',ids{count+0},'.mat');
                                 load(filename1);
-                                [~,Rf_test] = m_imr_fd(varin{:},'Nt',70,'Mt',70);
+                                [~,Rf_test] = f_imr_fd(varin{:},'Nt',70,'Mt',70);
                                 errors_fd(count) = norm(abs(Rf./Rf_test - 1),2);
                                 fprintf('Finite test %d: L2 norm error = %.6e\n', count, errors_fd(count));
                                 if (errors_fd(count) > threshold)
@@ -77,7 +77,7 @@ for radial = 1:4
                                 
                                 filename2 = strcat('../tests/',ids{count+num_tests},'.mat');
                                 load(filename2);
-                                [~,Rs_test] = m_imr_spectral(varin{:},'Nt',12,'Mt',12);
+                                [~,Rs_test] = f_imr_spectral(varin{:},'Nt',12,'Mt',12);
                                 errors_sp(count) = norm(abs(Rs./Rs_test - 1),2);
                                 fprintf('Spectral test %d: L2 norm error = %.6e\n', count, errors_sp(count));
                                 if (errors_sp(count) > threshold)
