@@ -4,7 +4,7 @@
 % brief This module features a Chebyshev spectral collocation solver of the
 % PDEs involving thermal transport and viscoelasticity to solve
 % Rayleigh-Plesset equations
-function varargout = m_imr_spectral(varargin)
+function varargout = f_imr_spectral(varargin)
     
     % problem initialization
     [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
