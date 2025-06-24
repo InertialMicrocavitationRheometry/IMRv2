@@ -14,13 +14,13 @@ T8 = 298.15;
 rho8 = 998.2;
 mu = 1e-2;
 Gelastic = 0;
-tvector = linspace(0,tfin,128);
+tvector = linspace(0,tfin,256);
 radial = 2;
 vapor = 1;
-collapse = 1;
-bubtherm = 1;
-medtherm = 1;
-masstrans = 1;
+collapse = 0;
+bubtherm = 0;
+medtherm = 0;
+masstrans = 0;
 stress = 1;
 varin = {'progdisplay',0,...
          'radial',radial,...
@@ -43,11 +43,11 @@ varin = {'progdisplay',0,...
          't8',T8,...
          'rho8',rho8};
 
-[tfd,Rfd,Rfddot,Pfd,Tfd,Tmfd,kvfd] = m_imr_fd(varin{:},'Nt',70,'Mt',70);
-% [tsp,Rsp,Rspdot,Psp,Tsp,Tmsp,kvsp] = m_imr_spectral(varin{:},'Nt',10,'Mt',10);
+[tfd,Rfd,Rfddot,Pfd,Tfd,Tmfd,kvfd] = f_imr_fd(varin{:},'Nt',70,'Mt',70);
+% [tsp,Rsp,Rspdot,Psp,Tsp,Tmsp,kvsp] = f_imr_spectral(varin{:},'Nt',10,'Mt',10);
 
 figure(1)
 hold on;
-plot(tfd,Rfd,'bs');
+plot(tfd,Rfd,'b-');
 % plot(tsp,Rsp,'r^');
 ylim([0 1]);
