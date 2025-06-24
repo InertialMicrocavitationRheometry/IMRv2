@@ -11,7 +11,7 @@ addpath('../src/forward_solver/');
 addpath('../tests/');
 load('file_ids.mat');
 
-total_comb = 4*2*2*6*2*2*2*2*2 - 4*1*1*6*2*2*2*2;
+shift = 4*2*2*6*2*2*2*2*2 - 4*1*1*6*2*2*2*2;
 
 % mass transfer test case
 tvector = linspace(0,50E-6,100);
@@ -24,25 +24,21 @@ radial_vec = 1:4;
 bubtherm_vec = 1;
 medtherm_vec = 1;
 stress_vec = 0:5;
-count = 1;
-
-% precompute combinations
-total_combinations = 4*1*1*6;
-
-filenames_mass = cell(total_combinations,1);
-for idx = 1:total_combinations
-    filenames_mass{idx} = sprintf('../tests/%s.mat', ids{idx+total_comb});
-end
-
-% ensure the pool is active
-if isempty(gcp('nocreate'))
-    parpool('local',8);
-end
 
 % set up combinations
 dims = [length(stress_vec), length(medtherm_vec), ...
     length(bubtherm_vec), length(radial_vec)];
 total_combinations = prod(dims);
+
+filenames_mass = cell(total_combinations,1);
+for idx = 1:total_combinations
+    filenames_mass{idx} = sprintf('../tests/%s.mat', ids{idx+shift});
+end
+
+% ensure the pool is active
+if isempty(gcp('nocreate'))
+    parpool('local',12);
+end
 
 % parallel dispatch
 futures(total_combinations) = parallel.FevalFuture;
@@ -82,7 +78,7 @@ delete(gcp('nocreate'));
 function Rm = f_imr_fd_wrapper(varin)
     % fixed RNG seed
     rng(12345, 'twister');
-    [~, Rm] = f_imr_fd(varin{:}, 'Nt', 30, 'Mt', 70);
+    [~, Rm] = f_imr_fd(varin{:}, 'Nt', 70, 'Mt', 70);
 end
 
 

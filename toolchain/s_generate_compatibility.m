@@ -50,7 +50,7 @@ end
 
 % parallel pool
 if isempty(gcp('nocreate'))
-    parpool('local',14);
+    parpool('local',10);
 end
 
 % dispatch
@@ -59,7 +59,7 @@ for k = 1:total_valid
     idx_full = valid_idx(k);
     [lambda1_i, alphax_i, G_i, mu_i, stress_i, med_i, bub_i, rad_i] = ind2sub(dims, idx_full);
     
-    P = struct( ...
+    params = struct( ...
         'radial',   radial_vec(rad_i), ...
         'bubtherm', bubtherm_vec(bub_i), ...
         'medtherm', medtherm_vec(med_i), ...
@@ -75,7 +75,7 @@ for k = 1:total_valid
         'Req',      Req, ...
         'R0',       R0);
     
-    futures(k) = parfeval(@f_generate_goldendata_wrapper, 3, k, P);
+    futures(k) = parfeval(@f_generate_goldendata_wrapper, 3, k, params);
 end
 
 % collect & save
@@ -86,9 +86,9 @@ for i = 1:total_valid
         if norm(abs(Rf./Rs - 1), 2) < threshold
             f_savefile_fd(filenames_fd{jobID}, Rf);
             f_savefile_sp(filenames_sp{jobID}, Rs);
-            fprintf('✓ Saved index %d, diff %+.5E\n', i, diff);
+            fprintf('✓ Saved index %d, diff :: %.5E\n', i, diff);
         else
-            error('Mismatch at idx %d, diff %+.5E\n', i, diff);
+            error('Mismatch at idx %d, diff :: %.5E\n', i, diff);
         end
     catch
         fprintf('✗ Job %d failed: %s\n', i, ME.message);
