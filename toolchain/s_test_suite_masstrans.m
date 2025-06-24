@@ -79,9 +79,9 @@ failed_tests(failed_tests == 0) = [];
 if isempty(failed_tests)
     % success
     fprintf('✅ All tests PASSED.\n');
-    % exit(0);
+    exit(0);
 else
     % fail the workflow
     fprintf('❌ Tests FAILED at indices: %s\n', sprintf('%d ', failed_tests));
-    % error('Tests failed');
+    exit(1);
 end
