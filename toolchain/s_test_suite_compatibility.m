@@ -12,10 +12,6 @@ addpath('../src/forward_solver/');
 addpath('../tests');
 load('file_ids.mat');
 
-
-
-fprintf('Checking L2 norm errors...\n');
-
 % equation options
 tvector = linspace(0,12E-6,100);
 threshold   = 1e-4;
