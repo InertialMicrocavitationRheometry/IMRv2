@@ -235,7 +235,7 @@ function varargout = f_imr_fd(varargin)
     theta_bw_vec = zeros(ltspan,1);
     count_theta = 2;
     theta_bw_guess = -0.0001;
-    foptions = optimset('TolFun',1e-10);
+    foptions = optimset('TolFun',1e-12);
     
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
