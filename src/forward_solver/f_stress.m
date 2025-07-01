@@ -5,7 +5,7 @@
 % solver. The solver accounts for the Kelvin-Voigt with neo-Hookean
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear
 % Jeffreys, linear Zener, UCM and Oldroyd-B
-function [S,Sdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8,...
+function [S,Sdot,Z1dot,Z2dot] = f_stress(stress,X,Req,R,Ca,De,Re8,...
     Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe)
 
 Z1dot = [];

@@ -123,8 +123,6 @@ function varargout = f_imr_fd(varargin)
     Rv_star         = mass_opts(3);
     Rg_star         = mass_opts(4);
     L_heat_star     = mass_opts(5);
-    % mv0             = mass_opts(6);
-    % ma0             = mass_opts(7);
     
     % pre_process
     
@@ -231,9 +229,6 @@ function varargout = f_imr_fd(varargin)
     kv0vec;
     Szero];
     
-    ltspan = length(tspan);
-    theta_bw_vec = zeros(ltspan,1);
-    count_theta = 2;
     theta_bw_guess = -0.0001;
     foptions = optimset('TolFun',1e-12);
     
@@ -249,13 +244,9 @@ function varargout = f_imr_fd(varargin)
     P    = X(:,3);
     if bubtherm
         theta = X(:,ibubtherm);
-        % boundary condition update at the bubble wall
-        theta(:,end) = theta_bw_vec;
         T = f_theta_of_T(theta,kv0);
         if medtherm
             Tm = X(:,imedtherm);
-            % boundary condition matching at the bubble wall
-            Tm(:,1) = T(:,end);
         end
     end
     if masstrans
@@ -341,14 +332,6 @@ function varargout = f_imr_fd(varargin)
             theta_bw = fzero(@f_bubble_wall_thermal_bc,theta_bw_guess,foptions);
             theta_bw_guess = theta_bw;
             theta(end) = theta_bw;
-        else
-            theta_bw = 0;
-        end
-        
-        % storing the temperature at the bubble wall boundary, simplest way
-        if (t > (tspan(count_theta)-1e-13) && count_theta < ltspan)
-            theta_bw_vec(count_theta) = theta_bw;
-            count_theta = count_theta + 1;
         end
         
         % bubble temperature

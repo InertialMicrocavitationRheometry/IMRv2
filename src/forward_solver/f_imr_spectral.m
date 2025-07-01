@@ -386,7 +386,7 @@ function varargout = f_imr_spectral(varargin)
         [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
         
         % stress equation evolution
-        [S,Sdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8, ...
+        [S,Sdot,Z1dot,Z2dot] = f_stress(stress,X,Req,R,Ca,De,Re8, ...
             Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
         
         % bubble wall evolution / acceleration
