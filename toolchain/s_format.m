@@ -87,7 +87,7 @@ for i = 1:length(fileList)
 
             multiLineContinuation = endsWith(line, "...");
 
-            if ~multiLineContinuation && any(startsWith(line, ["if", "parfor", "for", "while", "switch", "function", "try"]))
+            if ~multiLineContinuation && any(startsWith(line, ["if ", "parfor ", "for ", "while ", "switch ", "function", "try"]))
                 indentLevel = indentLevel + 1;
             end
         end

@@ -56,7 +56,7 @@ for radial = 1:4
                     if ( errors_fd(count)  > threshold )
                         failed_tests(count) = count;
                     end
-                    if( errors_sp(count) > threshold )
+                    if ( errors_sp(count) > threshold )
                         failed_tests(count+1) = count+1;
                     end
                     count = count + 2;
