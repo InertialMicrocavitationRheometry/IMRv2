@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://imr.org">
+  <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2">
     <img src="docs/imr.jfif" alt="IMR Banner" width="250"/>
   </a>
 </p>
