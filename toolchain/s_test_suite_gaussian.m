@@ -1,5 +1,6 @@
-% file s_test_suite_equilibrium.m
-% brief contains script to test for equilibrium conditions
+% file s_test_suite_gaussian.m
+% brief contains script to test for equilibrium conditions from a Gaussian
+% pressure impulse
 
 % brief This script runs both the finite difference and spectral codes to
 % test that initial equilibrium conditions are satisfied
@@ -60,7 +61,6 @@ for radial = 1:4
                         'tw',tw,...
                         'pA',pA};
                     [ttest,Rf_test] = f_imr_fd(varin{:},'Nt',50,'Mt',50);
-                    plot(ttest,Rf_test)
                     errors_fd(count) = abs(1-Rf_test(end));
                     fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
                     [~,Rs_test] = f_imr_spectral(varin{:},'Nt',12,'Mt',12);

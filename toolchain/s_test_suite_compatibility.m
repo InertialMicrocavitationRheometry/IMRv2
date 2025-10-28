@@ -92,7 +92,6 @@ for k = 1:total_valid
     
 end
 
-
 % find the last non-empty cell index
 lastNonEmptyIdx = find(failed_tests ~= 0, 1, 'last');
 % truncate the array, keeping empty cells within range
@@ -105,10 +104,10 @@ if isempty(failed_tests)
     % success
     fprintf('✅ All tests PASSED.\n');
     % success
-    % exit(0);
+    exit(0);
 else
     % fail the workflow
     fprintf('❌ Tests FAILED at indices: %s\n', sprintf('%d ', failed_tests));
     % failed
-    % exit(1);
+    exit(1);
 end
