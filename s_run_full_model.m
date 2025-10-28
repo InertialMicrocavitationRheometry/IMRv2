@@ -2,17 +2,14 @@ clc;
 clear;
 close;
 
-addpath('src');
+addpath('src/forward_solver/');
 
 % equation options
 R0 = 2.447495043190468e-04;
 Req = 3.008409399929516e-05;
-% Req = 0.122917895573930*R0;
 ratio = Req/R0;
-% Req = R0;
-tfin = R0/3;
-% pzero = 0.001887748193919;
-% cstar = 1.520710024149080e+02;
+Req = R0;
+tfin = 2e-3;
 kappa = 1.4;
 Lheat = 2.378193575129533e+04;
 T8 = 298.15;
@@ -20,10 +17,14 @@ rho8 = 1064;
 tvector = linspace(0,tfin,1000);
 radial = 2;
 vapor = 1;
-bubtherm = 1;
-medtherm = 1;
-masstrans = 1;
+bubtherm = 0;
+medtherm = 0;
+masstrans = 0;
 stress = 1;
+wave_type = 1;
+dt = 3e-4;
+tw = 1e-4;
+pA = 1e5;
 varin = {'progdisplay',0,...
     'radial',radial,...
          'bubtherm',bubtherm,...
@@ -32,22 +33,24 @@ varin = {'progdisplay',0,...
          'medtherm',medtherm,...
          'method',23,...
          'stress',stress,...
-         'mu',0.027606000000000,...
+         'mu',0.5,...
          'g',3.125000000000000e+02,...
          'lambda1',0,...
          'r0',R0,...
          'req',Req,...
          'kappa',kappa,...
-         're',92.055015921905493,...
          'masstrans',masstrans,...
          't8',T8,...
-         'rho8',rho8};
+         'rho8',rho8,...
+         'wave_type',wave_type,...
+         'dt',dt,...
+         'tw',tw,...
+         'pA',pA};
 
-[t1,R1,~] = m_imr_full_model(varin{:},'Nt',50,'Mt',50);
-[t3,R3,~] = m_imr_fd(varin{:},'Nt',50,'Mt',50);
+[t3,R3,U3,P3] = f_imr_fd(varin{:},'Nt',50,'Mt',50);
 
 figure(1)
 hold on;
-plot(t1,R1,'k^')
 plot(t3,R3,'bs')
-ylim([0 1.2])
+% plot(t3,P3,'rs')
+% ylim([0 1.2])

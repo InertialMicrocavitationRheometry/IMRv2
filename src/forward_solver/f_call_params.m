@@ -258,7 +258,7 @@ tvector     = TVector./t0;
 % non-dimensional frequency
 om          = omega*t0;
 ee          = pA/Pref;
-tw          = TW*t0;
+tw          = TW/t0;
 dt          = DT/t0;
 % acoustic properties
 

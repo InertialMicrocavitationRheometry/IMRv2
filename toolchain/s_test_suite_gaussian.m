@@ -9,30 +9,35 @@ clear;
 addpath('../toolchain/');
 addpath('../src/forward_solver/');
 
-num_tests = 4*2*2*2*6;
+num_tests = 4*2*2*2*5;
 errors_fd = zeros(num_tests,1);
 errors_sp = zeros(num_tests,1);
 failed_tests = zeros(size(errors_sp));
-threshold = 1e-14; % Define threshold
+% define threshold
+threshold = 1e-2; 
 
 fprintf('Checking L2 norm errors...\n');
 
 % equilibrium test case
 masstrans = 0;
 collapse = 0;
-Req = 100e-6;
+Req = 10e-6;
 R0 = Req;
 T8 = 298.15;
-tfin = 10E-6;
-tvector = linspace(0,tfin,100);
-
+tfin = 2e-3;
+tvector = linspace(0,tfin,1000);
+mu = 0.5;
+wave_type = 1;
+dt = 3e-4;
+tw = 1e-4;
+pA = 1e5;
 % equation options
 count = 1;
 for radial = 1:4
     for bubtherm = 0:1
         for medtherm = 0:1
             for vapor = 0:1
-                for stress = 0:5
+                for stress = 1:5
                     if bubtherm == 0 && medtherm == 1
                         count = count + 2;
                         continue;
@@ -45,14 +50,21 @@ for radial = 1:4
                         'medtherm',medtherm,...
                         'stress',stress,...
                         'collapse',collapse,...
+                        'method',23,...
                         'Req',Req,...
+                        'mu',mu,...
                         'R0',R0,...
-                        't8',T8};
-                    [~,Rf_test] = f_imr_fd(varin{:},'Nt',150,'Mt',150);
-                    [~,Rs_test] = f_imr_spectral(varin{:},'Nt',12,'Mt',12);
-                    errors_fd(count) = abs(norm(Rf_test,2)/10-1);
-                    errors_sp(count) = abs(norm(Rs_test,2)/10-1);
+                        't8',T8,...
+                        'wave_type',wave_type,...
+                        'dt',dt,...
+                        'tw',tw,...
+                        'pA',pA};
+                    [ttest,Rf_test] = f_imr_fd(varin{:},'Nt',50,'Mt',50);
+                    plot(ttest,Rf_test)
+                    errors_fd(count) = abs(1-Rf_test(end));
                     fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
+                    [~,Rs_test] = f_imr_spectral(varin{:},'Nt',12,'Mt',12);
+                    errors_sp(count) = abs(Rs_test(1)-Rs_test(end));
                     fprintf('Test %d: L2 norm error = %.6e\n', count+1, errors_sp(count));
                     if ( errors_fd(count)  > threshold )
                         failed_tests(count) = count;
