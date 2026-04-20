@@ -1,15 +1,11 @@
 function [] = f_multirun()
-    
-    %% Clear everything
+   
     close;
     clear;
     clc;
-    %%
+    %
     N = 8^4;
     addpath('./src/spectral/')
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % One parameter cases
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Newtonian model
     mu_range1 = logspace(-6,-1,N);
     parfor i = 1:N
@@ -23,10 +19,8 @@ function [] = f_multirun()
         [t,R] = f_imrv2('neohook',1,'g',G_range1(i))
         neohook{i} = [t,R];
     end
-    %%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     % Two parameter case
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Kelvin-Voigt model
     mu_range2 = logspace(-6,-1,N^(1/2));
     G_range2 = logspace(-6,-1,N^(1/2));
@@ -48,10 +42,8 @@ function [] = f_multirun()
         voigt{i} = [t,R];
     end
     voigt = reshape(voigt,[length(mu_range2), length(G_range2)]);
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
     % Three parameter case
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Upper-convected Maxwell model
     mu_range3 = logspace(-6,-1,ceil(N^(1/3)));
     G_range3 = logspace(-6,-1,ceil(N^(1/3)));
@@ -75,9 +67,7 @@ function [] = f_multirun()
     end
     ucm = reshape(ucm,[length(mu_range3), length(G_range3), length(lambda1_range3)]);
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Four parameter case
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Oldroyd-B model
     mu_range4 = logspace(-6,-1,N^(1/4));
     G_range4 = logspace(-6,-1,N^(1/4));
@@ -108,7 +98,4 @@ function [] = f_multirun()
     end
     oldb = reshape(oldb,[length(mu_range4), length(G_range4), ...
         length(lambda1_range4), length(lambda2_range4)]);
-    
-    
-    
 end

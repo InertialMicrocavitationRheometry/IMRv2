@@ -2,7 +2,7 @@ clc;
 clear;
 close;
 
-addpath('src/forward_solver/');
+addpath('src');
 
 % equation options
 R0 = 2.447495043190468e-04;
