@@ -16,7 +16,7 @@ elseif radial == 3
 elseif radial == 4
     eqn = 'Keller-Miksis enthalpy';
 elseif radial == 5
-    eqn = 'Keller-Miksis in enthalpy with Mie-Gruneisen EoS';    
+    eqn = 'Keller-Miksis in enthalpy with Mie-Gruneisen EoS';
 elseif radial == 6
     eqn = 'Gilmore with Mie-Gruneisen EoS';
 else
