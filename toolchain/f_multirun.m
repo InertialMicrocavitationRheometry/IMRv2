@@ -1,7 +1,6 @@
 function [] = f_multirun()
-   
+    
     close;
-    clear;
     clc;
     %
     N = 8^4;
@@ -19,7 +18,7 @@ function [] = f_multirun()
         [t,R] = f_imrv2('neohook',1,'g',G_range1(i))
         neohook{i} = [t,R];
     end
-
+    
     % Two parameter case
     % Kelvin-Voigt model
     mu_range2 = logspace(-6,-1,N^(1/2));
@@ -42,7 +41,7 @@ function [] = f_multirun()
         voigt{i} = [t,R];
     end
     voigt = reshape(voigt,[length(mu_range2), length(G_range2)]);
-   
+    
     % Three parameter case
     % Upper-convected Maxwell model
     mu_range3 = logspace(-6,-1,ceil(N^(1/3)));

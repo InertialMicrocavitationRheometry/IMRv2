@@ -9,7 +9,7 @@ function [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, ...
     R, Rdot, S, Sdot, Cstar, sam, no, GAMa, nstate, nog, hugoniot_s, JdotA, ...
     ddintfnu, iDRe )
 
-% Rayleigh-Plesset
+    % Rayleigh-Plesset
 if radial == 1
     Rddot = (P - 1 - Pf8 - iWe/R + S - 1.5*Rdot^2)/R;
     
@@ -19,17 +19,7 @@ elseif radial == 2
         + R/Cstar*(Pdot + iWe*Rdot/R^2 +  Sdot - Pf8dot) ...
         - 1.5*(1-Rdot/(3*Cstar))*Rdot^2)/((1-Rdot/Cstar)*R + JdotA/Cstar ...
         - 6*ddintfnu*iDRe/Cstar);
-    
-    % if fdkv == 1
-    %     RHS = (1+Rdot/Cstar)...
-        %         *(P  + abs(1-1)*Pv -1/(We*R) + S - 1 - Pext)  ...
-        %         + R/Cstar*(Pdot+ Rdot/(We*R^2) + Sdot -P_ext_prime );
-    %     LHS = (3/2)*(1-Rdot/(3*Cstar))*Rdot^2;
-    %     denom = (1-Rdot/Cstar)*R - (R/Cstar)*Sdd;
-    %
-    %     Rddot = (RHS - LHS)/denom;
-    %
-    
+
     % Keller-Miksis in enthalpy with Tait EoS
 elseif radial == 3
     Pb = P - iWe/R + GAMa + S;

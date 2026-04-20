@@ -13,8 +13,14 @@ elseif radial == 2
     eqn = 'Keller-Miksis pressure';
 elseif radial == 3
     eqn = 'Keller-Miksis enthalpy';
+elseif radial == 4
+    eqn = 'Keller-Miksis enthalpy';
+elseif radial == 5
+    eqn = 'Keller-Miksis in enthalpy with Mie-Gruneisen EoS';    
+elseif radial == 6
+    eqn = 'Gilmore with Mie-Gruneisen EoS';
 else
-    eqn = 'Gilmore';
+    error('INPUT ERROR: radial must be 1-6');
 end
 const = 'none';
 
